@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Misión China 2026 — Lizarte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <span class="brand-zh">龙华</span>
+        <div class="brand-text">
+          <span class="brand-main">MISIÓN CHINA</span>
+          <span class="brand-sub">Lizarte · Junio 2026</span>
+        </div>
+      </div>
+      <div class="header-badge" id="countdown-badge">
+        <span id="countdown-days">—</span>
+        <span class="badge-label">días</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="app-main" id="app-main">
+
+    <!-- ══════════════════════════════════════════
+         Pestaña: General (toda la información conocida)
+    ══════════════════════════════════════════ -->
+    <section class="view active" id="view-general">
+
+      <div class="section-hero">
+        <div class="hero-tag">Información general</div>
+        <h1 class="hero-title">Preparación<br/>en curso</h1>
+        <p class="hero-desc">Misión comercial a Beijing y Shenzhen con soporte del Gobierno de Navarra (PIN) y el CCPIT.</p>
+      </div>
+
+      <!-- TARJETAS DE ESTADO RÁPIDO -->
+      <div class="card-grid">
+        <div class="status-card status-done">
+          <span class="status-icon">✓</span>
+          <div class="status-info">
+            <span class="status-title">Inscripción PIN</span>
+            <span class="status-sub">Misión Shenzhen confirmada</span>
+          </div>
+        </div>
+        <div class="status-card status-done">
+          <span class="status-icon">✓</span>
+          <div class="status-info">
+            <span class="status-title">Brief al CCPIT</span>
+            <span class="status-sub">Dos perfiles enviados</span>
+          </div>
+        </div>
+        <div class="status-card status-done">
+          <span class="status-icon">✓</span>
+          <div class="status-info">
+            <span class="status-title">Folleto en chino</span>
+            <span class="status-sub">Revisado por Ray Lee</span>
+          </div>
+        </div>
+        <div class="status-card status-pending">
+          <span class="status-icon">◎</span>
+          <div class="status-info">
+            <span class="status-title">Agenda B2B CISCE</span>
+            <span class="status-sub">CCPIT trabajando en ello</span>
+          </div>
+        </div>
+        <div class="status-card status-pending">
+          <span class="status-icon">◎</span>
+          <div class="status-info">
+            <span class="status-title">Reunión PIN-Lizarte</span>
+            <span class="status-sub">Por agendar (sem. 5 mayo)</span>
+          </div>
+        </div>
+        <div class="status-card status-pending">
+          <span class="status-icon">◎</span>
+          <div class="status-info">
+            <span class="status-title">Preparación Pamplona</span>
+            <span class="status-sub">Finales de mayo</span>
+          </div>
+        </div>
+        <div class="status-card status-open">
+          <span class="status-icon">○</span>
+          <div class="status-info">
+            <span class="status-title">Catálogo CISCE</span>
+            <span class="status-sub">No disponible aún</span>
+          </div>
+        </div>
+        <div class="status-card status-open">
+          <span class="status-icon">○</span>
+          <div class="status-info">
+            <span class="status-title">Visita BYD</span>
+            <span class="status-sub">Solicitada, sin confirmar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- EQUIPO -->
+      <div class="block-title">Equipo del viaje</div>
+      <div class="team-list">
+        <div class="team-card">
+          <div class="team-initials">ÓH</div>
+          <div class="team-info">
+            <span class="team-name">Óscar Huarte</span>
+            <span class="team-role">CEO / Managing Director</span>
+            <span class="team-email">ohuarte@lizarte.com</span>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-initials">KK</div>
+          <div class="team-info">
+            <span class="team-name">Krum Kovachev</span>
+            <span class="team-role">Innovation Director</span>
+            <span class="team-email">krum@lizarte.com</span>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-initials">JB</div>
+          <div class="team-info">
+            <span class="team-name">Jorge Bobadilla</span>
+            <span class="team-role">R&D Director</span>
+            <span class="team-email">jbobadilla@lizarte.com</span>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-initials">JH</div>
+          <div class="team-info">
+            <span class="team-name">Javier Hualde</span>
+            <span class="team-role">Quality Director</span>
+            <span class="team-email">jhualde@lizarte.com</span>
+          </div>
+        </div>
+        <div class="team-card team-card--highlight">
+          <div class="team-initials">RL</div>
+          <div class="team-info">
+            <span class="team-name">Ray Lee</span>
+            <span class="team-role">Mandarina nativo · Traductor</span>
+            <span class="team-tag">🔑 Activo clave</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           Agenda del viaje
+      ══════════════════════════════════════════ -->
+
+      <div class="section-header">
+        <h2 class="section-title">Agenda del viaje</h2>
+        <p class="section-desc">Beijing · Shenzhen · Junio 2026</p>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="timeline">
+
+        <div class="timeline-city">
+          <div class="city-marker city-beijing">北京</div>
+          <span class="city-label">Beijing</span>
+        </div>
+
+        <div class="timeline-day" data-date="2026-06-22">
+          <div class="day-header">
+            <span class="day-date">Lun 22 junio</span>
+            <span class="day-badge day-badge--feria">CISCE</span>
+          </div>
+          <div class="day-content">
+            <p class="day-note">Llegada a Beijing. Inicio de la feria CISCE.</p>
+            <div class="meeting-slot meeting-slot--empty">
+              <span class="slot-time">Por confirmar</span>
+              <span class="slot-label">Reuniones B2B — CCPIT</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-day" data-date="2026-06-23">
+          <div class="day-header">
+            <span class="day-date">Mar 23 junio</span>
+            <span class="day-badge day-badge--feria">CISCE</span>
+          </div>
+          <div class="day-content">
+            <p class="day-note">Segundo día de feria. Posibles encuentros institucionales.</p>
+            <div class="meeting-slot meeting-slot--empty">
+              <span class="slot-time">Por confirmar</span>
+              <span class="slot-label">Reuniones B2B — CCPIT</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-travel">
+          <span class="travel-icon">✈</span>
+          <span class="travel-label">Traslado Beijing → Shenzhen</span>
+        </div>
+
+        <div class="timeline-city">
+          <div class="city-marker city-shenzhen">深圳</div>
+          <span class="city-label">Shenzhen · Longhua</span>
+        </div>
+
+        <div class="timeline-day" data-date="2026-06-24">
+          <div class="day-header">
+            <span class="day-date">Mié 24 junio</span>
+            <span class="day-badge day-badge--mision">MISIÓN PIN</span>
+          </div>
+          <div class="day-content">
+            <p class="day-note">Inicio misión comercial Shenzhen. Posible Foro Navarra-Longhua.</p>
+            <div class="meeting-slot meeting-slot--empty">
+              <span class="slot-time">Por confirmar</span>
+              <span class="slot-label">Visitas a empresa / Foro</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-day" data-date="2026-06-25">
+          <div class="day-header">
+            <span class="day-date">Jue 25 junio</span>
+            <span class="day-badge day-badge--mision">MISIÓN PIN</span>
+          </div>
+          <div class="day-content">
+            <div class="meeting-slot meeting-slot--priority">
+              <span class="slot-time">Alta prioridad</span>
+              <span class="slot-label">BYD + proveedor EPS · visita planta</span>
+            </div>
+            <div class="meeting-slot meeting-slot--empty">
+              <span class="slot-time">Por confirmar</span>
+              <span class="slot-label">Reuniones B2B robótica/automatización</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-day" data-date="2026-06-26">
+          <div class="day-header">
+            <span class="day-date">Vie 26 junio</span>
+            <span class="day-badge day-badge--mision">MISIÓN PIN</span>
+          </div>
+          <div class="day-content">
+            <p class="day-note">Último día. Cierre de reuniones y seguimientos.</p>
+            <div class="meeting-slot meeting-slot--empty">
+              <span class="slot-time">Por confirmar</span>
+              <span class="slot-label">Reuniones pendientes</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="info-box">
+        <span class="info-box-icon">ℹ</span>
+        <p>Las agendas B2B se confirmarán cuando el CCPIT y el PIN envíen los contactos. Cuando haya reuniones confirmadas, podréis volcarlas en la pestaña <strong>Empresas</strong>.</p>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           Objetivos del viaje
+      ══════════════════════════════════════════ -->
+
+      <div class="section-header">
+        <h2 class="section-title">Objetivos</h2>
+        <p class="section-desc">Dos ejes estratégicos del viaje</p>
+      </div>
+
+      <!-- OBJETIVO 1 -->
+      <div class="objective-card objective-card--primary">
+        <div class="obj-header">
+          <span class="obj-number">01</span>
+          <div class="obj-title-block">
+            <span class="obj-tag">Negocio principal</span>
+            <h3 class="obj-title">Joint Venture EPS</h3>
+          </div>
+        </div>
+        <p class="obj-desc">Encontrar socio chino para constituir la primera empresa de referencia en remanufactura de componentes EPS en China, con calidad europea y competitividad local.</p>
+
+        <div class="obj-divider"></div>
+
+        <div class="obj-section-label">Lizarte aporta</div>
+        <ul class="obj-list">
+          <li>Know-how técnico en refabricación EPS</li>
+          <li>Procesos y estándares OEM europeos</li>
+          <li>Certificación IATF 16949</li>
+          <li>Tecnología propia Smart CAN2</li>
+          <li>53 años de experiencia especializada</li>
+        </ul>
+
+        <div class="obj-section-label">El socio chino aporta</div>
+        <ul class="obj-list">
+          <li>Escala productiva y capacidad de fabricación</li>
+          <li>Acceso a cascos del mercado local</li>
+          <li>Conocimiento del mercado chino</li>
+          <li>Red de distribución local</li>
+        </ul>
+
+        <div class="obj-section-label">Perfil de empresa buscada</div>
+        <ul class="obj-list obj-list--chips">
+          <li>OEM automoción chino</li>
+          <li>Proveedor Tier 1 dirección</li>
+          <li>Empresa desguace/remanufactura</li>
+          <li>Proveedor EPS BYD / Huawei</li>
+        </ul>
+
+        <div class="obj-section-label">Modelo de colaboración (4 fases)</div>
+        <div class="phases-list">
+          <div class="phase"><span class="phase-n">1</span><div><strong>Acuerdo y alcance</strong> — Firma NDA, intercambio técnico</div></div>
+          <div class="phase"><span class="phase-n">2</span><div><strong>Proyecto piloto</strong> — Primeras referencias EPS, transferencia de procesos</div></div>
+          <div class="phase"><span class="phase-n">3</span><div><strong>Escala conjunta</strong> — Ampliación de catálogo</div></div>
+          <div class="phase"><span class="phase-n">4</span><div><strong>Estructura JV formal</strong> — Modelo legal y hoja de ruta</div></div>
+        </div>
+      </div>
+
+      <!-- OBJETIVO 2 -->
+      <div class="objective-card objective-card--secondary">
+        <div class="obj-header">
+          <span class="obj-number">02</span>
+          <div class="obj-title-block">
+            <span class="obj-tag">Diversificación</span>
+            <h3 class="obj-title">Distribución Robótica Europa</h3>
+          </div>
+        </div>
+        <p class="obj-desc">Identificar fabricantes chinos de tecnología robótica con producto maduro e interés en distribución en España y sur de Europa.</p>
+
+        <div class="obj-divider"></div>
+
+        <div class="obj-section-label">Criterio mínimo de cualificación</div>
+        <ul class="obj-list">
+          <li>Producto maduro (no I+D, no prototipo)</li>
+          <li>Certificación CE obtenida <strong>o en proceso real</strong></li>
+          <li>Interés explícito en distribución España / Sur Europa</li>
+        </ul>
+
+        <div class="obj-section-label">Categorías de producto</div>
+        <div class="category-grid">
+          <div class="cat-chip">AGVs / AMRs logística</div>
+          <div class="cat-chip">Cobots PYMEs industriales</div>
+          <div class="cat-chip">Robots limpieza comercial</div>
+          <div class="cat-chip">Robots limpieza industrial</div>
+          <div class="cat-chip">Robots servicio hostelería</div>
+          <div class="cat-chip">Robots servicio retail</div>
+          <div class="cat-chip">Robots servicio hospitales</div>
+          <div class="cat-chip">Drones industriales</div>
+          <div class="cat-chip">Maquinaria agrícola autónoma</div>
+          <div class="cat-chip">Exoesqueletos industriales</div>
+          <div class="cat-chip">Robots paneles solares</div>
+        </div>
+      </div>
+
+      <!-- ARGUMENTO DE MERCADO -->
+      <div class="market-block">
+        <div class="block-title">Por qué ahora</div>
+        <div class="market-stats">
+          <div class="market-stat">
+            <span class="stat-num">35%</span>
+            <span class="stat-label">Penetración EPS en China (2025)</span>
+          </div>
+          <div class="market-stat">
+            <span class="stat-num">0</span>
+            <span class="stat-label">Operadores de referencia en remanuf. EPS en China</span>
+          </div>
+          <div class="market-stat">
+            <span class="stat-num">+30</span>
+            <span class="stat-label">Años de relación de Lizarte con China</span>
+          </div>
+          <div class="market-stat">
+            <span class="stat-num">#1</span>
+            <span class="stat-label">Mercado de automóviles del mundo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           Contactos clave
+      ══════════════════════════════════════════ -->
+
+      <div class="section-header">
+        <h2 class="section-title">Contactos clave</h2>
+        <p class="section-desc">Instituciones y personas de referencia</p>
+      </div>
+
+      <!-- GOBIERNO DE NAVARRA -->
+      <div class="contact-group">
+        <div class="contact-group-header">
+          <span class="contact-group-flag">🇪🇸</span>
+          <span class="contact-group-name">Gobierno de Navarra — PIN</span>
+        </div>
+        <div class="contact-card">
+          <div class="contact-initials ci-navarra">MA</div>
+          <div class="contact-info">
+            <span class="contact-name">Miren Ausín Lecuna</span>
+            <span class="contact-role">Directora · Servicio de Proyección Internacional</span>
+            <span class="contact-detail">📞 (+34) 848 425 765 · 609 538 237</span>
+            <span class="contact-detail">✉ mausinle@navarra.es</span>
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-initials ci-navarra">MG</div>
+          <div class="contact-info">
+            <span class="contact-name">Mila García Val</span>
+            <span class="contact-role">Proyección Internacional</span>
+            <span class="contact-detail">✉ mila.garcia.val@navarra.es</span>
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-initials ci-navarra">EC</div>
+          <div class="contact-info">
+            <span class="contact-name">Estela Cerdán García</span>
+            <span class="contact-role">Servicio de Proyección Internacional</span>
+            <span class="contact-detail">📞 848 426 654</span>
+            <span class="contact-detail">✉ estela.cerdan.garcia@navarra.es</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ICEX -->
+      <div class="contact-group">
+        <div class="contact-group-header">
+          <span class="contact-group-flag">🇪🇸</span>
+          <span class="contact-group-name">ICEX — Oficinas Comerciales en China</span>
+        </div>
+        <div class="contact-card">
+          <div class="contact-initials ci-icex">GZ</div>
+          <div class="contact-info">
+            <span class="contact-name">Oficina Comercial · Cantón (Guangzhou)</span>
+            <span class="contact-role">Reunión Teams realizada — abril 2026</span>
+            <span class="contact-tag contact-tag--done">Contacto activo</span>
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-initials ci-icex">BJ</div>
+          <div class="contact-info">
+            <span class="contact-name">Oficina Comercial · Pekín (Beijing)</span>
+            <span class="contact-role">Relevante para CISCE</span>
+            <span class="contact-tag contact-tag--pending">Reunión pendiente</span>
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-initials ci-icex">SH</div>
+          <div class="contact-info">
+            <span class="contact-name">Oficina Comercial · Shanghái</span>
+            <span class="contact-role">Recomendada — modelo consultoría con coste</span>
+            <span class="contact-tag contact-tag--open">Sin activar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CCPIT -->
+      <div class="contact-group">
+        <div class="contact-group-header">
+          <span class="contact-group-flag">🇨🇳</span>
+          <span class="contact-group-name">CCPIT — Consejo Chino de Fomento del Comercio</span>
+        </div>
+        <div class="contact-card">
+          <div class="contact-initials ci-ccpit">CC</div>
+          <div class="contact-info">
+            <span class="contact-name">CCPIT</span>
+            <span class="contact-role">Organización de agendas B2B CISCE y Shenzhen</span>
+            <span class="contact-detail">Brief de intereses Lizarte ya enviado</span>
+            <span class="contact-tag contact-tag--pending">Trabajando en agenda</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIZARTE INTERNO -->
+      <div class="contact-group">
+        <div class="contact-group-header">
+          <span class="contact-group-flag">🏭</span>
+          <span class="contact-group-name">Lizarte — Equipo interno</span>
+        </div>
+        <div class="contact-card">
+          <div class="contact-initials ci-lizarte">LA</div>
+          <div class="contact-info">
+            <span class="contact-name">Laura Alba</span>
+            <span class="contact-role">Comunicación / Coordinación</span>
+            <span class="contact-detail">✉ lalba@lizarte.com</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARCO INSTITUCIONAL -->
+      <div class="info-box info-box--gold">
+        <span class="info-box-icon">★</span>
+        <p><strong>Marco institucional:</strong> Memorando de Entendimiento Navarra – Distrito de Longhua (Shenzhen), firmado en enero de 2026. Respaldo político al más alto nivel en España.</p>
+      </div>
+
+    </section>
+
+    <section class="view" id="view-empresas">
+
+      <div class="section-header">
+        <h2 class="section-title">Empresas</h2>
+        <p class="section-desc">Reservado para fichas y reuniones B2B</p>
+      </div>
+
+      <div class="empty-state empty-state--bare" id="empty-companies">
+        <div class="empty-icon">建</div>
+        <h3 class="empty-title">Sin contenido por ahora</h3>
+        <p class="empty-desc">Esta pestaña está vacía de forma intencionada. Cuando tengáis la agenda confirmada, aquí irán las empresas y los datos de cada visita.</p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="general">
+      <span class="nav-icon">⌂</span>
+      <span class="nav-label">General</span>
+    </button>
+    <button class="nav-item" data-view="empresas">
+      <span class="nav-icon">建</span>
+      <span class="nav-label">Empresas</span>
+    </button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
