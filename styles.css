@@ -6,9 +6,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --red:        #C8102E;
-  --red-light:  #F8E8EC;
-  --red-dark:   #8B0B20;
+  --red:        #D1007A;
+  --red-light:  #FCE4F1;
+  --red-dark:   #8E0052;
   --gold:       #D4A843;
   --gold-light: #FDF5E6;
   --ink:        #2E3340;
@@ -64,7 +64,7 @@ html, body {
   top: 0; left: 0; right: 0;
   z-index: 100;
   height: var(--header-height);
-  background: #FCECEF;
+  background: #FCE4F1;
   border-bottom: 2px solid var(--red);
 }
 
@@ -127,8 +127,8 @@ html, body {
 }
 
 .refresh-app-btn {
-  border: 1px solid #E4B6C0;
-  background: #FFF5F7;
+  border: 1px solid #E7B3D1;
+  background: #FFF0F8;
   color: var(--ink);
   border-radius: var(--radius-sm);
   padding: 6px 9px;
@@ -191,7 +191,7 @@ html, body {
    INICIO — HERO
 ═══════════════════════════════════════════════════════════ */
 .section-hero {
-  background: #FBEFF5;
+  background: #FCE8F3;
   border-radius: var(--radius-xl);
   padding: 28px 24px;
   margin-bottom: 16px;
@@ -203,7 +203,7 @@ html, body {
   content: '龙华';
   font-family: var(--font-display);
   font-size: 120px;
-  color: rgba(200,16,46,0.08);
+  color: rgba(209,0,122,0.1);
   position: absolute;
   right: -10px;
   top: -10px;
@@ -218,9 +218,9 @@ html, body {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--gold);
-  background: rgba(212,168,67,0.15);
-  border: 1px solid rgba(212,168,67,0.3);
+  color: var(--red-dark);
+  background: rgba(209,0,122,0.12);
+  border: 1px solid rgba(209,0,122,0.3);
   border-radius: var(--radius-sm);
   padding: 3px 8px;
   margin-bottom: 12px;
@@ -1140,6 +1140,7 @@ html, body {
 
 .nav-item.active {
   color: var(--red);
+  text-shadow: 0 0 10px rgba(209, 0, 122, 0.18);
 }
 
 .nav-icon {
@@ -1173,17 +1174,17 @@ html, body {
     --ink-mid:    #4A5263;
     --ink-soft:   #6B7488;
     --ink-faint:  #939CB1;
-    --red-light:  #F8E8EC;
-    --red-dark:   #8B0B20;
+    --red-light:  #FCE4F1;
+    --red-dark:   #8E0052;
     --gold-light: #FDF5E6;
     --open-bg:    #EEF2FB;
     --done-bg:    #E6F5ED;
     --pending-bg: #FEF3C7;
   }
 
-  .app-header { background: #FCECEF; }
-  .section-hero { background: #FBEFF5; }
-  .section-hero::before { color: rgba(200,16,46,0.08); }
+  .app-header { background: #FCE4F1; }
+  .section-hero { background: #FCE8F3; }
+  .section-hero::before { color: rgba(209,0,122,0.1); }
   .market-block { background: #EEF3FF; }
   .bottom-nav { background: var(--surface); }
   .info-box { background: #EEF6FF; border-color: #D6E6FF; color: #385D8A; }
