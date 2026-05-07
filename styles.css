@@ -7,18 +7,18 @@
 
 :root {
   --red:        #C8102E;
-  --red-light:  #f5e0e3;
+  --red-light:  #F8E8EC;
   --red-dark:   #8B0B20;
   --gold:       #D4A843;
-  --gold-light: #fdf6e7;
-  --ink:        #1A1A1A;
-  --ink-mid:    #3D3D3D;
-  --ink-soft:   #6B6B6B;
-  --ink-faint:  #9E9E9E;
-  --paper:      #FAFAF8;
-  --surface:    #FFFFFF;
-  --border:     #E8E6E0;
-  --border-mid: #D4D0C8;
+  --gold-light: #FDF5E6;
+  --ink:        #2E3340;
+  --ink-mid:    #4A5263;
+  --ink-soft:   #6B7488;
+  --ink-faint:  #939CB1;
+  --paper:      #F5F7FF;
+  --surface:    #FFFDF8;
+  --border:     #E3E7F3;
+  --border-mid: #CDD4E6;
 
   --done:       #1B7A4E;
   --done-bg:    #E6F5ED;
@@ -64,7 +64,7 @@ html, body {
   top: 0; left: 0; right: 0;
   z-index: 100;
   height: var(--header-height);
-  background: var(--ink);
+  background: #FCECEF;
   border-bottom: 2px solid var(--red);
 }
 
@@ -100,13 +100,13 @@ html, body {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.12em;
-  color: #FFFFFF;
+  color: var(--ink);
   text-transform: uppercase;
 }
 
 .brand-sub {
   font-size: 10px;
-  color: rgba(255,255,255,0.5);
+  color: var(--ink-soft);
   letter-spacing: 0.05em;
 }
 
@@ -127,9 +127,9 @@ html, body {
 }
 
 .refresh-app-btn {
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.08);
-  color: #FFFFFF;
+  border: 1px solid #E4B6C0;
+  background: #FFF5F7;
+  color: var(--ink);
   border-radius: var(--radius-sm);
   padding: 6px 9px;
   font-size: 10px;
@@ -191,7 +191,7 @@ html, body {
    INICIO — HERO
 ═══════════════════════════════════════════════════════════ */
 .section-hero {
-  background: var(--ink);
+  background: #FBEFF5;
   border-radius: var(--radius-xl);
   padding: 28px 24px;
   margin-bottom: 16px;
@@ -203,7 +203,7 @@ html, body {
   content: '龙华';
   font-family: var(--font-display);
   font-size: 120px;
-  color: rgba(255,255,255,0.04);
+  color: rgba(200,16,46,0.08);
   position: absolute;
   right: -10px;
   top: -10px;
@@ -230,14 +230,14 @@ html, body {
   font-family: var(--font-display);
   font-size: 36px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--ink);
   line-height: 1.15;
   margin-bottom: 10px;
 }
 
 .hero-desc {
   font-size: 13px;
-  color: rgba(255,255,255,0.55);
+  color: var(--ink-soft);
   line-height: 1.5;
 }
 
@@ -566,9 +566,9 @@ html, body {
 
 .filter-btn.active,
 .filter-btn:hover {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: #fff;
+  background: var(--red-light);
+  border-color: #E4B6C0;
+  color: var(--ink);
 }
 
 .company-list {
@@ -928,14 +928,14 @@ html, body {
 
 /* MARKET STATS */
 .market-block {
-  background: var(--ink);
+  background: #EEF3FF;
   border-radius: var(--radius-xl);
   padding: 20px;
   margin-bottom: 16px;
 }
 
 .market-block .block-title {
-  color: rgba(255,255,255,0.5);
+  color: var(--ink-soft);
   margin-bottom: 16px;
 }
 
@@ -1165,26 +1165,26 @@ html, body {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper:      #111111;
-    --surface:    #1C1C1E;
-    --border:     #2C2C2E;
-    --border-mid: #3A3A3C;
-    --ink:        #F5F5F0;
-    --ink-mid:    #C8C8C0;
-    --ink-soft:   #8E8E93;
-    --ink-faint:  #636366;
-    --red-light:  rgba(200,16,46,0.15);
-    --red-dark:   #FF6B82;
-    --gold-light: rgba(212,168,67,0.12);
-    --open-bg:    #2C2C2E;
-    --done-bg:    rgba(27,122,78,0.2);
-    --pending-bg: rgba(180,83,9,0.2);
+    --paper:      #F5F7FF;
+    --surface:    #FFFDF8;
+    --border:     #E3E7F3;
+    --border-mid: #CDD4E6;
+    --ink:        #2E3340;
+    --ink-mid:    #4A5263;
+    --ink-soft:   #6B7488;
+    --ink-faint:  #939CB1;
+    --red-light:  #F8E8EC;
+    --red-dark:   #8B0B20;
+    --gold-light: #FDF5E6;
+    --open-bg:    #EEF2FB;
+    --done-bg:    #E6F5ED;
+    --pending-bg: #FEF3C7;
   }
 
-  .app-header { background: #0A0A0A; }
-  .section-hero { background: #0A0A0A; }
-  .section-hero::before { color: rgba(255,255,255,0.03); }
-  .market-block { background: #0A0A0A; }
-  .bottom-nav { background: #1C1C1E; }
-  .info-box { background: rgba(30,77,123,0.2); border-color: rgba(100,160,220,0.2); color: #90C4EE; }
+  .app-header { background: #FCECEF; }
+  .section-hero { background: #FBEFF5; }
+  .section-hero::before { color: rgba(200,16,46,0.08); }
+  .market-block { background: #EEF3FF; }
+  .bottom-nav { background: var(--surface); }
+  .info-box { background: #EEF6FF; border-color: #D6E6FF; color: #385D8A; }
 }
