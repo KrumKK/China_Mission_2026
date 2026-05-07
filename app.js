@@ -141,16 +141,16 @@ function initRefreshAppButton() {
     refreshBtn.disabled = true;
     refreshBtn.textContent = 'Actualizando...';
 
+    const url = new URL(window.location.href);
+    url.searchParams.set('v', String(Date.now()));
+
     try {
       await clearAppCacheStorage();
-      const url = new URL(window.location.href);
-      url.searchParams.set('v', String(Date.now()));
-      window.location.replace(url.toString());
     } catch (err) {
-      console.error('No se pudo actualizar la app:', err);
-      alert('No se pudo borrar el caché automáticamente. Recarga manualmente con Ctrl+F5.');
-      refreshBtn.disabled = false;
+      console.warn('No se pudo limpiar todo el cache automáticamente:', err);
+    } finally {
       refreshBtn.textContent = originalText;
+      window.location.replace(url.toString());
     }
   });
 }

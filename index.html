@@ -3,10 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Misión China 2026 — Lizarte</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var v = params.get('v');
+      window.__APP_CACHE_BUSTER__ = v || '';
+
+      var stylesheet = document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = window.__APP_CACHE_BUSTER__
+        ? 'styles.css?v=' + encodeURIComponent(window.__APP_CACHE_BUSTER__)
+        : 'styles.css';
+      document.head.appendChild(stylesheet);
+    })();
+  </script>
 </head>
 <body>
 
@@ -526,6 +542,14 @@
     </button>
   </nav>
 
-  <script src="app.js"></script>
+  <script>
+    (function () {
+      var script = document.createElement('script');
+      script.src = window.__APP_CACHE_BUSTER__
+        ? 'app.js?v=' + encodeURIComponent(window.__APP_CACHE_BUSTER__)
+        : 'app.js';
+      document.body.appendChild(script);
+    })();
+  </script>
 </body>
 </html>
