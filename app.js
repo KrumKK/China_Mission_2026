@@ -114,6 +114,47 @@ function initNavigation() {
   });
 }
 
+/* ──────────────────────────────────────────────
+   ACTUALIZAR APP — limpieza de cache y recarga
+────────────────────────────────────────────── */
+async function clearAppCacheStorage() {
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map(reg => reg.unregister()));
+  }
+
+  if ('caches' in window) {
+    const cacheKeys = await caches.keys();
+    await Promise.all(cacheKeys.map(key => caches.delete(key)));
+  }
+
+  try { localStorage.clear(); } catch (_) { /* ignore */ }
+  try { sessionStorage.clear(); } catch (_) { /* ignore */ }
+}
+
+function initRefreshAppButton() {
+  const refreshBtn = document.getElementById('refresh-app-btn');
+  if (!refreshBtn) return;
+
+  refreshBtn.addEventListener('click', async () => {
+    const originalText = refreshBtn.textContent;
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = 'Actualizando...';
+
+    try {
+      await clearAppCacheStorage();
+      const url = new URL(window.location.href);
+      url.searchParams.set('v', String(Date.now()));
+      window.location.replace(url.toString());
+    } catch (err) {
+      console.error('No se pudo actualizar la app:', err);
+      alert('No se pudo borrar el caché automáticamente. Recarga manualmente con Ctrl+F5.');
+      refreshBtn.disabled = false;
+      refreshBtn.textContent = originalText;
+    }
+  });
+}
+
 
 /* ──────────────────────────────────────────────
    COMPANIES — renderizado y filtrado
@@ -222,4 +263,5 @@ function formatDate(dateStr) {
 document.addEventListener('DOMContentLoaded', () => {
   initCountdown();
   initNavigation();
+  initRefreshAppButton();
 });
