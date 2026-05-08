@@ -155,6 +155,20 @@ function initRefreshAppButton() {
   });
 }
 
+/* ──────────────────────────────────────────────
+   PWA — registro de Service Worker
+────────────────────────────────────────────── */
+function initPWA() {
+  if (!('serviceWorker' in navigator)) return;
+  if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
+
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
+      console.warn('No se pudo registrar el Service Worker:', err);
+    });
+  });
+}
+
 
 /* ──────────────────────────────────────────────
    COMPANIES — renderizado y filtrado
@@ -264,4 +278,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initCountdown();
   initNavigation();
   initRefreshAppButton();
+  initPWA();
 });

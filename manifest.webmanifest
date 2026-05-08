@@ -1,0 +1,19 @@
+{
+  "name": "Misión China 2026 — Lizarte",
+  "short_name": "Misión China",
+  "description": "Aplicación de seguimiento para la misión comercial a China 2026.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F7FF",
+  "theme_color": "#D1007A",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
