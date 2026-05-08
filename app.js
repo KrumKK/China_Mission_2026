@@ -94,24 +94,50 @@ function initCountdown() {
    NAVIGATION — gestión de pestañas
 ────────────────────────────────────────────── */
 function initNavigation() {
-  const navItems = document.querySelectorAll('.nav-item');
-  const views    = document.querySelectorAll('.view');
+  function activateViewByName(target) {
+    if (!target) return;
+    const navItems = document.querySelectorAll('.nav-item');
+    const views = document.querySelectorAll('.view');
 
-  navItems.forEach(item => {
-    item.addEventListener('click', () => {
-      const target = item.dataset.view;
-
-      navItems.forEach(n => n.classList.remove('active'));
-      views.forEach(v => v.classList.remove('active'));
-
-      item.classList.add('active');
-      const targetView = document.getElementById('view-' + target);
-      if (targetView) targetView.classList.add('active');
-
-      /* Scroll al inicio de la sección */
-      document.getElementById('app-main').scrollTo({ top: 0, behavior: 'smooth' });
+    navItems.forEach(n => {
+      const isMatch = n.dataset.view === target;
+      n.classList.toggle('active', isMatch);
     });
+
+    views.forEach(v => {
+      const isMatch = v.id === ('view-' + target);
+      v.classList.toggle('active', isMatch);
+    });
+
+    /* Scroll al inicio de la sección */
+    const main = document.getElementById('app-main');
+    if (main) {
+      try {
+        main.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (_) {
+        main.scrollTop = 0;
+      }
+    }
+  }
+
+  /* API global para fallback inline y depuración rápida */
+  window.switchView = activateViewByName;
+
+  const nav = document.querySelector('.bottom-nav');
+  if (!nav) return;
+
+  nav.addEventListener('click', event => {
+    const button = event.target.closest('.nav-item');
+    if (!button) return;
+    activateViewByName(button.dataset.view);
   });
+
+  nav.addEventListener('touchend', event => {
+    const button = event.target.closest('.nav-item');
+    if (!button) return;
+    event.preventDefault();
+    activateViewByName(button.dataset.view);
+  }, { passive: false });
 }
 
 /* ──────────────────────────────────────────────
@@ -177,6 +203,9 @@ function initRefreshAppButton() {
     event.preventDefault();
     if (isRefreshing) return;
     isRefreshing = true;
+
+    /* TEMP DEBUG iOS: confirmar captura de toque */
+    alert('Botón pulsado');
 
     const originalText = refreshBtn.textContent;
     refreshBtn.disabled = true;
