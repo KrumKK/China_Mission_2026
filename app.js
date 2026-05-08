@@ -132,49 +132,80 @@ async function clearAppCacheStorage() {
   try { sessionStorage.clear(); } catch (_) { /* ignore */ }
 }
 
-function buildCacheBustedUrl() {
-  const stamp = String(Date.now());
+function buildVersionedUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.set('v', String(Date.now()));
+  return url.toString();
+}
+
+async function forceRefreshApp() {
+  const isHttp = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+
   try {
-    const url = new URL(window.location.href);
-    url.searchParams.set('v', stamp);
-    return url.toString();
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(async reg => {
+        try { await reg.update(); } catch (_) { /* ignore */ }
+        try { await reg.unregister(); } catch (_) { /* ignore */ }
+      }));
+    }
   } catch (_) {
-    const hasQuery = window.location.href.includes('?');
-    const sep = hasQuery ? '&' : '?';
-    return `${window.location.href}${sep}v=${stamp}`;
+    /* ignore */
   }
+
+  try {
+    await clearAppCacheStorage();
+  } catch (_) {
+    /* ignore */
+  }
+
+  if (isHttp) {
+    window.location.replace(buildVersionedUrl());
+    return;
+  }
+
+  window.location.reload();
 }
 
 function initRefreshAppButton() {
   const refreshBtn = document.getElementById('refresh-app-btn');
   if (!refreshBtn) return;
 
-  refreshBtn.addEventListener('click', async () => {
+  let isRefreshing = false;
+
+  async function onRefreshTap(event) {
+    event.preventDefault();
+    if (isRefreshing) return;
+    isRefreshing = true;
+
     const originalText = refreshBtn.textContent;
     refreshBtn.disabled = true;
     refreshBtn.textContent = 'Actualizando...';
-
-    const targetUrl = buildCacheBustedUrl();
-    const isFileProtocol = window.location.protocol === 'file:';
+    refreshBtn.setAttribute('aria-busy', 'true');
 
     try {
-      await clearAppCacheStorage();
+      await forceRefreshApp();
     } catch (err) {
       console.warn('No se pudo limpiar todo el cache automáticamente:', err);
-    } finally {
-      refreshBtn.textContent = originalText;
-      if (isFileProtocol) {
-        /* En file:// no hay service worker y la limpieza real es limitada */
-        window.location.reload();
-        return;
-      }
-
-      window.location.replace(targetUrl);
-      setTimeout(() => {
-        window.location.reload();
-      }, 200);
+      refreshBtn.textContent = 'Reintentar actualización';
+      refreshBtn.disabled = false;
+      refreshBtn.removeAttribute('aria-busy');
+      isRefreshing = false;
+      return;
     }
-  });
+
+    /* Fallback por si el navegador no navega inmediatamente */
+    setTimeout(() => {
+      refreshBtn.textContent = originalText;
+      refreshBtn.disabled = false;
+      refreshBtn.removeAttribute('aria-busy');
+      isRefreshing = false;
+      window.location.reload();
+    }, 1500);
+  }
+
+  refreshBtn.addEventListener('click', onRefreshTap, { passive: false });
+  refreshBtn.addEventListener('touchend', onRefreshTap, { passive: false });
 }
 
 /* ──────────────────────────────────────────────
