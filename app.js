@@ -132,6 +132,19 @@ async function clearAppCacheStorage() {
   try { sessionStorage.clear(); } catch (_) { /* ignore */ }
 }
 
+function buildCacheBustedUrl() {
+  const stamp = String(Date.now());
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set('v', stamp);
+    return url.toString();
+  } catch (_) {
+    const hasQuery = window.location.href.includes('?');
+    const sep = hasQuery ? '&' : '?';
+    return `${window.location.href}${sep}v=${stamp}`;
+  }
+}
+
 function initRefreshAppButton() {
   const refreshBtn = document.getElementById('refresh-app-btn');
   if (!refreshBtn) return;
@@ -141,8 +154,8 @@ function initRefreshAppButton() {
     refreshBtn.disabled = true;
     refreshBtn.textContent = 'Actualizando...';
 
-    const url = new URL(window.location.href);
-    url.searchParams.set('v', String(Date.now()));
+    const targetUrl = buildCacheBustedUrl();
+    const isFileProtocol = window.location.protocol === 'file:';
 
     try {
       await clearAppCacheStorage();
@@ -150,7 +163,16 @@ function initRefreshAppButton() {
       console.warn('No se pudo limpiar todo el cache automáticamente:', err);
     } finally {
       refreshBtn.textContent = originalText;
-      window.location.replace(url.toString());
+      if (isFileProtocol) {
+        /* En file:// no hay service worker y la limpieza real es limitada */
+        window.location.reload();
+        return;
+      }
+
+      window.location.replace(targetUrl);
+      setTimeout(() => {
+        window.location.reload();
+      }, 200);
     }
   });
 }
