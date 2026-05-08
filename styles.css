@@ -146,6 +146,7 @@ html, body {
   min-height: 34px;
   max-width: 145px;
   text-align: center;
+  touch-action: manipulation;
 }
 
 .refresh-app-btn:active {
@@ -155,6 +156,20 @@ html, body {
 .refresh-app-btn:disabled {
   opacity: 0.7;
   cursor: wait;
+}
+
+.refresh-bottom-wrap {
+  margin-top: 18px;
+  padding-bottom: calc(14px + var(--safe-bottom));
+}
+
+.refresh-app-btn--bottom {
+  width: 100%;
+  max-width: none;
+  min-height: 44px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
 }
 
 #countdown-days {
