@@ -103,26 +103,31 @@ const FLIGHTS = [
 /* ──────────────────────────────────────────────
    DATA — Contactos (editar / ampliar con vuestro doc)
 ────────────────────────────────────────────── */
+/* Fuente: Contactos_Oficinas_China_v5_Final_KKK.docx (25/05/2026) */
 const CONTACTS = [
-  { group: 'Gobierno de Navarra — PIN', flag: '🇪🇸', initials: 'MA', color: 'navarra', name: 'Miren Ausín Lecuna', role: 'Directora · Servicio de Proyección Internacional', details: ['📞 (+34) 848 425 765 · 609 538 237', '✉ mausinle@navarra.es'] },
-  { group: 'Gobierno de Navarra — PIN', flag: '🇪🇸', initials: 'MG', color: 'navarra', name: 'Mila García Val', role: 'Proyección Internacional', details: ['✉ mila.garcia.val@navarra.es'] },
-  { group: 'Gobierno de Navarra — PIN', flag: '🇪🇸', initials: 'EC', color: 'navarra', name: 'Estela Cerdán García', role: 'Servicio de Proyección Internacional', details: ['📞 848 426 654', '✉ estela.cerdan.garcia@navarra.es'] },
-  { group: 'CCPIT — China', flag: '🇨🇳', initials: 'CC', color: 'ccpit', name: 'CCPIT', role: 'Organización agendas B2B CISCE y Shenzhen', details: ['Brief Lizarte enviado', 'Agenda en preparación'] },
-  { group: 'Lizarte — Equipo', flag: '🏭', initials: 'LA', color: 'lizarte', name: 'Laura Alba', role: 'Comunicación / Coordinación', details: ['✉ lalba@lizarte.com'] },
-  { group: 'ICEX — Cantón (área Shenzhen)', flag: '📍', initials: 'AS', color: 'icex', name: 'Amy Su 苏绮妮', role: 'Analista de Mercado', details: ['✉ ASU@comercio.mineco.es'] },
-  { group: 'ICEX — Cantón (área Shenzhen)', flag: '📍', initials: 'JL', color: 'icex', name: 'Jaime Lorenzo Garcia-ormaechea', role: 'Consejero Económico y Comercial', details: ['✉ jlorenzo@comercio.mineco.es'] },
-  { group: 'ICEX — Cantón (área Shenzhen)', flag: '📍', initials: 'JD', color: 'icex', name: 'Javier Dong Wu', role: 'Sin cargo especificado', details: ['✉ javier.dong@comercio.mineco.es'] },
-  { group: 'ICEX — Cantón (área Shenzhen)', flag: '📍', initials: 'CG', color: 'icex', name: 'Buzón general Cantón', role: 'Contacto general oficina', details: ['✉ canton@comercio.mineco.es'] },
-  { group: 'ICEX — Pekín', flag: '📍', initials: 'SJ', color: 'icex', name: 'Sun Zhang, Jian', role: 'Español de nacimiento, padres chinos', details: ['✉ jian.sun@comercio.mineco.es'] },
-  { group: 'ICEX — Pekín', flag: '📍', initials: 'LM', color: 'icex', name: 'Leire Motrico San Emeterio', role: 'Sin cargo especificado', details: ['✉ leire.motrico@comercio.mineco.es'] },
-  { group: 'ICEX — Pekín', flag: '📍', initials: 'PG', color: 'icex', name: 'Buzón general Pekín', role: 'Contacto general oficina', details: ['✉ bcopekin@comercio.mineco.es'] },
-  { group: 'ICEX — Shanghai', flag: '📍', initials: 'DD', color: 'icex', name: 'Diego Domínguez Escudero', role: 'Organizador de la reunión', details: ['✉ diego.dominguez@comercio.mineco.es'] },
-  { group: 'ICEX — Shanghai', flag: '📍', initials: 'YZ', color: 'icex', name: 'Yolanda Zhu', role: 'Contacto inicial de Óscar', details: ['✉ yzhu@comercio.mineco.es'] },
-  { group: 'ICEX — Shanghai', flag: '📍', initials: 'TY', color: 'icex', name: 'Tu, Yuming', role: 'Sin cargo especificado', details: ['✉ YTU@comercio.mineco.es'] },
-  { group: 'ICEX — Shanghai', flag: '📍', initials: 'CL', color: 'icex', name: 'Cao, Lucia', role: 'Sin cargo especificado', details: ['✉ LCAO@comercio.mineco.es'] },
-  { group: 'ICEX — Shanghai', flag: '📍', initials: 'IG', color: 'icex', name: 'Isabel Galindo Rodríguez', role: 'Sin cargo especificado', details: ['✉ isabel.galindo@comercio.mineco.es'] },
-  { group: 'ICEX — Shanghai', flag: '📍', initials: 'SG', color: 'icex', name: 'Buzón general Shanghai', role: 'Contacto general oficina', details: ['✉ shanghai@comercio.mineco.es'] },
-  { group: 'ICEX — Shanghai', flag: '📍', initials: 'RA', color: 'icex', name: 'Raúl (apellido desconocido)', role: 'Jefe de todos — sin email disponible', details: ['✉ Sin email'] }
+  { group: 'ICEX — Oficina de Shanghái', flag: '🇨🇳', initials: 'RM', color: 'icex', name: 'Raúl Merchán', role: 'Agregado Comercial', details: ['✉ raul.merchan@comercio.mineco.es'] },
+  { group: 'ICEX — Oficina de Shanghái', flag: '🇨🇳', initials: 'YT', color: 'icex', name: 'Yuming (Tu)', role: 'Analista, Depto. Industrial', details: ['✉ ytu@comercio.mineco.es'] },
+  { group: 'ICEX — Oficina de Shanghái', flag: '🇨🇳', initials: 'YZ', color: 'icex', name: 'Yolanda Zhu y Diego Domínguez Escudero', role: 'Firma buzón general', details: ['✉ shanghai@comercio.mineco.es'] },
+  { group: 'ICEX — Oficina de Shanghái', flag: '🇨🇳', initials: 'SH', color: 'icex', name: 'Buzón general oficina', role: 'Contacto general', details: ['✉ shanghai@comercio.mineco.es'] },
+
+  { group: 'ICEX — Oficina de Cantón (área Shenzhen)', flag: '🇨🇳', initials: 'AS', color: 'icex', name: 'Amy Su', role: 'Analista de Mercado', details: ['✉ ASU@comercio.mineco.es'] },
+  { group: 'ICEX — Oficina de Cantón (área Shenzhen)', flag: '🇨🇳', initials: 'JW', color: 'icex', name: 'Javier Dong Wu', role: 'Oficina Cantón', details: ['✉ javier.dong@comercio.mineco.es'] },
+  { group: 'ICEX — Oficina de Cantón (área Shenzhen)', flag: '🇨🇳', initials: 'JL', color: 'icex', name: 'Jaime Lorenzo Garcia-ormaechea', role: 'Oficina Cantón', details: ['✉ jlorenzo@comercio.mineco.es'] },
+  { group: 'ICEX — Oficina de Cantón (área Shenzhen)', flag: '🇨🇳', initials: 'CT', color: 'icex', name: 'Buzón general oficina', role: 'Contacto general', details: ['✉ canton@comercio.mineco.es'] },
+
+  { group: 'ICEX — Oficina de Pekín', flag: '🇨🇳', initials: 'LM', color: 'icex', name: 'Leire Motrico', role: 'Trade Officer', details: ['✉ leire.motrico@comercio.mineco.es'] },
+  { group: 'ICEX — Oficina de Pekín', flag: '🇨🇳', initials: 'SJ', color: 'icex', name: 'Sun Zhang, Jian', role: 'Oficina Pekín', details: ['✉ jian.sun@comercio.mineco.es'] },
+  { group: 'ICEX — Oficina de Pekín', flag: '🇨🇳', initials: 'BJ', color: 'icex', name: 'Buzón general oficina', role: 'Contacto general', details: ['✉ pekin@comercio.mineco.es'] },
+
+  { group: 'CCPIT', flag: '🇨🇳', initials: 'IN', color: 'ccpit', name: 'Ina', role: 'CCPIT', details: ['✉ inaservice408@gmail.com'] },
+  { group: 'CCPIT', flag: '🇨🇳', initials: 'AM', color: 'ccpit', name: 'Amancio', role: 'CCPIT', details: ['✉ njyzzt@163.com'] },
+
+  { group: 'Gobierno de Navarra — España', flag: '🇪🇸', initials: 'MG', color: 'navarra', name: 'Mila García Val', role: 'Representante Comercial Plan Internacional', details: ['✉ mila.garcia.val@navarra.es'] },
+  { group: 'Gobierno de Navarra — España', flag: '🇪🇸', initials: 'EC', color: 'navarra', name: 'Estela Cerdán García', role: 'Servicio de Proyección Internacional', details: ['✉ estela.cerdan.garcia@navarra.es'] },
+  { group: 'Gobierno de Navarra — España', flag: '🇪🇸', initials: 'PI', color: 'navarra', name: 'Buzón general', role: 'Plan Internacional de Navarra', details: ['✉ planinternacional@navarra.es'] },
+
+  { group: 'Consultora — Herrera Zhang', flag: '🏢', initials: 'AH', color: 'lizarte', name: 'Andrés Herrera-Feligreras 鐵男', role: 'Socio Director', details: ['✉ a.herrera@herrerazhang.com', '📞 +34 633 706 713'] },
+  { group: 'Consultora — Herrera Zhang', flag: '🏢', initials: 'RG', color: 'lizarte', name: 'Rita Gimenez', role: 'Consultora', details: ['✉ rita@dpublicd.com'] }
 ];
 
 /* ──────────────────────────────────────────────
@@ -710,7 +715,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '7');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '8');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });

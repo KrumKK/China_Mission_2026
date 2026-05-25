@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '7';
+      window.__APP_BUILD__ = '8';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -100,7 +100,7 @@
 
       <section class="view" id="view-contactos">
         <h2 class="section-heading"><span class="section-emoji">👥</span> Contactos</h2>
-        <p class="section-lead">ICEX, PIN, CCPIT y equipo</p>
+        <p class="section-lead">Listado v5 · 25 mayo 2026 · ICEX, CCPIT, Navarra, consultora</p>
         <div id="contacts-list"></div>
       </section>
 
@@ -203,7 +203,7 @@
 
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '7';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '8';
       var s = document.createElement('script');
       s.src = 'app.js?v=' + encodeURIComponent(bust);
       document.body.appendChild(s);
