@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '15';
+      window.__APP_BUILD__ = '16';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -111,6 +111,38 @@
         <h2 class="section-heading"><span class="section-emoji">📊</span> Resumen de reuniones</h2>
         <p class="section-lead">B2B y visitas marcadas en las fichas ICEX</p>
         <div id="meetings-summary-root"></div>
+
+        <section class="backup-section" id="backup-section" aria-labelledby="backup-heading">
+          <h2 class="section-heading" id="backup-heading"><span class="section-emoji">💾</span> Copias de seguridad</h2>
+          <p class="section-lead">Exporta todo lo que guardes en las fichas ICEX (textos y fotos). Guárdalo en OneDrive, email o iCloud.</p>
+
+          <div class="alert-box alert-box--warn backup-warn">
+            <span class="alert-icon">⚠️</span>
+            <p>Los datos viven <strong>solo en este dispositivo</strong>. Si borras datos del navegador, cambias de móvil o desinstalas la app, se pierde todo salvo que hayas descargado una copia.</p>
+          </div>
+
+          <p class="backup-status" id="backup-status" aria-live="polite"></p>
+          <p class="backup-last" id="backup-last-info"></p>
+
+          <button type="button" class="btn-backup btn-backup--primary" id="btn-export-backup">
+            ⬇ Descargar copia completa
+          </button>
+          <button type="button" class="btn-backup btn-backup--secondary" id="btn-share-backup" hidden>
+            ↗ Compartir copia (guardar en la nube)
+          </button>
+          <button type="button" class="btn-backup btn-backup--outline" id="btn-export-text-backup">
+            ⬇ Copia solo textos (ligera)
+          </button>
+          <button type="button" class="btn-backup btn-backup--outline" id="btn-import-backup">
+            ⬆ Restaurar desde copia
+          </button>
+          <input type="file" id="backup-file-input" accept=".json,application/json" hidden />
+
+          <div class="info-box backup-tips">
+            <span class="info-box-icon">ℹ</span>
+            <p><strong>Rutina recomendada:</strong> al final de cada jornada, descarga la copia completa y súbela a OneDrive (carpeta del viaje). Haz lo mismo antes de «Actualizar aplicación». En un móvil nuevo, abre la app y pulsa «Restaurar desde copia».</p>
+          </div>
+        </section>
       </section>
 
       <section class="view" id="view-contactos">
@@ -248,10 +280,20 @@
         window.location.replace(url.toString());
       }
 
+      function confirmRefreshWithBackup() {
+        return window.confirm(
+          'RECOMENDABLE: copia de seguridad antes de actualizar\n\n'
+          + 'Ve a Resumen → «Descargar copia completa» y guarda el archivo en OneDrive o email.\n\n'
+          + '¿Ya has hecho la copia y quieres actualizar la aplicación ahora?'
+        );
+      }
+
       function handleRefresh(event) {
         if (event) { event.preventDefault(); event.stopImmediatePropagation(); }
         var btn = document.getElementById(BTN_ID);
         if (!btn || btn.getAttribute('data-busy') === '1') return;
+        if (!confirmRefreshWithBackup()) return;
+
         btn.setAttribute('data-busy', '1');
         btn.disabled = true;
         btn.textContent = 'Actualizando…';
@@ -280,7 +322,7 @@
 
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '15';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '16';
       var s = document.createElement('script');
       s.src = 'app.js?v=' + encodeURIComponent(bust);
       document.body.appendChild(s);

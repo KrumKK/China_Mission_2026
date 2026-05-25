@@ -523,6 +523,388 @@ async function saveCompanyRecord(record) {
   }
 }
 
+async function getAllRecordsFromDatabase() {
+  const db = await openCompanyDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(COMPANY_STORE, 'readonly');
+    const req = tx.objectStore(COMPANY_STORE).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function clearCompanyRecordCache() {
+  companyRecordCache.clear();
+  companyObjectUrls.forEach(url => URL.revokeObjectURL(url));
+  companyObjectUrls.clear();
+}
+
+/* ──────────────────────────────────────────────
+   BACKUP — exportar / importar fichas y fotos
+────────────────────────────────────────────── */
+const BACKUP_FORMAT = 'mision-china-backup';
+const BACKUP_VERSION = 1;
+const BACKUP_META_KEY = 'mision-china-last-backup';
+
+function formatBackupFileDate(date) {
+  const d = date || new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return (
+    d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+    + '_' + pad(d.getHours()) + '-' + pad(d.getMinutes())
+  );
+}
+
+function setBackupStatus(text, isError) {
+  const el = document.getElementById('backup-status');
+  if (!el) return;
+  el.textContent = text || '';
+  el.classList.toggle('backup-status--error', !!isError);
+}
+
+function updateBackupLastInfo(meta) {
+  const el = document.getElementById('backup-last-info');
+  if (!el) return;
+  if (!meta || !meta.at) {
+    el.textContent = 'Aún no hay copia registrada desde este dispositivo.';
+    return;
+  }
+  const when = new Date(meta.at).toLocaleString('es-ES', {
+    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+  const size = meta.sizeMb != null ? ' · ' + meta.sizeMb + ' MB' : '';
+  const photos = meta.photoCount != null ? ' · ' + meta.photoCount + ' fotos' : '';
+  el.textContent = 'Última copia: ' + when + photos + size;
+}
+
+function readBackupMeta() {
+  try {
+    const raw = localStorage.getItem(BACKUP_META_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function writeBackupMeta(meta) {
+  try {
+    localStorage.setItem(BACKUP_META_KEY, JSON.stringify(meta));
+  } catch (_) { /* ignore */ }
+  updateBackupLastInfo(meta);
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || '');
+      const idx = result.indexOf(',');
+      resolve(idx >= 0 ? result.slice(idx + 1) : result);
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+function base64ToBlob(base64, mime) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime || 'image/jpeg' });
+}
+
+async function serializeRecordForBackup(record, includePhotos) {
+  const photos = [];
+  for (let i = 0; i < PHOTOS_PER_COMPANY; i++) {
+    const p = record.photos[i];
+    if (includePhotos && p && p.blob) {
+      photos.push({
+        name: p.name || 'foto-' + (i + 1) + '.jpg',
+        mime: p.blob.type || 'image/jpeg',
+        addedAt: p.addedAt || null,
+        dataBase64: await blobToBase64(p.blob)
+      });
+    } else {
+      photos.push(null);
+    }
+  }
+  return {
+    companyId: record.companyId,
+    meetingType: normalizeMeetingType(record.meetingType),
+    description: record.description || '',
+    contacts: record.contacts || '',
+    notes: record.notes || '',
+    photos,
+    updatedAt: record.updatedAt || Date.now()
+  };
+}
+
+function deserializeRecordFromBackup(entry) {
+  const photos = emptyPhotoSlots();
+  if (Array.isArray(entry.photos)) {
+    entry.photos.slice(0, PHOTOS_PER_COMPANY).forEach((p, i) => {
+      if (p && p.dataBase64) {
+        photos[i] = {
+          name: p.name || 'foto.jpg',
+          addedAt: p.addedAt || Date.now(),
+          blob: base64ToBlob(p.dataBase64, p.mime || 'image/jpeg')
+        };
+      }
+    });
+  }
+  return normalizeCompanyRecord({
+    companyId: entry.companyId,
+    meetingType: entry.meetingType,
+    description: entry.description,
+    contacts: entry.contacts,
+    notes: entry.notes,
+    photos,
+    updatedAt: entry.updatedAt
+  }, entry.companyId);
+}
+
+function countBackupPhotos(records) {
+  let n = 0;
+  records.forEach(r => {
+    (r.photos || []).forEach(p => { if (p && p.dataBase64) n += 1; });
+  });
+  return n;
+}
+
+async function collectRecordsForBackup() {
+  const stored = await getAllRecordsFromDatabase();
+  const byId = new Map(stored.map(r => [r.companyId, r]));
+  const allIds = new Set(ICEX_OFFICES.flatMap(o => o.companies.map(c => c.id)));
+  stored.forEach(r => allIds.add(r.companyId));
+
+  const records = [];
+  for (const id of allIds) {
+    const raw = byId.get(id) || defaultCompanyRecord(id);
+    records.push(normalizeCompanyRecord(raw, id));
+  }
+  return records;
+}
+
+async function buildBackupPayload(includePhotos, onProgress) {
+  const records = await collectRecordsForBackup();
+  const serialized = [];
+  let photoIndex = 0;
+  const totalPhotos = includePhotos
+    ? records.reduce((sum, r) => sum + countFilledPhotos(r), 0)
+    : 0;
+
+  for (let i = 0; i < records.length; i++) {
+    if (onProgress) onProgress('Ficha ' + (i + 1) + ' de ' + records.length + '…');
+    const entry = await serializeRecordForBackup(records[i], includePhotos);
+    serialized.push(entry);
+    if (includePhotos) {
+      photoIndex += countFilledPhotos(records[i]);
+      if (totalPhotos > 0 && onProgress) {
+        onProgress('Fotos procesadas… (' + photoIndex + '/' + totalPhotos + ')');
+      }
+    }
+  }
+
+  return {
+    format: BACKUP_FORMAT,
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    appBuild: window.__APP_BUILD__ || '16',
+    includesPhotos: !!includePhotos,
+    companyCount: serialized.length,
+    photoCount: countBackupPhotos(serialized),
+    records: serialized
+  };
+}
+
+function backupPayloadToBlob(payload) {
+  return new Blob([JSON.stringify(payload)], { type: 'application/json' });
+}
+
+function downloadBackupBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+async function shareBackupFile(blob, filename) {
+  if (!navigator.share) return false;
+  const file = new File([blob], filename, { type: 'application/json' });
+  const payload = { files: [file], title: 'Copia Misión China 2026' };
+  if (navigator.canShare && !navigator.canShare(payload)) return false;
+  await navigator.share(payload);
+  return true;
+}
+
+async function exportBackup(includePhotos, options) {
+  options = options || {};
+  const exportBtn = document.getElementById('btn-export-backup');
+  const textBtn = document.getElementById('btn-export-text-backup');
+  const shareBtn = document.getElementById('btn-share-backup');
+  [exportBtn, textBtn, shareBtn].forEach(b => { if (b) b.disabled = true; });
+
+  try {
+    setBackupStatus('Preparando copia…');
+    const payload = await buildBackupPayload(includePhotos, setBackupStatus);
+    const blob = backupPayloadToBlob(payload);
+    const sizeMb = (blob.size / (1024 * 1024)).toFixed(2);
+    const filename = 'mision-china-backup-' + formatBackupFileDate() + (includePhotos ? '' : '-solo-textos') + '.json';
+
+    if (options.download !== false) {
+      downloadBackupBlob(blob, filename);
+    }
+
+    writeBackupMeta({
+      at: Date.now(),
+      photoCount: payload.photoCount,
+      sizeMb,
+      includesPhotos: includePhotos
+    });
+
+    if (options.download !== false) {
+      setBackupStatus(
+        'Copia descargada (' + sizeMb + ' MB · ' + payload.photoCount + ' fotos). Guárdala en OneDrive o envíatela por email.'
+      );
+    }
+    return { blob, filename, payload, sizeMb };
+  } catch (err) {
+    console.error(err);
+    setBackupStatus('Error al crear la copia: ' + (err.message || 'desconocido'), true);
+    return null;
+  } finally {
+    [exportBtn, textBtn, shareBtn].forEach(b => { if (b) b.disabled = false; });
+  }
+}
+
+async function restoreBackupPayload(payload) {
+  if (!payload || payload.format !== BACKUP_FORMAT) {
+    throw new Error('Archivo no válido para Misión China 2026');
+  }
+  if (!Array.isArray(payload.records) || payload.records.length === 0) {
+    throw new Error('La copia no contiene fichas');
+  }
+
+  clearCompanyRecordCache();
+  const db = await openCompanyDatabase();
+
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(COMPANY_STORE, 'readwrite');
+    const store = tx.objectStore(COMPANY_STORE);
+    const clearReq = store.clear();
+    clearReq.onsuccess = () => {
+      payload.records.forEach(entry => {
+        const record = deserializeRecordFromBackup(entry);
+        store.put(record);
+        companyRecordCache.set(record.companyId, record);
+      });
+    };
+    clearReq.onerror = () => reject(clearReq.error);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+
+  await renderIcexOffices();
+  await renderMeetingsSummary();
+}
+
+async function importBackupFromFile(file) {
+  const text = await file.text();
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch (_) {
+    throw new Error('El archivo no es JSON válido');
+  }
+
+  const photoCount = countBackupPhotos(payload.records || []);
+  const companyCount = (payload.records || []).length;
+  const when = payload.exportedAt
+    ? new Date(payload.exportedAt).toLocaleString('es-ES')
+    : 'fecha desconocida';
+
+  const ok = window.confirm(
+    'Restaurar copia del ' + when + '?\n\n'
+    + '· ' + companyCount + ' empresas\n'
+    + '· ' + photoCount + ' fotos\n\n'
+    + 'Se sustituirá TODO lo guardado en este dispositivo por esta copia.'
+  );
+  if (!ok) return;
+
+  setBackupStatus('Restaurando copia…');
+  await restoreBackupPayload(payload);
+  writeBackupMeta({
+    at: Date.now(),
+    photoCount,
+    sizeMb: (file.size / (1024 * 1024)).toFixed(2),
+    includesPhotos: !!payload.includesPhotos,
+    restored: true
+  });
+  setBackupStatus('Copia restaurada correctamente (' + photoCount + ' fotos).');
+}
+
+function initBackupControls() {
+  updateBackupLastInfo(readBackupMeta());
+
+  const exportBtn = document.getElementById('btn-export-backup');
+  const textBtn = document.getElementById('btn-export-text-backup');
+  const shareBtn = document.getElementById('btn-share-backup');
+  const importBtn = document.getElementById('btn-import-backup');
+  const fileInput = document.getElementById('backup-file-input');
+
+  if (shareBtn && navigator.share) {
+    shareBtn.hidden = false;
+    shareBtn.addEventListener('click', async () => {
+      setBackupStatus('Preparando copia para compartir…');
+      const result = await exportBackup(true, { download: false });
+      if (!result) return;
+      try {
+        const shared = await shareBackupFile(result.blob, result.filename);
+        if (shared) {
+          setBackupStatus(
+            'Copia lista (' + result.sizeMb + ' MB). Elige OneDrive, Drive, email, etc.'
+          );
+        } else {
+          setBackupStatus('Tu navegador no permite compartir el archivo. Usa «Descargar copia».');
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setBackupStatus('No se pudo compartir. Usa «Descargar copia».', true);
+        }
+      }
+    });
+  }
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => exportBackup(true));
+  }
+  if (textBtn) {
+    textBtn.addEventListener('click', () => exportBackup(false));
+  }
+  if (importBtn && fileInput) {
+    importBtn.addEventListener('click', () => {
+      fileInput.value = '';
+      fileInput.click();
+    });
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+      try {
+        await importBackupFromFile(file);
+      } catch (err) {
+        console.error(err);
+        setBackupStatus('Error al restaurar: ' + (err.message || 'desconocido'), true);
+      }
+      fileInput.value = '';
+    });
+  }
+}
+
 function revokeCompanyObjectUrls(companyId) {
   const prefix = companyId + ':';
   companyObjectUrls.forEach((url, key) => {
@@ -633,7 +1015,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '15';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '16';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -1652,7 +2034,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '15');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '16');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
@@ -1689,6 +2071,7 @@ function bootApp() {
   initNavAutoHide();
   initNavigation();
   initBrochureControls();
+  initBackupControls();
   renderFlights();
   renderLogistics();
   renderContacts();

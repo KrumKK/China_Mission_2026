@@ -1466,6 +1466,75 @@ body.company-modal-open {
   padding: 8px 4px;
 }
 
+/* ═══ COPIAS DE SEGURIDAD ════════════════════════════════ */
+.backup-section {
+  margin-top: 28px;
+  padding-top: 8px;
+  border-top: 1px solid var(--card-border);
+}
+
+.backup-warn {
+  margin-bottom: 14px;
+}
+
+.backup-status {
+  font-size: 13px;
+  color: var(--accent-dark);
+  margin: 0 0 8px;
+  min-height: 1.2em;
+}
+
+.backup-status--error {
+  color: #B42318;
+}
+
+.backup-last {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin: 0 0 14px;
+}
+
+.btn-backup {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-backup:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.btn-backup--primary {
+  border: 2px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-backup--secondary {
+  border: 2px solid var(--accent);
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+
+.btn-backup--outline {
+  border: 1px solid var(--card-border);
+  background: var(--card);
+  color: var(--text-soft);
+}
+
+.backup-tips {
+  margin-top: 16px;
+}
+
 @media (min-width: 520px) {
   .company-modal {
     align-items: center;
