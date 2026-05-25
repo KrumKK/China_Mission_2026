@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '9';
+      window.__APP_BUILD__ = '10';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -47,6 +47,10 @@
       <button type="button" class="top-nav-item" data-view="contactos">
         <span class="top-nav-icon">👥</span>
         <span class="top-nav-label">Contactos</span>
+      </button>
+      <button type="button" class="top-nav-item" data-view="brochure">
+        <span class="top-nav-icon">📄</span>
+        <span class="top-nav-label">Brochure</span>
       </button>
     </nav>
 
@@ -137,6 +141,25 @@
         </div>
       </section>
 
+      <section class="view view--brochure" id="view-brochure">
+        <div class="brochure-header">
+          <h2 class="section-heading"><span class="section-emoji">📄</span> Brochure Liz-China</h2>
+          <p class="section-lead">Folleto bilingüe · desliza en horizontal o gira el móvil</p>
+          <button type="button" class="btn-brochure-fullscreen" id="btn-brochure-fullscreen" aria-label="Ver a pantalla completa">
+            ⛶ Pantalla completa
+          </button>
+        </div>
+        <div class="brochure-viewport" id="brochure-viewport">
+          <iframe
+            id="brochure-frame"
+            class="brochure-frame"
+            title="Brochure Lizarte China"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+          ></iframe>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -203,7 +226,7 @@
 
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '9';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '10';
       var s = document.createElement('script');
       s.src = 'app.js?v=' + encodeURIComponent(bust);
       document.body.appendChild(s);

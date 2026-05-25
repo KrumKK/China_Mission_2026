@@ -328,6 +328,58 @@ function initCountdown() {
 
 
 /* ──────────────────────────────────────────────
+   BROCHURE — folleto en iframe (scroll horizontal)
+────────────────────────────────────────────── */
+let brochureFrameLoaded = false;
+
+function getBrochureUrl() {
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '10';
+  return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
+}
+
+function initBrochureFrame() {
+  const frame = document.getElementById('brochure-frame');
+  if (!frame || brochureFrameLoaded) return;
+  frame.src = getBrochureUrl();
+  brochureFrameLoaded = true;
+}
+
+function tryLockLandscape() {
+  if (!screen.orientation || !screen.orientation.lock) return;
+  screen.orientation.lock('landscape').catch(() => { /* no soportado */ });
+}
+
+function tryUnlockOrientation() {
+  if (!screen.orientation || !screen.orientation.unlock) return;
+  try { screen.orientation.unlock(); } catch (_) { /* ignore */ }
+}
+
+function initBrochureControls() {
+  const btn = document.getElementById('btn-brochure-fullscreen');
+  const viewport = document.getElementById('brochure-viewport');
+  if (!btn || !viewport) return;
+
+  btn.addEventListener('click', () => {
+    const el = viewport;
+    if (document.fullscreenElement === el) {
+      document.exitFullscreen().catch(() => {});
+      return;
+    }
+    if (el.requestFullscreen) {
+      el.requestFullscreen().catch(() => {});
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
+    }
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    const on = document.fullscreenElement === viewport;
+    btn.textContent = on ? '✕ Salir pantalla completa' : '⛶ Pantalla completa';
+  });
+}
+
+
+/* ──────────────────────────────────────────────
    NAV — ocultar barra superior al bajar scroll
 ────────────────────────────────────────────── */
 function initNavAutoHide() {
@@ -400,6 +452,19 @@ function initNavigation() {
 
     if (target === 'eventos') {
       activateEventTab(activeEventTab);
+    }
+
+    const overview = document.querySelector('.trip-overview');
+    if (overview) {
+      overview.hidden = target === 'brochure';
+    }
+    document.body.classList.toggle('mode-brochure', target === 'brochure');
+
+    if (target === 'brochure') {
+      initBrochureFrame();
+      tryLockLandscape();
+    } else {
+      tryUnlockOrientation();
     }
 
     scrollMainToTop();
@@ -750,7 +815,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '9');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '10');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
@@ -786,6 +851,7 @@ function bootApp() {
   initCountdown();
   initNavAutoHide();
   initNavigation();
+  initBrochureControls();
   renderFlights();
   renderLogistics();
   renderContacts();
