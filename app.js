@@ -328,18 +328,53 @@ function initCountdown() {
 
 
 /* ──────────────────────────────────────────────
+   NAV — ocultar barra superior al bajar scroll
+────────────────────────────────────────────── */
+function initNavAutoHide() {
+  const nav = document.querySelector('.top-nav');
+  if (!nav) return;
+
+  let lastY = 0;
+  let ticking = false;
+  const threshold = 48;
+
+  function setHidden(hidden) {
+    nav.classList.toggle('top-nav--hidden', hidden);
+  }
+
+  function onScroll() {
+    const y = window.scrollY || document.documentElement.scrollTop || 0;
+    if (y <= 8) {
+      setHidden(false);
+    } else if (y > lastY && y > threshold) {
+      setHidden(true);
+    } else if (y < lastY) {
+      setHidden(false);
+    }
+    lastY = y;
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(onScroll);
+    }
+  }, { passive: true });
+}
+
+
+/* ──────────────────────────────────────────────
    NAVIGATION — pestañas principales y eventos
 ────────────────────────────────────────────── */
 let activeEventTab = 'cisce';
 
 function initNavigation() {
   function scrollMainToTop() {
-    const main = document.getElementById('app-main');
-    if (!main) return;
     try {
-      main.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (_) {
-      main.scrollTop = 0;
+      window.scrollTo(0, 0);
     }
   }
 
@@ -715,7 +750,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '8');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '9');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
@@ -749,6 +784,7 @@ function escapeHtml(str) {
 ────────────────────────────────────────────── */
 function bootApp() {
   initCountdown();
+  initNavAutoHide();
   initNavigation();
   renderFlights();
   renderLogistics();
