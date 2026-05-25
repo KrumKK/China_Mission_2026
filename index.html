@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '11';
+      window.__APP_BUILD__ = '13';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -149,19 +149,34 @@
           <button type="button" class="btn-brochure-fullscreen" id="btn-brochure-fullscreen" aria-label="Ver a pantalla completa">
             ⛶ Pantalla completa
           </button>
+          <button type="button" class="btn-brochure-open-tab" id="btn-brochure-open-tab" aria-label="Abrir folleto en otra pestaña">
+            ↗ Abrir folleto en pantalla nueva
+          </button>
         </div>
         <div class="brochure-viewport" id="brochure-viewport">
-          <iframe
-            id="brochure-frame"
-            class="brochure-frame"
-            title="Brochure Lizarte China"
-            loading="lazy"
-            referrerpolicy="no-referrer"
-          ></iframe>
+          <div id="brochure-frame-home" class="brochure-frame-home">
+            <iframe
+              id="brochure-frame"
+              class="brochure-frame"
+              title="Brochure Lizarte China"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            ></iframe>
+          </div>
         </div>
       </section>
 
     </main>
+  </div>
+
+  <div id="brochure-fs-portal" class="brochure-fs-portal" hidden aria-hidden="true">
+    <div class="brochure-fs-toolbar">
+      <span class="brochure-fs-title">Brochure Liz-China</span>
+      <button type="button" class="btn-brochure-fs-close" id="btn-brochure-fs-close" aria-label="Cerrar pantalla completa">
+        ✕ Cerrar
+      </button>
+    </div>
+    <div id="brochure-fs-host" class="brochure-fs-host"></div>
   </div>
 
   <script>
@@ -227,7 +242,7 @@
 
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '11';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '13';
       var s = document.createElement('script');
       s.src = 'app.js?v=' + encodeURIComponent(bust);
       document.body.appendChild(s);

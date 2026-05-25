@@ -331,17 +331,47 @@ function initCountdown() {
    BROCHURE — folleto en iframe (scroll horizontal)
 ────────────────────────────────────────────── */
 let brochureFrameLoaded = false;
+let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '10';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '13';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
+function ensureBrochureFrame() {
+  let frame = document.getElementById('brochure-frame');
+  const home = document.getElementById('brochure-frame-home');
+  if (!frame && home) {
+    frame = document.createElement('iframe');
+    frame.id = 'brochure-frame';
+    frame.className = 'brochure-frame';
+    frame.title = 'Brochure Lizarte China';
+    frame.loading = 'lazy';
+    frame.referrerPolicy = 'no-referrer';
+    home.appendChild(frame);
+  }
+  return frame;
+}
+
 function initBrochureFrame() {
-  const frame = document.getElementById('brochure-frame');
+  const frame = ensureBrochureFrame();
   if (!frame || brochureFrameLoaded) return;
   frame.src = getBrochureUrl();
   brochureFrameLoaded = true;
+}
+
+function prefersBrochurePortal() {
+  if (window.matchMedia('(pointer: coarse)').matches) return true;
+  if (window.matchMedia('(max-width: 768px)').matches) return true;
+  const ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod|Android/i.test(ua)) return true;
+  if (navigator.standalone) return true;
+  return false;
+}
+
+function isBrochurePortalOpen() {
+  const portal = document.getElementById('brochure-fs-portal');
+  return !!(portal && !portal.hidden);
 }
 
 function tryLockLandscape() {
@@ -354,27 +384,198 @@ function tryUnlockOrientation() {
   try { screen.orientation.unlock(); } catch (_) { /* ignore */ }
 }
 
-function initBrochureControls() {
+function getFullscreenElement() {
+  return (
+    document.fullscreenElement
+    || document.webkitFullscreenElement
+    || document.msFullscreenElement
+    || null
+  );
+}
+
+function isBrochureFullscreenActive(viewport) {
+  if (!viewport) return isBrochurePortalOpen();
+  return (
+    isBrochurePortalOpen()
+    || viewport.classList.contains('brochure-viewport--expanded')
+    || getFullscreenElement() === viewport
+  );
+}
+
+function enterBrochurePortal() {
+  const portal = document.getElementById('brochure-fs-portal');
+  const host = document.getElementById('brochure-fs-host');
+  const frame = ensureBrochureFrame();
+  if (!portal || !host || !frame) return;
+
+  initBrochureFrame();
+  host.appendChild(frame);
+  portal.hidden = false;
+  portal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('brochure-fs-portal-open');
+  tryLockLandscape();
+}
+
+function exitBrochurePortal() {
+  const portal = document.getElementById('brochure-fs-portal');
+  const home = document.getElementById('brochure-frame-home');
+  const frame = document.getElementById('brochure-frame');
+  if (home && frame) home.appendChild(frame);
+  if (portal) {
+    portal.hidden = true;
+    portal.setAttribute('aria-hidden', 'true');
+  }
+  document.body.classList.remove('brochure-fs-portal-open');
+}
+
+function updateBrochureFullscreenButton(btn, active) {
+  if (!btn) return;
+  btn.textContent = active ? '✕ Salir pantalla completa' : '⛶ Pantalla completa';
+  btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+}
+
+function enterBrochureExpanded(viewport) {
+  viewport.classList.add('brochure-viewport--expanded');
+  document.body.classList.add('brochure-fullscreen-active');
+  tryLockLandscape();
+}
+
+function exitBrochureExpanded(viewport) {
+  viewport.classList.remove('brochure-viewport--expanded');
+  document.body.classList.remove('brochure-fullscreen-active');
+  tryUnlockOrientation();
+}
+
+async function requestNativeFullscreen(el) {
+  const request = (
+    el.requestFullscreen
+    || el.webkitRequestFullscreen
+    || el.msRequestFullscreen
+  );
+  if (!request) return false;
+  try {
+    await request.call(el);
+    return getFullscreenElement() === el;
+  } catch (_) {
+    return false;
+  }
+}
+
+async function exitNativeFullscreen() {
+  const exit = (
+    document.exitFullscreen
+    || document.webkitExitFullscreen
+    || document.msExitFullscreen
+  );
+  if (!exit) return;
+  try {
+    await exit.call(document);
+  } catch (_) { /* ignore */ }
+}
+
+async function exitBrochureFullscreen(viewport) {
+  if (isBrochurePortalOpen()) {
+    exitBrochurePortal();
+    tryUnlockOrientation();
+  }
+  if (viewport && getFullscreenElement() === viewport) {
+    await exitNativeFullscreen();
+  }
+  if (viewport) exitBrochureExpanded(viewport);
+  else tryUnlockOrientation();
+  updateBrochureFullscreenButton(
+    document.getElementById('btn-brochure-fullscreen'),
+    false
+  );
+}
+
+function openBrochureInNewTab() {
+  initBrochureFrame();
+  const url = getBrochureUrl();
+  const opened = window.open(url, '_blank', 'noopener,noreferrer');
+  if (!opened) window.location.assign(url);
+}
+
+async function toggleBrochureFullscreen() {
+  if (brochureToggleLock) return;
+  brochureToggleLock = true;
+  setTimeout(() => { brochureToggleLock = false; }, 450);
+
   const btn = document.getElementById('btn-brochure-fullscreen');
   const viewport = document.getElementById('brochure-viewport');
   if (!btn || !viewport) return;
 
-  btn.addEventListener('click', () => {
-    const el = viewport;
-    if (document.fullscreenElement === el) {
-      document.exitFullscreen().catch(() => {});
-      return;
-    }
-    if (el.requestFullscreen) {
-      el.requestFullscreen().catch(() => {});
-    } else if (el.webkitRequestFullscreen) {
-      el.webkitRequestFullscreen();
-    }
+  if (isBrochureFullscreenActive(viewport)) {
+    await exitBrochureFullscreen(viewport);
+    return;
+  }
+
+  initBrochureFrame();
+
+  if (prefersBrochurePortal()) {
+    enterBrochurePortal();
+    updateBrochureFullscreenButton(btn, true);
+    return;
+  }
+
+  const nativeOk = await requestNativeFullscreen(viewport);
+  if (nativeOk) {
+    updateBrochureFullscreenButton(btn, true);
+    tryLockLandscape();
+    return;
+  }
+
+  enterBrochureExpanded(viewport);
+  updateBrochureFullscreenButton(btn, true);
+}
+
+function initBrochureControls() {
+  const btn = document.getElementById('btn-brochure-fullscreen');
+  const closePortalBtn = document.getElementById('btn-brochure-fs-close');
+  const openTabBtn = document.getElementById('btn-brochure-open-tab');
+  const viewport = document.getElementById('brochure-viewport');
+  if (!btn || !viewport) return;
+
+  btn.addEventListener('click', event => {
+    event.preventDefault();
+    toggleBrochureFullscreen();
   });
 
-  document.addEventListener('fullscreenchange', () => {
-    const on = document.fullscreenElement === viewport;
-    btn.textContent = on ? '✕ Salir pantalla completa' : '⛶ Pantalla completa';
+  if (closePortalBtn) {
+    closePortalBtn.addEventListener('click', event => {
+      event.preventDefault();
+      exitBrochureFullscreen(viewport);
+    });
+  }
+
+  if (openTabBtn) {
+    openTabBtn.addEventListener('click', event => {
+      event.preventDefault();
+      openBrochureInNewTab();
+    });
+  }
+
+  const onFullscreenChange = () => {
+    if (isBrochurePortalOpen()) {
+      updateBrochureFullscreenButton(btn, true);
+      return;
+    }
+    const nativeOn = getFullscreenElement() === viewport;
+    if (!nativeOn && viewport.classList.contains('brochure-viewport--expanded')) {
+      updateBrochureFullscreenButton(btn, true);
+      return;
+    }
+    if (!nativeOn) exitBrochureExpanded(viewport);
+    updateBrochureFullscreenButton(btn, nativeOn);
+  };
+
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && isBrochureFullscreenActive(viewport)) {
+      exitBrochureFullscreen(viewport);
+    }
   });
 }
 
@@ -460,6 +661,7 @@ function initNavigation() {
       initBrochureFrame();
       tryLockLandscape();
     } else {
+      exitBrochureFullscreen(document.getElementById('brochure-viewport'));
       tryUnlockOrientation();
     }
 
@@ -811,7 +1013,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '10');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '12');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
