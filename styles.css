@@ -306,6 +306,7 @@ html, body {
 .event-panel.active { display: block; }
 
 /* ═══ DETAIL CARDS (borde rojo izquierdo) ════════════════ */
+.flights-list,
 .logistics-list,
 .team-list,
 .visits-list,
@@ -316,6 +317,7 @@ html, body {
   margin-bottom: 20px;
 }
 
+.flight-card,
 .hotel-card,
 .team-card,
 .contact-card,
@@ -327,6 +329,153 @@ html, body {
   border-radius: var(--radius-lg);
   border-left: 4px solid var(--accent);
   padding: 16px 18px;
+}
+
+/* ═══ FLIGHT CARDS ═══════════════════════════════════════ */
+.flight-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.flight-type {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+}
+
+.flight-date {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.flight-route-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+.flight-route {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.flight-endpoint {
+  flex: 1;
+  min-width: 0;
+}
+
+.flight-endpoint--to {
+  text-align: right;
+}
+
+.flight-code {
+  display: block;
+  font-size: 26px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.flight-city {
+  display: block;
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+.flight-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.flight-plane {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.flight-duration {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.flight-times {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.flight-time-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--card-border);
+}
+
+.flight-time-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  grid-row: span 2;
+  align-self: center;
+}
+
+.flight-time-value {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.flight-time-meta {
+  font-size: 11px;
+  color: var(--text-soft);
+  grid-column: 2;
+}
+
+.alert-box--flight {
+  background: var(--alert-red);
+  border: 1px solid var(--alert-red-border);
+  color: var(--text-soft);
+  margin-bottom: 8px;
+  padding: 12px 14px;
+}
+
+.alert-box--flight-arrival {
+  background: var(--alert-green);
+  border-color: var(--alert-green-border);
+}
+
+.alert-box--flight strong {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.flight-footnote {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 10px;
+  text-align: center;
 }
 
 .hotel-card--travel {
@@ -674,13 +823,26 @@ html, body {
 
 .meeting-slot {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 12px;
+  align-items: flex-start;
   padding: 10px 12px;
   background: var(--bg-elevated);
   border-radius: var(--radius-sm);
   margin-bottom: 6px;
   border: 1px solid var(--card-border);
+}
+
+.slot-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.slot-sub {
+  font-size: 11px;
+  color: var(--text-faint);
 }
 
 .meeting-slot--empty {
@@ -698,7 +860,8 @@ html, body {
   font-size: 12px;
   font-weight: 600;
   color: var(--text-soft);
-  min-width: 90px;
+  flex-shrink: 0;
+  min-width: 72px;
 }
 
 .meeting-slot--priority .slot-time {
@@ -708,7 +871,7 @@ html, body {
 .slot-label {
   font-size: 13px;
   color: var(--text);
-  flex: 1;
+  line-height: 1.35;
 }
 
 /* ═══ COMPANY / VISIT CARDS ══════════════════════════════ */
@@ -808,6 +971,12 @@ html, body {
 }
 
 .alert-box--info strong { color: var(--text); }
+
+.alert-box--warn {
+  background: var(--alert-red);
+  border: 1px solid var(--alert-red-border);
+  color: var(--text-soft);
+}
 
 .alert-icon { font-size: 18px; flex-shrink: 0; }
 

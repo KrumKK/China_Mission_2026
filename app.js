@@ -14,43 +14,89 @@ const TRIP_LOGISTICS = [
     id: 'beijing',
     cityEs: 'Pekín (Beijing)',
     cityZh: '北京',
-    dateRange: '22–23 jun 2026',
+    dateRange: '21–23 jun 2026 · 2 noches',
     hotel: {
-      nameEs: 'Por confirmar',
-      nameZh: '待确认',
+      nameEs: 'Beijing Liangmahe Hotel',
+      nameZh: '北京亮马河饭店',
       addressEs: null,
       addressZh: null,
       phone: null
     },
     departureTime: null,
-    departureNote: 'Hora de salida del hotel — pendiente de confirmar',
-    notes: 'Feria CISCE · llegada 22 junio'
-  },
-  {
-    id: 'travel',
-    cityEs: 'Traslado',
-    cityZh: '北京 → 深圳',
-    dateRange: 'Noche 23 → 24 jun',
-    hotel: null,
-    departureTime: null,
-    departureNote: 'Vuelo o tren según organización del viaje',
-    notes: 'Beijing → Shenzhen'
+    departureNote: 'Check-out 23 jun · vuelo a Shenzhen 20:15',
+    notes: 'Feria CISCE · llegada internacional 21 jun (06:00)'
   },
   {
     id: 'shenzhen',
     cityEs: 'Shenzhen · Longhua',
     cityZh: '深圳 · 龙华',
-    dateRange: '24–26 jun 2026',
+    dateRange: '23–27 jun 2026 · 4 noches',
     hotel: {
-      nameEs: 'Por confirmar',
-      nameZh: '待确认',
+      nameEs: 'Grand Madison LongHua Yujing Shenzhen',
+      nameZh: '深圳格兰云天龙华观澜酒店',
       addressEs: null,
       addressZh: null,
       phone: null
     },
     departureTime: null,
     departureNote: 'Hora de salida del hotel — pendiente de confirmar',
-    notes: 'Misión comercial PIN · distrito Longhua'
+    notes: 'Habitación superior · misión PIN · distrito Longhua'
+  }
+];
+
+/* ──────────────────────────────────────────────
+   DATA — Vuelos
+────────────────────────────────────────────── */
+const FLIGHTS = [
+  {
+    id: 'mad-pek',
+    type: 'ida',
+    title: 'Vuelo de ida',
+    routeLabel: 'Madrid – Pekín',
+    from: {
+      code: 'MAD',
+      city: 'Madrid',
+      airport: 'Aeropuerto Adolfo Suárez Madrid-Barajas',
+      terminal: 'T1'
+    },
+    to: {
+      code: 'PEK',
+      city: 'Pekín',
+      airport: 'Aeropuerto Internacional de Pekín-Capital',
+      terminal: 'T3'
+    },
+    date: '2026-06-20',
+    dateLabel: 'Sáb 20 jun',
+    departTime: '12:55',
+    arriveTime: '06:00',
+    arriveDateLabel: 'Dom 21 jun',
+    duration: '11h 05m',
+    note: 'Todos los horarios en hora local'
+  },
+  {
+    id: 'pek-szx',
+    type: 'ida',
+    title: 'Vuelo de ida',
+    routeLabel: 'Pekín – Shenzhen',
+    from: {
+      code: 'PEK',
+      city: 'Pekín',
+      airport: 'Aeropuerto Internacional de Pekín-Capital',
+      terminal: 'T3'
+    },
+    to: {
+      code: 'SZX',
+      city: 'Shenzhen',
+      airport: "Aeropuerto Internacional de Shenzhen-Bao'an",
+      terminal: 'T3'
+    },
+    date: '2026-06-23',
+    dateLabel: 'Mar 23 jun',
+    departTime: '20:15',
+    arriveTime: '23:35',
+    arriveDateLabel: 'Mar 23 jun',
+    duration: '3h 20m',
+    note: 'Todos los horarios en hora local'
   }
 ];
 
@@ -85,19 +131,29 @@ const CONTACTS = [
 const EVENT_AGENDA = {
   cisce: {
     heroTag: 'Pekín',
-    heroTitle: 'CISCE',
+    heroTitle: 'Feria CISCE',
     heroDesc: 'China International Supply Chain Expo · Beijing',
     cityMarker: '北京',
     cityClass: 'city-beijing',
+    programIntro: 'Programa preliminar del PIN. Se finalizará en las próximas semanas.',
     days: [
+      {
+        date: '2026-06-21',
+        dateLabel: 'Dom 21 junio',
+        badge: 'LLEGADA',
+        badgeClass: 'day-badge--mision',
+        note: 'Llegada 06:00 PEK · Hotel Beijing Liangmahe (check-in).',
+        slots: []
+      },
       {
         date: '2026-06-22',
         dateLabel: 'Lun 22 junio',
         badge: 'CISCE',
         badgeClass: 'day-badge--feria',
-        note: 'Llegada a Beijing. Inicio de la feria CISCE.',
+        note: 'Día 22 · Feria CISCE',
         slots: [
-          { time: 'Por confirmar', label: 'Reuniones B2B — CCPIT', empty: true }
+          { time: 'Jornada', label: 'Agenda institucional' },
+          { time: 'Jornada', label: 'Citas B2B' }
         ]
       },
       {
@@ -105,56 +161,85 @@ const EVENT_AGENDA = {
         dateLabel: 'Mar 23 junio',
         badge: 'CISCE',
         badgeClass: 'day-badge--feria',
-        note: 'Segundo día de feria. Posibles encuentros institucionales.',
+        note: 'Día 23 · Check-out hotel · vuelo a Shenzhen por la noche',
         slots: [
-          { time: 'Por confirmar', label: 'Reuniones B2B — CCPIT', empty: true }
+          { time: 'Jornada', label: "Encuentro «Día de Navarra» en el stand", priority: true },
+          { time: 'Jornada', label: 'Agenda institucional' },
+          { time: 'Jornada', label: 'Citas B2B' },
+          { time: '20:15', label: 'Vuelo PEK → SZX', priority: true }
         ]
       }
     ],
-    footerNote: 'Reuniones B2B confirmadas aparecerán también en la subpestaña B2B.'
+    footerNote: 'Hotel Beijing Liangmahe (21–23 jun). Llegada internacional 21 jun 06:00.',
+    footerAlert: 'Día de Navarra: aportar al PIN los contactos a invitar (nombre, cargo, email y teléfono).'
   },
   shenzhen: {
     heroTag: 'Shenzhen',
-    heroTitle: 'Misión PIN',
-    heroDesc: 'Longhua · Foro y visitas empresariales',
+    heroTitle: 'Misión Shenzhen',
+    heroDesc: 'Foro Navarra–Longhua · SPI · visitas empresariales',
     cityMarker: '深圳',
     cityClass: 'city-shenzhen',
+    programIntro: 'Programa preliminar del PIN. Se finalizará en las próximas semanas.',
     days: [
+      {
+        date: '2026-06-23',
+        dateLabel: 'Mar 23 junio',
+        badge: 'LLEGADA',
+        badgeClass: 'day-badge--mision',
+        note: 'Llegada 23:35 SZX · Hotel Grand Madison LongHua Yujing',
+        slots: [
+          { time: 'Por confirmar', label: 'Sesión de trabajo empresas con SPI (preparación sesiones y B2B)', empty: true }
+        ]
+      },
       {
         date: '2026-06-24',
         dateLabel: 'Mié 24 junio',
-        badge: 'MISIÓN PIN',
+        badge: 'FORO',
         badgeClass: 'day-badge--mision',
-        note: 'Inicio misión comercial Shenzhen. Posible Foro Navarra-Longhua.',
+        note: 'Foro Navarra – Longhua (Shenzhen). Innovación, industria y relaciones estratégicas en el Greater Bay Area.',
         slots: [
-          { time: 'Por confirmar', label: 'Visitas a empresa / Foro', empty: true }
+          { time: '09:00', label: 'Apertura institucional', sub: 'Modera: Longhua' },
+          { time: '09:30', label: 'Panel 1: Innovación', sub: 'Modera: Navarra' },
+          { time: '10:30', label: 'Panel 2: Industria', sub: 'Modera: Longhua' },
+          { time: '11:30', label: 'Panel 3: Relaciones estratégicas', sub: 'Modera: Navarra' },
+          { time: '12:00', label: 'Clausura', sub: 'Modera: Longhua' },
+          { time: 'Mediodía', label: 'Comida networking' },
+          { time: '15:00', label: 'Reuniones B2B', priority: true }
         ]
       },
       {
         date: '2026-06-25',
         dateLabel: 'Jue 25 junio',
-        badge: 'MISIÓN PIN',
+        badge: 'VISITAS',
         badgeClass: 'day-badge--mision',
-        note: null,
+        note: 'Visitas y reuniones a determinar (programa preliminar).',
         slots: [
-          { time: 'Alta prioridad', label: 'BYD + proveedor EPS · visita planta', priority: true },
-          { time: 'Por confirmar', label: 'Visita con AIERFY' },
-          { time: 'Por confirmar', label: 'Visita con SINOMZ' },
-          { time: 'Por confirmar', label: 'Reuniones B2B robótica/automatización', empty: true }
+          { time: 'Prioridad', label: 'BYD + proveedor EPS · visita planta', priority: true },
+          { time: 'Por determinar', label: 'Visita AIERFY', empty: true },
+          { time: 'Por determinar', label: 'Visita SINOMZ', empty: true },
+          { time: 'Por determinar', label: 'Otras visitas y B2B', empty: true }
         ]
       },
       {
         date: '2026-06-26',
         dateLabel: 'Vie 26 junio',
-        badge: 'MISIÓN PIN',
+        badge: 'VISITAS',
         badgeClass: 'day-badge--mision',
-        note: 'Último día. Cierre de reuniones y seguimientos.',
+        note: 'Visitas y reuniones a determinar (programa preliminar).',
         slots: [
-          { time: 'Por confirmar', label: 'Reuniones pendientes', empty: true }
+          { time: 'Por determinar', label: 'Visitas y reuniones pendientes de confirmar', empty: true }
         ]
+      },
+      {
+        date: '2026-06-27',
+        dateLabel: 'Sáb 27 junio',
+        badge: 'SALIDA',
+        badgeClass: 'day-badge--mision',
+        note: 'Check-out hotel Grand Madison (reserva hasta 27 jun).',
+        slots: []
       }
     ],
-    footerNote: 'Traslado Beijing → Shenzhen entre el 23 y el 24 de junio.'
+    footerNote: 'Hotel Grand Madison LongHua Yujing (23–27 jun). Vuelo PEK→SZX el 23 jun 20:15.'
   }
 };
 
@@ -209,7 +294,7 @@ const COMPANIES = [
    COUNTDOWN
 ────────────────────────────────────────────── */
 function initCountdown() {
-  const departureDate = new Date('2026-06-22T00:00:00');
+  const departureDate = new Date('2026-06-20T12:55:00');
   const daysEl = document.getElementById('countdown-days');
   const subEl = document.getElementById('countdown-sub');
   if (!daysEl) return;
@@ -348,6 +433,62 @@ function renderLogistics() {
 
 
 /* ──────────────────────────────────────────────
+   RENDER — Vuelos
+────────────────────────────────────────────── */
+function renderFlights() {
+  const container = document.getElementById('flights-list');
+  if (!container) return;
+  container.innerHTML = FLIGHTS.map(buildFlightCard).join('');
+}
+
+function buildFlightCard(f) {
+  return `
+    <article class="flight-card" data-id="${escapeHtml(f.id)}">
+      <header class="flight-card-header">
+        <span class="flight-type">${escapeHtml(f.title)}</span>
+        <span class="flight-date">${escapeHtml(f.dateLabel)}</span>
+      </header>
+      <p class="flight-route-label">${escapeHtml(f.routeLabel)}</p>
+      <div class="flight-route">
+        <div class="flight-endpoint">
+          <span class="flight-code">${escapeHtml(f.from.code)}</span>
+          <span class="flight-city">${escapeHtml(f.from.city)}</span>
+        </div>
+        <div class="flight-connector" aria-hidden="true">
+          <span class="flight-plane">✈</span>
+          <span class="flight-duration">${escapeHtml(f.duration)}</span>
+        </div>
+        <div class="flight-endpoint flight-endpoint--to">
+          <span class="flight-code">${escapeHtml(f.to.code)}</span>
+          <span class="flight-city">${escapeHtml(f.to.city)}</span>
+        </div>
+      </div>
+      <div class="flight-times">
+        <div class="flight-time-row">
+          <span class="flight-time-label">Salida</span>
+          <span class="flight-time-value">${escapeHtml(f.departTime)}</span>
+          <span class="flight-time-meta">${escapeHtml(f.from.code)} · ${escapeHtml(f.from.terminal)}</span>
+        </div>
+        <div class="flight-time-row">
+          <span class="flight-time-label">Llegada</span>
+          <span class="flight-time-value">${escapeHtml(f.arriveTime)}</span>
+          <span class="flight-time-meta">${escapeHtml(f.to.code)} · ${escapeHtml(f.arriveDateLabel)} · ${escapeHtml(f.to.terminal)}</span>
+        </div>
+      </div>
+      <div class="alert-box alert-box--flight">
+        <span class="alert-icon">🛫</span>
+        <p><strong>${escapeHtml(f.from.airport)}</strong></p>
+      </div>
+      <div class="alert-box alert-box--flight alert-box--flight-arrival">
+        <span class="alert-icon">🛬</span>
+        <p><strong>${escapeHtml(f.to.airport)}</strong></p>
+      </div>
+      <p class="flight-footnote">${escapeHtml(f.note)}</p>
+    </article>`;
+}
+
+
+/* ──────────────────────────────────────────────
    RENDER — Contactos
 ────────────────────────────────────────────── */
 function renderContacts() {
@@ -411,10 +552,16 @@ function renderEventAgendas() {
         const classes = ['meeting-slot'];
         if (slot.empty) classes.push('meeting-slot--empty');
         if (slot.priority) classes.push('meeting-slot--priority');
+        const sub = slot.sub
+          ? `<span class="slot-sub">${escapeHtml(slot.sub)}</span>`
+          : '';
         return `
           <div class="${classes.join(' ')}">
             <span class="slot-time">${escapeHtml(slot.time)}</span>
-            <span class="slot-label">${escapeHtml(slot.label)}</span>
+            <div class="slot-text">
+              <span class="slot-label">${escapeHtml(slot.label)}</span>
+              ${sub}
+            </div>
           </div>`;
       }).join('');
 
@@ -437,12 +584,14 @@ function renderEventAgendas() {
         <h3 class="event-hero-title">${escapeHtml(data.heroTitle)}</h3>
         <p class="event-hero-desc">${escapeHtml(data.heroDesc)}</p>
       </div>
+      ${data.programIntro ? `<div class="alert-box alert-box--info"><span class="alert-icon">📋</span><p>${escapeHtml(data.programIntro)}</p></div>` : ''}
       <div class="timeline">
         <div class="timeline-city">
           <div class="city-marker ${data.cityClass}">${data.cityMarker}</div>
         </div>
         ${daysHtml}
       </div>
+      ${data.footerAlert ? `<div class="alert-box alert-box--warn"><span class="alert-icon">⚠️</span><p>${escapeHtml(data.footerAlert)}</p></div>` : ''}
       ${data.footerNote ? `<div class="info-box"><span class="info-box-icon">ℹ</span><p>${escapeHtml(data.footerNote)}</p></div>` : ''}`;
   });
 }
@@ -555,7 +704,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '4');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '6');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
@@ -590,6 +739,7 @@ function escapeHtml(str) {
 document.addEventListener('DOMContentLoaded', () => {
   initCountdown();
   initNavigation();
+  renderFlights();
   renderLogistics();
   renderContacts();
   renderEventAgendas();

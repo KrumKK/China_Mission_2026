@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '4';
+      window.__APP_BUILD__ = '6';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -55,7 +55,7 @@
       <div class="trip-overview">
         <article class="card-hero card-hero--blue">
           <h1 class="card-hero-title">Misión China 2026</h1>
-          <p class="card-hero-meta">22–26 Jun · Beijing &amp; Shenzhen · Lizarte</p>
+          <p class="card-hero-meta">20–27 Jun · Madrid → Beijing → Shenzhen · Lizarte</p>
           <div class="card-hero-nested">
             <div class="tz-row">
               <span class="tz-flag">🇪🇸</span>
@@ -84,6 +84,10 @@
       </div>
 
       <section class="view active" id="view-general">
+        <h2 class="section-heading"><span class="section-emoji">✈️</span> Vuelos</h2>
+        <p class="section-lead">Horarios en hora local</p>
+        <div id="flights-list" class="flights-list"></div>
+
         <h2 class="section-heading"><span class="section-emoji">🏨</span> Hoteles y ciudades</h2>
         <p class="section-lead">Nombres en castellano y chino · salida del hotel</p>
         <div id="logistics-list" class="logistics-list"></div>
