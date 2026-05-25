@@ -294,21 +294,27 @@ const COMPANIES = [
    COUNTDOWN
 ────────────────────────────────────────────── */
 function initCountdown() {
-  const departureDate = new Date('2026-06-20T12:55:00');
+  /* 20 jun 2026, 12:00 — hora local del dispositivo */
+  const target = new Date(2026, 5, 20, 12, 0, 0);
   const daysEl = document.getElementById('countdown-days');
   const subEl = document.getElementById('countdown-sub');
   if (!daysEl) return;
 
   function update() {
     const now = new Date();
-    const diff = departureDate - now;
+    const diff = target - now;
     if (diff <= 0) {
       daysEl.textContent = '¡Ya!';
-      if (subEl) subEl.textContent = 'El viaje ha comenzado';
+      if (subEl) subEl.textContent = 'Salida Madrid · 20 jun 12:00';
       return;
     }
-    daysEl.textContent = String(Math.ceil(diff / (1000 * 60 * 60 * 24)));
-    if (subEl) subEl.textContent = 'días para el viaje';
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    daysEl.textContent = String(days);
+    if (subEl) {
+      subEl.textContent = days === 1
+        ? 'día hasta salida (20 jun, 12:00)'
+        : 'días hasta salida (20 jun, 12:00)';
+    }
   }
 
   update();
@@ -704,7 +710,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '6');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '7');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
@@ -734,9 +740,9 @@ function escapeHtml(str) {
 
 
 /* ──────────────────────────────────────────────
-   INIT
+   INIT — compatible con carga dinámica de app.js
 ────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
+function bootApp() {
   initCountdown();
   initNavigation();
   renderFlights();
@@ -746,4 +752,10 @@ document.addEventListener('DOMContentLoaded', () => {
   renderB2BAndVisits();
   bindCompanyCardClicks();
   initPWA();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootApp);
+} else {
+  bootApp();
+}

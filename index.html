@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '6';
+      window.__APP_BUILD__ = '7';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -91,50 +91,6 @@
         <h2 class="section-heading"><span class="section-emoji">🏨</span> Hoteles y ciudades</h2>
         <p class="section-lead">Nombres en castellano y chino · salida del hotel</p>
         <div id="logistics-list" class="logistics-list"></div>
-
-        <h2 class="section-heading"><span class="section-emoji">🧳</span> Equipo del viaje</h2>
-        <div class="team-list">
-          <div class="team-card">
-            <div class="team-initials">ÓH</div>
-            <div class="team-info">
-              <span class="team-name">Óscar Huarte</span>
-              <span class="team-role">CEO / Managing Director</span>
-              <span class="team-email">ohuarte@lizarte.com</span>
-            </div>
-          </div>
-          <div class="team-card">
-            <div class="team-initials">KK</div>
-            <div class="team-info">
-              <span class="team-name">Krum Kovachev</span>
-              <span class="team-role">Innovation Director</span>
-              <span class="team-email">krum@lizarte.com</span>
-            </div>
-          </div>
-          <div class="team-card">
-            <div class="team-initials">JB</div>
-            <div class="team-info">
-              <span class="team-name">Jorge Bobadilla</span>
-              <span class="team-role">R&D Director</span>
-              <span class="team-email">jbobadilla@lizarte.com</span>
-            </div>
-          </div>
-          <div class="team-card">
-            <div class="team-initials">JH</div>
-            <div class="team-info">
-              <span class="team-name">Javier Hualde</span>
-              <span class="team-role">Quality Director</span>
-              <span class="team-email">jhualde@lizarte.com</span>
-            </div>
-          </div>
-          <div class="team-card team-card--highlight">
-            <div class="team-initials">RL</div>
-            <div class="team-info">
-              <span class="team-name">Ray Lee</span>
-              <span class="team-role">Mandarina nativo · Traductor</span>
-              <span class="team-tag">🔑 Activo clave</span>
-            </div>
-          </div>
-        </div>
 
         <div class="alert-box alert-box--info">
           <span class="alert-icon">ℹ️</span>
@@ -247,10 +203,10 @@
 
   <script>
     (function () {
-      var script = document.createElement('script');
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '4';
-      script.src = 'app.js?v=' + encodeURIComponent(bust);
-      document.body.appendChild(script);
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '7';
+      var s = document.createElement('script');
+      s.src = 'app.js?v=' + encodeURIComponent(bust);
+      document.body.appendChild(s);
     })();
   </script>
 </body>
