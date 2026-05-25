@@ -1,20 +1,35 @@
-/* Misión China 2026 - Service Worker */
+/* Misión China 2026 — Service Worker (red primero en la app) */
 'use strict';
 
-const CACHE_VERSION = 'v2';
-const CACHE_NAME = `mision-china-cache-${CACHE_VERSION}`;
-const APP_SHELL = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './manifest.webmanifest',
-  './icon.svg'
-];
+const CACHE_VERSION = 'v3';
+const CACHE_NAME = 'mision-china-' + CACHE_VERSION;
+
+/** Solo recursos estáticos ligeros; la app va siempre a red primero. */
+const OFFLINE_ASSETS = ['./icon.svg', './manifest.webmanifest'];
+
+function isSameOrigin(url) {
+  try {
+    return new URL(url).origin === self.location.origin;
+  } catch (_) {
+    return false;
+  }
+}
+
+function isAppResource(pathname) {
+  return (
+    pathname.endsWith('/') ||
+    pathname.endsWith('/index.html') ||
+    pathname.endsWith('/app.js') ||
+    pathname.endsWith('/styles.css') ||
+    pathname.endsWith('/sw.js')
+  );
+}
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then(cache =>
+      cache.addAll(OFFLINE_ASSETS).catch(() => undefined)
+    )
   );
   self.skipWaiting();
 });
@@ -23,29 +38,47 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
       )
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
+});
+
+self.addEventListener('message', event => {
+  if (!event.data || event.data.type !== 'CLEAR_CACHES') return;
+  event.waitUntil(
+    caches.keys().then(keys => Promise.all(keys.map(key => caches.delete(key))))
+  );
 });
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  if (!event.request.url.startsWith(self.location.origin)) return;
+  if (!isSameOrigin(event.request.url)) return;
+
+  const url = new URL(event.request.url);
+
+  if (event.request.mode === 'navigate' || isAppResource(url.pathname)) {
+    event.respondWith(networkFirst(event.request));
+    return;
+  }
 
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      if (cachedResponse) return cachedResponse;
-      return fetch(event.request)
-        .then(networkResponse => {
-          const copy = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-          return networkResponse;
-        })
-        .catch(() => caches.match('./index.html'));
-    })
+    caches.match(event.request).then(cached => cached || fetch(event.request))
   );
 });
+
+function networkFirst(request) {
+  return fetch(request)
+    .then(response => {
+      if (response && response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+      }
+      return response;
+    })
+    .catch(() =>
+      caches.match(request).then(cached =>
+        cached || caches.match('./index.html')
+      )
+    );
+}

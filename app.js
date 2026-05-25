@@ -548,91 +548,16 @@ function bindCompanyCardClicks() {
 
 
 /* ──────────────────────────────────────────────
-   CACHE / PWA
+   PWA — registro del service worker
+   (la actualización forzada está en index.html, inline)
 ────────────────────────────────────────────── */
-async function clearAppCacheStorage() {
-  if ('serviceWorker' in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(registrations.map(reg => reg.unregister()));
-  }
-  if ('caches' in window) {
-    const cacheKeys = await caches.keys();
-    await Promise.all(cacheKeys.map(key => caches.delete(key)));
-  }
-  try { localStorage.clear(); } catch (_) { /* ignore */ }
-  try { sessionStorage.clear(); } catch (_) { /* ignore */ }
-}
-
-function buildVersionedUrl() {
-  const url = new URL(window.location.href);
-  url.searchParams.set('v', String(Date.now()));
-  return url.toString();
-}
-
-async function forceRefreshApp() {
-  const isHttp = window.location.protocol === 'http:' || window.location.protocol === 'https:';
-  try {
-    if ('serviceWorker' in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(async reg => {
-        try { await reg.update(); } catch (_) { /* ignore */ }
-        try { await reg.unregister(); } catch (_) { /* ignore */ }
-      }));
-    }
-  } catch (_) { /* ignore */ }
-  try { await clearAppCacheStorage(); } catch (_) { /* ignore */ }
-  if (isHttp) {
-    window.location.replace(buildVersionedUrl());
-    return;
-  }
-  window.location.reload();
-}
-
-function initRefreshAppButton() {
-  const refreshBtn = document.getElementById('refresh-app-btn');
-  if (!refreshBtn) return;
-
-  let isRefreshing = false;
-
-  async function onRefreshTap(event) {
-    event.preventDefault();
-    if (isRefreshing) return;
-    isRefreshing = true;
-
-    const originalText = refreshBtn.textContent;
-    refreshBtn.disabled = true;
-    refreshBtn.textContent = 'Actualizando...';
-    refreshBtn.setAttribute('aria-busy', 'true');
-
-    try {
-      await forceRefreshApp();
-    } catch (err) {
-      console.warn('No se pudo limpiar todo el cache:', err);
-      refreshBtn.textContent = 'Reintentar actualización';
-      refreshBtn.disabled = false;
-      refreshBtn.removeAttribute('aria-busy');
-      isRefreshing = false;
-      return;
-    }
-
-    setTimeout(() => {
-      refreshBtn.textContent = originalText;
-      refreshBtn.disabled = false;
-      refreshBtn.removeAttribute('aria-busy');
-      isRefreshing = false;
-      window.location.reload();
-    }, 1500);
-  }
-
-  refreshBtn.addEventListener('click', onRefreshTap, { passive: false });
-  refreshBtn.addEventListener('touchend', onRefreshTap, { passive: false });
-}
-
 function initPWA() {
   if (!('serviceWorker' in navigator)) return;
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
+
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(err => {
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '3');
+    navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
   });
@@ -671,6 +596,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderEventAgendas();
   renderB2BAndVisits();
   bindCompanyCardClicks();
-  initRefreshAppButton();
   initPWA();
 });

@@ -20,14 +20,14 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
+      window.__APP_BUILD__ = '3';
       var params = new URLSearchParams(window.location.search);
-      var v = params.get('v');
-      window.__APP_CACHE_BUSTER__ = v || '';
+      var bust = params.get('v') || window.__APP_BUILD__;
+      window.__APP_CACHE_BUSTER__ = bust;
       var stylesheet = document.getElementById('main-stylesheet');
-      if (!stylesheet) return;
-      stylesheet.href = window.__APP_CACHE_BUSTER__
-        ? 'styles.css?v=' + encodeURIComponent(window.__APP_CACHE_BUSTER__)
-        : 'styles.css';
+      if (stylesheet) {
+        stylesheet.href = 'styles.css?v=' + encodeURIComponent(bust);
+      }
     })();
   </script>
 </head>
@@ -44,8 +44,8 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="refresh-app-btn" id="refresh-app-btn" type="button">
-          Actualizar app (Borrar caché)
+        <button class="refresh-app-btn" id="btn-hard-refresh" type="button" aria-label="Descargar la última versión de la aplicación">
+          Actualizar
         </button>
         <div class="header-badge" id="countdown-badge">
           <span id="countdown-days">—</span>
@@ -188,12 +188,92 @@
     </button>
   </nav>
 
+  <!-- Actualización forzada: inline para que funcione aunque app.js esté en caché -->
+  <script>
+    (function () {
+      'use strict';
+
+      var BTN_ID = 'btn-hard-refresh';
+
+      function notifyWorkerClear() {
+        if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
+          return Promise.resolve();
+        }
+        try {
+          navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHES' });
+        } catch (_) { /* ignore */ }
+        return new Promise(function (resolve) {
+          setTimeout(resolve, 150);
+        });
+      }
+
+      function deleteAllCaches() {
+        if (!window.caches) return Promise.resolve();
+        return caches.keys().then(function (keys) {
+          return Promise.all(keys.map(function (key) {
+            return caches.delete(key);
+          }));
+        });
+      }
+
+      function unregisterAllWorkers() {
+        if (!navigator.serviceWorker) return Promise.resolve();
+        return navigator.serviceWorker.getRegistrations().then(function (regs) {
+          return Promise.all(regs.map(function (reg) {
+            return reg.unregister();
+          }));
+        });
+      }
+
+      function reloadFresh() {
+        var url = new URL(window.location.href);
+        url.searchParams.set('v', String(Date.now()));
+        window.location.replace(url.toString());
+      }
+
+      function handleRefresh(event) {
+        if (event) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+
+        var btn = document.getElementById(BTN_ID);
+        if (!btn || btn.getAttribute('data-busy') === '1') return;
+
+        btn.setAttribute('data-busy', '1');
+        btn.disabled = true;
+        btn.textContent = 'Actualizando…';
+
+        notifyWorkerClear()
+          .then(deleteAllCaches)
+          .then(unregisterAllWorkers)
+          .then(function () {
+            try { localStorage.clear(); } catch (_) { /* ignore */ }
+            try { sessionStorage.clear(); } catch (_) { /* ignore */ }
+          })
+          .catch(function () { /* seguir con recarga igualmente */ })
+          .then(reloadFresh);
+      }
+
+      function bindRefreshButton() {
+        var btn = document.getElementById(BTN_ID);
+        if (!btn) return;
+        btn.addEventListener('click', handleRefresh, false);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindRefreshButton);
+      } else {
+        bindRefreshButton();
+      }
+    })();
+  </script>
+
   <script>
     (function () {
       var script = document.createElement('script');
-      script.src = window.__APP_CACHE_BUSTER__
-        ? 'app.js?v=' + encodeURIComponent(window.__APP_CACHE_BUSTER__)
-        : 'app.js';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '1';
+      script.src = 'app.js?v=' + encodeURIComponent(bust);
       document.body.appendChild(script);
     })();
   </script>
