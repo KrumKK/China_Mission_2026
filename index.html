@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '16';
+      window.__APP_BUILD__ = '17';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -140,7 +140,7 @@
 
           <div class="info-box backup-tips">
             <span class="info-box-icon">ℹ</span>
-            <p><strong>Rutina recomendada:</strong> al final de cada jornada, descarga la copia completa y súbela a OneDrive (carpeta del viaje). Haz lo mismo antes de «Actualizar aplicación». En un móvil nuevo, abre la app y pulsa «Restaurar desde copia».</p>
+            <p><strong>Rutina recomendada:</strong> al final de cada jornada, descarga la copia completa y súbela a OneDrive (carpeta del viaje). En <strong>iPhone</strong>, si no se descarga sola, usa «Compartir copia» o guarda desde Archivos. Haz lo mismo antes de «Actualizar aplicación».</p>
           </div>
         </section>
       </section>
@@ -322,7 +322,7 @@
 
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '16';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '17';
       var s = document.createElement('script');
       s.src = 'app.js?v=' + encodeURIComponent(bust);
       document.body.appendChild(s);

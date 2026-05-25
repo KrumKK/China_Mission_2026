@@ -593,17 +593,40 @@ function writeBackupMeta(meta) {
   updateBackupLastInfo(meta);
 }
 
+function isIOSDevice() {
+  return (
+    /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
+}
+
+function prefersMobileBackupDelivery() {
+  return isIOSDevice() || window.matchMedia('(pointer: coarse)').matches;
+}
+
+async function ensureReadableBlob(blob) {
+  if (!(blob instanceof Blob)) {
+    throw new Error('Archivo de foto no disponible en este dispositivo');
+  }
+  try {
+    const buffer = await blob.arrayBuffer();
+    return new Blob([buffer], { type: blob.type || 'image/jpeg' });
+  } catch (_) {
+    return blob;
+  }
+}
+
 function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
+  return ensureReadableBlob(blob).then(readable => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
       const result = String(reader.result || '');
       const idx = result.indexOf(',');
       resolve(idx >= 0 ? result.slice(idx + 1) : result);
     };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
+    reader.onerror = () => reject(reader.error || new Error('No se pudo leer la foto'));
+    reader.readAsDataURL(readable);
+  }));
 }
 
 function base64ToBlob(base64, mime) {
@@ -709,7 +732,7 @@ async function buildBackupPayload(includePhotos, onProgress) {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
-    appBuild: window.__APP_BUILD__ || '16',
+    appBuild: window.__APP_BUILD__ || '17',
     includesPhotos: !!includePhotos,
     companyCount: serialized.length,
     photoCount: countBackupPhotos(serialized),
@@ -721,16 +744,14 @@ function backupPayloadToBlob(payload) {
   return new Blob([JSON.stringify(payload)], { type: 'application/json' });
 }
 
-function downloadBackupBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.rel = 'noopener';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+function backupDeliveryStatus(method, sizeMb, photoCount) {
+  if (method === 'shared') {
+    return 'Copia lista (' + sizeMb + ' MB · ' + photoCount + ' fotos). Elige «Guardar en Archivos», OneDrive o Mail.';
+  }
+  if (method === 'opened') {
+    return 'Copia abierta en otra ventana (' + sizeMb + ' MB). Pulsa ↗ Compartir → «Guardar en Archivos».';
+  }
+  return 'Copia descargada (' + sizeMb + ' MB · ' + photoCount + ' fotos). Guárdala en OneDrive o envíatela por email.';
 }
 
 async function shareBackupFile(blob, filename) {
@@ -740,6 +761,82 @@ async function shareBackupFile(blob, filename) {
   if (navigator.canShare && !navigator.canShare(payload)) return false;
   await navigator.share(payload);
   return true;
+}
+
+async function openBackupOnIOS(blob, filename) {
+  const deliveryBlob = new Blob([blob], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(deliveryBlob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  link.setAttribute('download', filename);
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 120000);
+  return 'opened';
+}
+
+async function deliverBackupBlob(blob, filename, options) {
+  options = options || {};
+  const deliveryBlob = prefersMobileBackupDelivery()
+    ? new Blob([blob], { type: 'application/octet-stream' })
+    : blob;
+
+  /* iPhone: no usar share tras await (pierde el gesto y falla con NotFoundError) */
+  if (isIOSDevice()) {
+    return openBackupOnIOS(blob, filename);
+  }
+
+  if (options.preferShare && navigator.share) {
+    try {
+      const shared = await shareBackupFile(deliveryBlob, filename);
+      if (shared) return 'shared';
+    } catch (err) {
+      if (err && err.name === 'AbortError') throw err;
+    }
+  }
+
+  if (prefersMobileBackupDelivery()) {
+    try {
+      const shared = await shareBackupFile(deliveryBlob, filename);
+      if (shared) return 'shared';
+    } catch (err) {
+      if (err && err.name === 'AbortError') throw err;
+    }
+    return openBackupOnIOS(blob, filename);
+  }
+
+  const url = URL.createObjectURL(deliveryBlob);
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      a.remove();
+      URL.revokeObjectURL(url);
+    }, 5000);
+    return 'downloaded';
+  } catch (err) {
+    URL.revokeObjectURL(url);
+    if (deliveryBlob.size < 12 * 1024 * 1024) {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(deliveryBlob);
+      });
+      const opened = window.open(String(dataUrl), '_blank');
+      if (opened) return 'opened';
+    }
+    throw err;
+  }
 }
 
 async function exportBackup(includePhotos, options) {
@@ -756,8 +853,11 @@ async function exportBackup(includePhotos, options) {
     const sizeMb = (blob.size / (1024 * 1024)).toFixed(2);
     const filename = 'mision-china-backup-' + formatBackupFileDate() + (includePhotos ? '' : '-solo-textos') + '.json';
 
+    let deliveryMethod = null;
     if (options.download !== false) {
-      downloadBackupBlob(blob, filename);
+      deliveryMethod = await deliverBackupBlob(blob, filename, {
+        preferShare: !!options.preferShare
+      });
     }
 
     writeBackupMeta({
@@ -767,15 +867,20 @@ async function exportBackup(includePhotos, options) {
       includesPhotos: includePhotos
     });
 
-    if (options.download !== false) {
-      setBackupStatus(
-        'Copia descargada (' + sizeMb + ' MB · ' + payload.photoCount + ' fotos). Guárdala en OneDrive o envíatela por email.'
-      );
+    if (options.download !== false && deliveryMethod) {
+      setBackupStatus(backupDeliveryStatus(deliveryMethod, sizeMb, payload.photoCount));
     }
-    return { blob, filename, payload, sizeMb };
+    return { blob, filename, payload, sizeMb, deliveryMethod };
   } catch (err) {
     console.error(err);
-    setBackupStatus('Error al crear la copia: ' + (err.message || 'desconocido'), true);
+    if (err && err.name === 'AbortError') {
+      setBackupStatus('Copia cancelada.');
+      return null;
+    }
+    const hint = prefersMobileBackupDelivery()
+      ? ' En iPhone usa «Compartir copia» o vuelve a intentar.'
+      : '';
+    setBackupStatus('Error al crear la copia: ' + (err.message || 'desconocido') + hint, true);
     return null;
   } finally {
     [exportBtn, textBtn, shareBtn].forEach(b => { if (b) b.disabled = false; });
@@ -859,24 +964,10 @@ function initBackupControls() {
 
   if (shareBtn && navigator.share) {
     shareBtn.hidden = false;
+  }
+  if (shareBtn) {
     shareBtn.addEventListener('click', async () => {
-      setBackupStatus('Preparando copia para compartir…');
-      const result = await exportBackup(true, { download: false });
-      if (!result) return;
-      try {
-        const shared = await shareBackupFile(result.blob, result.filename);
-        if (shared) {
-          setBackupStatus(
-            'Copia lista (' + result.sizeMb + ' MB). Elige OneDrive, Drive, email, etc.'
-          );
-        } else {
-          setBackupStatus('Tu navegador no permite compartir el archivo. Usa «Descargar copia».');
-        }
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          setBackupStatus('No se pudo compartir. Usa «Descargar copia».', true);
-        }
-      }
+      await exportBackup(true, { preferShare: !isIOSDevice() });
     });
   }
 
@@ -1015,7 +1106,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '16';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '17';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -2034,7 +2125,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '16');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '17');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
