@@ -454,10 +454,6 @@ function initNavigation() {
       activateEventTab(activeEventTab);
     }
 
-    const overview = document.querySelector('.trip-overview');
-    if (overview) {
-      overview.hidden = target === 'brochure';
-    }
     document.body.classList.toggle('mode-brochure', target === 'brochure');
 
     if (target === 'brochure') {

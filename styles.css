@@ -1072,10 +1072,6 @@ body::before {
 }
 
 /* ═══ BROCHURE LIZ-CHINA (horizontal) ════════════════════ */
-body.mode-brochure .trip-overview {
-  display: none;
-}
-
 .view--brochure {
   margin-top: 4px;
 }
