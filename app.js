@@ -249,50 +249,349 @@ const EVENT_AGENDA = {
 };
 
 /* ──────────────────────────────────────────────
-   DATA — Empresas (B2B y visitas)
-   category: 'b2b' | 'visita'
+   DATA — Oficinas ICEX y empresas (fichas editables)
 ────────────────────────────────────────────── */
-const COMPANIES = [
+const PHOTOS_PER_COMPANY = 5;
+
+const ICEX_OFFICES = [
   {
-    id: 'byd-visita',
-    category: 'visita',
-    name: 'BYD + proveedor EPS',
-    nameZh: '比亚迪',
-    type: 'eps',
-    city: 'shenzhen',
-    sector: 'Fabricante de automóviles / EPS',
-    meeting: { date: '2026-06-25', time: null, location: 'Shenzhen — por confirmar' },
-    objective: 'Visita planta · explorar suministro cascos EPS y posible JV',
-    notes: 'Alta prioridad. Solicitada, sin confirmar.',
-    notesPost: ''
+    id: 'icex-canton',
+    tabLabel: 'ICEX Cantón',
+    heroTag: 'Shenzhen · Cantón',
+    heroTitle: 'ICEX Cantón (Shenzhen)',
+    heroDesc: 'Empresas del área de Cantón · 5 fichas con fotos y notas',
+    cityMarker: '粤',
+    cityClass: 'city-shenzhen',
+    companies: [
+      { id: 'icex-canton-01', name: 'Shenzhen Precision Motors Co.', nameZh: '深圳精密电机', contactPerson: '林伟 Wei Lin', role: 'Director comercial' },
+      { id: 'icex-canton-02', name: 'Pearl River Composites Ltd.', nameZh: '珠江复合材料', contactPerson: '陈美玲 Meiling Chen', role: 'Gerente de exportación' },
+      { id: 'icex-canton-03', name: 'Dongguan Auto Plastics Group', nameZh: '东莞汽车塑料', contactPerson: '黄志明 Zhiming Huang', role: 'Jefe de planta' },
+      { id: 'icex-canton-04', name: 'Guangzhou EV Components', nameZh: '广州电动车零部件', contactPerson: '张晓芳 Xiaofang Zhang', role: 'Directora técnica' },
+      { id: 'icex-canton-05', name: 'Longhua Smart Manufacturing', nameZh: '龙华智能制造', contactPerson: '何俊杰 Junjie He', role: 'CEO' }
+    ]
   },
   {
-    id: 'aierfy-visita',
-    category: 'visita',
-    name: 'AIERFY',
-    nameZh: null,
-    type: 'otro',
-    city: 'shenzhen',
-    sector: 'Por confirmar',
-    meeting: { date: '2026-06-25', time: null, location: null },
-    objective: 'Visita a empresa',
-    notes: 'Por confirmar',
-    notesPost: ''
+    id: 'icex-shanghai',
+    tabLabel: 'ICEX Shanghai',
+    heroTag: 'Shanghái',
+    heroTitle: 'ICEX Shanghai',
+    heroDesc: 'Empresas del área de Shanghái · 5 fichas con fotos y notas',
+    cityMarker: '沪',
+    cityClass: 'city-shanghai',
+    companies: [
+      { id: 'icex-shanghai-01', name: 'Yangtze Precision Parts Co.', nameZh: '长江精密零件', contactPerson: '王浩然 Haoran Wang', role: 'Director general' },
+      { id: 'icex-shanghai-02', name: 'Pudong Robotics & Automation', nameZh: '浦东机器人自动化', contactPerson: '李雪梅 Xueme Li', role: 'Directora de I+D' },
+      { id: 'icex-shanghai-03', name: 'Baosteel Trading Shanghai', nameZh: '宝钢贸易上海', contactPerson: '赵一阳 Yiyang Zhao', role: 'Responsable de ventas' },
+      { id: 'icex-shanghai-04', name: 'Minhang Industrial Supply', nameZh: '闵行工业供应', contactPerson: '周慧敏 Huimin Zhou', role: 'Coordinadora B2B' },
+      { id: 'icex-shanghai-05', name: 'Hongqiao Automotive Tech', nameZh: '虹桥汽车科技', contactPerson: '孙立新 Lixin Sun', role: 'Director de operaciones' }
+    ]
   },
   {
-    id: 'sinomz-visita',
-    category: 'visita',
-    name: 'SINOMZ',
-    nameZh: null,
-    type: 'otro',
-    city: 'shenzhen',
-    sector: 'Por confirmar',
-    meeting: { date: '2026-06-25', time: null, location: null },
-    objective: 'Visita a empresa',
-    notes: 'Por confirmar',
-    notesPost: ''
+    id: 'icex-pekin',
+    tabLabel: 'ICEX Pekín',
+    heroTag: 'Pekín',
+    heroTitle: 'ICEX Pekín',
+    heroDesc: 'Empresas del área de Pekín · 5 fichas con fotos y notas',
+    cityMarker: '京',
+    cityClass: 'city-beijing',
+    companies: [
+      { id: 'icex-pekin-01', name: 'Capital EPS Solutions', nameZh: '首都EPS解决方案', contactPerson: '刘建国 Jianguo Liu', role: 'Director comercial' },
+      { id: 'icex-pekin-02', name: 'Haidian Advanced Materials', nameZh: '海淀先进材料', contactPerson: '马丽娜 Lina Ma', role: 'Gerente de proyecto' },
+      { id: 'icex-pekin-03', name: 'Zhongguancun Tech Park Ltd.', nameZh: '中关村科技园', contactPerson: '杨帆 Fan Yang', role: 'Director de innovación' },
+      { id: 'icex-pekin-04', name: 'Chaoyang Metal Forming Co.', nameZh: '朝阳金属成型', contactPerson: '郭晓宇 Xiaoyu Guo', role: 'Jefe de producción' },
+      { id: 'icex-pekin-05', name: 'Daxing Electric Vehicle Parts', nameZh: '大兴电动车零部件', contactPerson: '霍金凤 Jinfeng Huo', role: 'Directora de calidad' }
+    ]
   }
 ];
+
+const ICEX_COMPANY_MAP = new Map();
+ICEX_OFFICES.forEach(office => {
+  office.companies.forEach(c => ICEX_COMPANY_MAP.set(c.id, { ...c, officeId: office.id, officeLabel: office.heroTitle }));
+});
+
+const VALID_MEETING_TYPES = ['b2b', 'visita'];
+
+function normalizeMeetingType(value) {
+  return VALID_MEETING_TYPES.includes(value) ? value : '';
+}
+
+function meetingTypeLabel(type) {
+  if (type === 'b2b') return 'B2B';
+  if (type === 'visita') return 'Visita';
+  return 'Sin asignar';
+}
+
+function meetingTypeBadgeHtml(type) {
+  if (type === 'b2b') return '<span class="company-badge badge-b2b">🤝 B2B</span>';
+  if (type === 'visita') return '<span class="company-badge badge-visita">🏭 Visita</span>';
+  return '<span class="company-badge badge-unset">Sin asignar</span>';
+}
+
+function buildMeetingTypePickerHtml(companyId, activeType, extraClass) {
+  const cls = extraClass ? ' ' + extraClass : '';
+  return `
+    <div class="meeting-type-picker${cls}" data-company-id="${escapeHtml(companyId)}" role="group" aria-label="Tipo de reunión">
+      <button type="button" class="meeting-type-btn${activeType === 'b2b' ? ' active' : ''}" data-type="b2b">🤝 B2B</button>
+      <button type="button" class="meeting-type-btn${activeType === 'visita' ? ' active' : ''}" data-type="visita">🏭 Visita</button>
+    </div>`;
+}
+
+function syncMeetingTypePickerButtons(pickerEl, activeType) {
+  if (!pickerEl) return;
+  pickerEl.querySelectorAll('.meeting-type-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.type === activeType);
+  });
+}
+
+async function loadAllIcexRecords() {
+  const companies = ICEX_OFFICES.flatMap(o => o.companies);
+  const records = await Promise.all(companies.map(c => loadCompanyRecord(c.id)));
+  return companies.map((company, i) => {
+    const seed = ICEX_COMPANY_MAP.get(company.id);
+    const office = seed
+      ? ICEX_OFFICES.find(o => o.id === seed.officeId)
+      : null;
+    return { company, record: records[i], office };
+  });
+}
+
+function aggregateMeetings(entries) {
+  let b2b = 0;
+  let visita = 0;
+  let unset = 0;
+  const byOffice = ICEX_OFFICES.map(office => ({
+    office,
+    b2b: 0,
+    visita: 0,
+    unset: 0,
+    items: []
+  }));
+  const officeIndex = new Map(byOffice.map((o, i) => [o.office.id, i]));
+
+  entries.forEach(({ company, record, office }) => {
+    const type = normalizeMeetingType(record.meetingType);
+    const seed = ICEX_COMPANY_MAP.get(company.id);
+    const officeId = seed ? seed.officeId : office && office.id;
+    const bucket = officeIndex.has(officeId) ? byOffice[officeIndex.get(officeId)] : null;
+    const item = { company, record, type, office };
+
+    if (type === 'b2b') b2b += 1;
+    else if (type === 'visita') visita += 1;
+    else unset += 1;
+
+    if (bucket) {
+      if (type === 'b2b') bucket.b2b += 1;
+      else if (type === 'visita') bucket.visita += 1;
+      else bucket.unset += 1;
+      if (type) bucket.items.push(item);
+    }
+  });
+
+  return {
+    total: b2b + visita,
+    b2b,
+    visita,
+    unset,
+    totalCompanies: entries.length,
+    byOffice
+  };
+}
+
+/* ──────────────────────────────────────────────
+   STORAGE — fichas y fotos (IndexedDB, solo en dispositivo)
+────────────────────────────────────────────── */
+const COMPANY_DB_NAME = 'mision-china-companies-v1';
+const COMPANY_DB_VERSION = 1;
+const COMPANY_STORE = 'records';
+
+let companyDbPromise = null;
+const companyRecordCache = new Map();
+const companyObjectUrls = new Map();
+
+let activeCompanyId = null;
+let activePhotoSlot = null;
+let companySaveTimer = null;
+let companyModalBound = false;
+
+function openCompanyDatabase() {
+  if (companyDbPromise) return companyDbPromise;
+  companyDbPromise = new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error('IndexedDB no disponible'));
+      return;
+    }
+    const req = indexedDB.open(COMPANY_DB_NAME, COMPANY_DB_VERSION);
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => resolve(req.result);
+    req.onupgradeneeded = event => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(COMPANY_STORE)) {
+        db.createObjectStore(COMPANY_STORE, { keyPath: 'companyId' });
+      }
+    };
+  });
+  return companyDbPromise;
+}
+
+function emptyPhotoSlots() {
+  return Array.from({ length: PHOTOS_PER_COMPANY }, () => null);
+}
+
+function defaultCompanyRecord(companyId) {
+  const seed = ICEX_COMPANY_MAP.get(companyId);
+  const contactsSeed = seed
+    ? `${seed.contactPerson} — ${seed.role}`
+    : '';
+  return {
+    companyId,
+    meetingType: '',
+    description: '',
+    contacts: contactsSeed,
+    notes: '',
+    photos: emptyPhotoSlots(),
+    updatedAt: Date.now()
+  };
+}
+
+function normalizeCompanyRecord(raw, companyId) {
+  const base = defaultCompanyRecord(companyId);
+  if (!raw || typeof raw !== 'object') return base;
+  const photos = emptyPhotoSlots();
+  if (Array.isArray(raw.photos)) {
+    raw.photos.slice(0, PHOTOS_PER_COMPANY).forEach((p, i) => {
+      if (p && p.blob instanceof Blob) photos[i] = p;
+    });
+  }
+  return {
+    companyId,
+    meetingType: normalizeMeetingType(raw.meetingType),
+    description: typeof raw.description === 'string' ? raw.description : base.description,
+    contacts: typeof raw.contacts === 'string' ? raw.contacts : base.contacts,
+    notes: typeof raw.notes === 'string' ? raw.notes : base.notes,
+    photos,
+    updatedAt: raw.updatedAt || Date.now()
+  };
+}
+
+async function setCompanyMeetingType(companyId, meetingType) {
+  const record = await loadCompanyRecord(companyId);
+  record.meetingType = normalizeMeetingType(meetingType);
+  await saveCompanyRecord(record);
+  refreshIcexCompanyCard(companyId);
+  renderMeetingsSummary();
+  return record;
+}
+
+async function loadCompanyRecord(companyId) {
+  if (companyRecordCache.has(companyId)) {
+    return companyRecordCache.get(companyId);
+  }
+  try {
+    const db = await openCompanyDatabase();
+    const record = await new Promise((resolve, reject) => {
+      const tx = db.transaction(COMPANY_STORE, 'readonly');
+      const req = tx.objectStore(COMPANY_STORE).get(companyId);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+    const normalized = normalizeCompanyRecord(record, companyId);
+    companyRecordCache.set(companyId, normalized);
+    return normalized;
+  } catch (err) {
+    console.warn('No se pudo cargar ficha:', err);
+    const fallback = defaultCompanyRecord(companyId);
+    companyRecordCache.set(companyId, fallback);
+    return fallback;
+  }
+}
+
+async function saveCompanyRecord(record) {
+  record.updatedAt = Date.now();
+  companyRecordCache.set(record.companyId, record);
+  try {
+    const db = await openCompanyDatabase();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(COMPANY_STORE, 'readwrite');
+      tx.objectStore(COMPANY_STORE).put(record);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    return true;
+  } catch (err) {
+    console.warn('No se pudo guardar ficha:', err);
+    return false;
+  }
+}
+
+function revokeCompanyObjectUrls(companyId) {
+  const prefix = companyId + ':';
+  companyObjectUrls.forEach((url, key) => {
+    if (key.startsWith(prefix)) {
+      URL.revokeObjectURL(url);
+      companyObjectUrls.delete(key);
+    }
+  });
+}
+
+function getPhotoObjectUrl(companyId, slot, blob) {
+  const key = companyId + ':' + slot;
+  const prev = companyObjectUrls.get(key);
+  if (prev) URL.revokeObjectURL(prev);
+  const url = URL.createObjectURL(blob);
+  companyObjectUrls.set(key, url);
+  return url;
+}
+
+function countFilledPhotos(record) {
+  return (record.photos || []).filter(p => p && p.blob).length;
+}
+
+function setCompanySaveStatus(text, isError) {
+  const el = document.getElementById('company-save-status');
+  if (!el) return;
+  el.textContent = text || '';
+  el.classList.toggle('save-status--error', !!isError);
+}
+
+function compressImageFile(file, maxEdge) {
+  maxEdge = maxEdge || 1920;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Imagen no válida'));
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+        if (w > maxEdge || h > maxEdge) {
+          if (w >= h) {
+            h = Math.round(h * (maxEdge / w));
+            w = maxEdge;
+          } else {
+            w = Math.round(w * (maxEdge / h));
+            h = maxEdge;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(
+          blob => {
+            if (blob) resolve(blob);
+            else reject(new Error('No se pudo comprimir'));
+          },
+          'image/jpeg',
+          0.85
+        );
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 
 /* ──────────────────────────────────────────────
@@ -334,7 +633,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '13';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '15';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -655,6 +954,10 @@ function initNavigation() {
       activateEventTab(activeEventTab);
     }
 
+    if (target === 'resumen') {
+      renderMeetingsSummary();
+    }
+
     document.body.classList.toggle('mode-brochure', target === 'brochure');
 
     if (target === 'brochure') {
@@ -690,7 +993,6 @@ function initNavigation() {
       activateEventTab(tab.dataset.event);
     };
     subnav.addEventListener('click', onSub);
-    subnav.addEventListener('touchend', onSub, { passive: false });
   }
 }
 
@@ -907,98 +1209,435 @@ function renderEventAgendas() {
 
 
 /* ──────────────────────────────────────────────
-   RENDER — B2B y Visitas (COMPANIES)
+   RENDER — Oficinas ICEX (empresas + fichas)
 ────────────────────────────────────────────── */
-function renderB2BAndVisits() {
-  const b2b = COMPANIES.filter(c => c.category === 'b2b');
-  const visitas = COMPANIES.filter(c => c.category === 'visita');
+async function renderIcexOffices() {
+  const records = await Promise.all(
+    ICEX_OFFICES.flatMap(o => o.companies.map(c => loadCompanyRecord(c.id)))
+  );
+  const recordById = new Map(records.map(r => [r.companyId, r]));
 
-  const b2bList = document.getElementById('b2b-list');
-  const emptyB2b = document.getElementById('empty-b2b');
-  if (b2bList) {
-    if (b2b.length === 0) {
-      b2bList.innerHTML = '';
-      if (emptyB2b) emptyB2b.hidden = false;
-    } else {
-      if (emptyB2b) emptyB2b.hidden = true;
-      b2bList.innerHTML = b2b.map(c => buildCompanyCard(c)).join('');
-    }
-  }
+  ICEX_OFFICES.forEach(office => {
+    const panel = document.getElementById('event-panel-' + office.id);
+    if (!panel) return;
 
-  const visitsList = document.getElementById('visits-list');
-  const emptyVisitas = document.getElementById('empty-visitas');
-  if (visitsList) {
-    if (visitas.length === 0) {
-      visitsList.innerHTML = '';
-      if (emptyVisitas) emptyVisitas.hidden = false;
-    } else {
-      if (emptyVisitas) emptyVisitas.hidden = true;
-      visitsList.innerHTML = visitas.map(c => buildVisitCard(c)).join('');
-    }
-  }
-}
+    const officeStats = { b2b: 0, visita: 0, unset: 0 };
+    const cardsHtml = office.companies.map(company => {
+      const record = recordById.get(company.id) || defaultCompanyRecord(company.id);
+      const meetingType = normalizeMeetingType(record.meetingType);
+      if (meetingType === 'b2b') officeStats.b2b += 1;
+      else if (meetingType === 'visita') officeStats.visita += 1;
+      else officeStats.unset += 1;
 
-function buildCompanyCard(c) {
-  const typeBadge = {
-    eps: '<span class="company-badge badge-eps">EPS / JV</span>',
-    robotica: '<span class="company-badge badge-robot">Robótica</span>',
-    otro: ''
-  }[c.type] || '';
+      const photoCount = countFilledPhotos(record);
+      const hasNotes = !!(record.description || record.notes);
+      const preview = record.description
+        ? truncateText(record.description, 72)
+        : 'Pulsa para completar ficha y subir fotos';
 
-  const cityBadge = c.city === 'beijing'
-    ? '<span class="company-badge badge-beijing">北京</span>'
-    : '<span class="company-badge badge-shenzhen">深圳</span>';
+      return `
+        <article class="company-card icex-company-card" data-company-id="${escapeHtml(company.id)}" role="button" tabindex="0" aria-label="Abrir ficha de ${escapeHtml(company.name)}">
+          <div class="company-card-header">
+            <div>
+              <span class="company-name">${escapeHtml(company.name)}</span>
+              ${company.nameZh ? `<span class="company-name-zh">${escapeHtml(company.nameZh)}</span>` : ''}
+            </div>
+            <div class="company-badges">
+              ${meetingTypeBadgeHtml(meetingType)}
+              ${photoCount > 0 ? `<span class="company-badge badge-photos">📷 ${photoCount}/5</span>` : ''}
+            </div>
+          </div>
+          ${buildMeetingTypePickerHtml(company.id, meetingType, 'meeting-type-picker--card')}
+          <p class="company-contact-person">👤 ${escapeHtml(company.contactPerson)} · ${escapeHtml(company.role)}</p>
+          <p class="company-card-preview ${hasNotes ? '' : 'company-card-preview--empty'}">${escapeHtml(preview)}</p>
+        </article>`;
+    }).join('');
 
-  const meetingBlock = c.meeting
-    ? `<div class="company-meeting-time">
-        ⏱ ${formatDate(c.meeting.date)}${c.meeting.time ? ' · ' + escapeHtml(c.meeting.time) : ''}
-        ${c.meeting.location ? ' · ' + escapeHtml(c.meeting.location) : ''}
-       </div>`
-    : '';
-
-  return `
-    <div class="company-card" data-id="${escapeHtml(c.id)}" role="button" tabindex="0">
-      <div class="company-card-header">
-        <div>
-          <span class="company-name">${escapeHtml(c.name)}</span>
-          ${c.nameZh ? `<span class="company-name-zh">${escapeHtml(c.nameZh)}</span>` : ''}
-        </div>
-        <div class="company-badges">${typeBadge}${cityBadge}</div>
+    panel.innerHTML = `
+      <div class="event-hero event-hero--icex">
+        <div class="hero-tag">${escapeHtml(office.heroTag)}</div>
+        <h3 class="event-hero-title">${escapeHtml(office.heroTitle)}</h3>
+        <p class="event-hero-desc">${escapeHtml(office.heroDesc)}</p>
       </div>
-      ${c.objective ? `<p class="company-objective">${escapeHtml(c.objective)}</p>` : ''}
-      ${meetingBlock}
-      ${c.notes ? `<p class="company-notes">${escapeHtml(c.notes)}</p>` : ''}
-    </div>`;
-}
-
-function buildVisitCard(c) {
-  const priority = c.notes && c.notes.toLowerCase().includes('prioridad');
-  return `
-    <article class="visit-card ${priority ? 'visit-card--priority' : ''}" data-id="${escapeHtml(c.id)}">
-      <div class="visit-card-header">
-        <span class="visit-name">${escapeHtml(c.name)}</span>
-        ${c.nameZh ? `<span class="visit-name-zh">${escapeHtml(c.nameZh)}</span>` : ''}
+      <div class="icex-office-stats">
+        <span class="icex-stat icex-stat--b2b">🤝 ${officeStats.b2b} B2B</span>
+        <span class="icex-stat icex-stat--visita">🏭 ${officeStats.visita} visitas</span>
+        ${officeStats.unset > 0 ? `<span class="icex-stat icex-stat--unset">${officeStats.unset} sin asignar</span>` : ''}
       </div>
-      ${c.meeting && c.meeting.date ? `<p class="visit-date">📅 ${formatDate(c.meeting.date)}</p>` : ''}
-      ${c.objective ? `<p class="visit-objective">${escapeHtml(c.objective)}</p>` : ''}
-      ${c.meeting && c.meeting.location ? `<p class="visit-location">📍 ${escapeHtml(c.meeting.location)}</p>` : ''}
-      ${c.notes ? `<p class="visit-notes">${escapeHtml(c.notes)}</p>` : ''}
-    </article>`;
+      <div class="alert-box alert-box--info">
+        <span class="alert-icon">📷</span>
+        <p><strong>5 fotos por empresa</strong> · marca <strong>B2B</strong> o <strong>Visita</strong> en cada ficha · resumen en pestaña <strong>Resumen</strong>.</p>
+      </div>
+      <div class="timeline-city timeline-city--compact">
+        <div class="city-marker ${office.cityClass}">${office.cityMarker}</div>
+      </div>
+      <div class="company-list icex-company-list">${cardsHtml}</div>`;
+  });
+
+  bindIcexCompanyCards();
+  bindMeetingTypePickers();
+  renderMeetingsSummary();
 }
 
-function bindCompanyCardClicks() {
-  document.querySelectorAll('.company-card[data-id]').forEach(el => {
-    const open = () => {
-      const company = COMPANIES.find(c => c.id === el.dataset.id);
-      if (!company) return;
-      alert(`${company.name}\n\nObjetivo: ${company.objective || '—'}\nNotas: ${company.notes || '—'}`);
-    };
-    el.addEventListener('click', open);
+function truncateText(text, max) {
+  const t = String(text || '').trim();
+  if (t.length <= max) return t;
+  return t.slice(0, max - 1) + '…';
+}
+
+function bindIcexCompanyCards() {
+  document.querySelectorAll('.icex-company-card[data-company-id]').forEach(el => {
+    const open = () => openCompanyModal(el.dataset.companyId);
+    el.addEventListener('click', e => {
+      if (e.target.closest('.meeting-type-picker')) return;
+      open();
+    });
     el.addEventListener('keydown', e => {
+      if (e.target.closest('.meeting-type-picker')) return;
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         open();
       }
+    });
+  });
+}
+
+function bindMeetingTypePickers() {
+  document.querySelectorAll('.meeting-type-picker[data-company-id]').forEach(picker => {
+    picker.querySelectorAll('.meeting-type-btn').forEach(btn => {
+      btn.addEventListener('click', async e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const companyId = picker.dataset.companyId;
+        const type = btn.dataset.type;
+        const record = await loadCompanyRecord(companyId);
+        const next = record.meetingType === type ? '' : type;
+        await setCompanyMeetingType(companyId, next);
+        syncMeetingTypePickerButtons(picker, next);
+        if (activeCompanyId === companyId) {
+          syncMeetingTypePickerButtons(
+            document.getElementById('company-meeting-type-picker'),
+            next
+          );
+        }
+      });
+    });
+  });
+}
+
+function refreshIcexCompanyCard(companyId) {
+  const seed = ICEX_COMPANY_MAP.get(companyId);
+  const office = ICEX_OFFICES.find(o => o.companies.some(c => c.id === companyId));
+  if (!seed || !office) return;
+
+  loadCompanyRecord(companyId).then(record => {
+    const card = document.querySelector(`.icex-company-card[data-company-id="${companyId}"]`);
+    if (!card) return;
+    const photoCount = countFilledPhotos(record);
+    const hasNotes = !!(record.description || record.notes);
+    const preview = record.description
+      ? truncateText(record.description, 72)
+      : 'Pulsa para completar ficha y subir fotos';
+
+    const meetingType = normalizeMeetingType(record.meetingType);
+    const badges = card.querySelector('.company-badges');
+    if (badges) {
+      badges.innerHTML = `
+        ${meetingTypeBadgeHtml(meetingType)}
+        ${photoCount > 0 ? `<span class="company-badge badge-photos">📷 ${photoCount}/5</span>` : ''}`;
+    }
+    const picker = card.querySelector('.meeting-type-picker');
+    syncMeetingTypePickerButtons(picker, meetingType);
+    const previewEl = card.querySelector('.company-card-preview');
+    if (previewEl) {
+      previewEl.textContent = preview;
+      previewEl.classList.toggle('company-card-preview--empty', !hasNotes);
+    }
+  });
+}
+
+function getActiveCompanyRecordFromForm() {
+  if (!activeCompanyId) return null;
+  const cached = companyRecordCache.get(activeCompanyId);
+  const record = cached
+    ? { ...cached, photos: cached.photos.slice() }
+    : defaultCompanyRecord(activeCompanyId);
+
+  const desc = document.getElementById('company-field-desc');
+  const contacts = document.getElementById('company-field-contacts');
+  const notes = document.getElementById('company-field-notes');
+  if (desc) record.description = desc.value;
+  if (contacts) record.contacts = contacts.value;
+  if (notes) record.notes = notes.value;
+
+  const modalPicker = document.getElementById('company-meeting-type-picker');
+  const activeBtn = modalPicker && modalPicker.querySelector('.meeting-type-btn.active');
+  record.meetingType = activeBtn ? normalizeMeetingType(activeBtn.dataset.type) : normalizeMeetingType(record.meetingType);
+
+  return record;
+}
+
+function scheduleCompanySave() {
+  clearTimeout(companySaveTimer);
+  companySaveTimer = setTimeout(async () => {
+    const record = getActiveCompanyRecordFromForm();
+    if (!record) return;
+    setCompanySaveStatus('Guardando…');
+    const ok = await saveCompanyRecord(record);
+    setCompanySaveStatus(ok ? 'Guardado en el dispositivo' : 'Error al guardar', !ok);
+    refreshIcexCompanyCard(record.companyId);
+    renderMeetingsSummary();
+  }, 450);
+}
+
+function renderCompanyPhotoGrid(record) {
+  const grid = document.getElementById('company-photo-grid');
+  const counter = document.getElementById('company-photo-counter');
+  if (!grid || !record) return;
+
+  const filled = countFilledPhotos(record);
+  if (counter) counter.textContent = filled + ' / ' + PHOTOS_PER_COMPANY;
+
+  grid.innerHTML = record.photos.map((photo, index) => {
+    if (photo && photo.blob) {
+      const url = getPhotoObjectUrl(record.companyId, index, photo.blob);
+      return `
+        <div class="photo-slot photo-slot--filled">
+          <img src="${url}" alt="Foto ${index + 1}" class="photo-thumb" loading="lazy" />
+          <button type="button" class="photo-remove" data-slot="${index}" aria-label="Eliminar foto ${index + 1}">✕</button>
+        </div>`;
+    }
+    return `
+      <button type="button" class="photo-slot photo-slot--add" data-slot="${index}" aria-label="Añadir foto ${index + 1}">
+        <span class="photo-add-icon">+</span>
+        <span class="photo-add-label">Foto ${index + 1}</span>
+      </button>`;
+  }).join('');
+
+  grid.querySelectorAll('.photo-slot--add').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activePhotoSlot = parseInt(btn.dataset.slot, 10);
+      const input = document.getElementById('company-photo-input');
+      if (input) {
+        input.value = '';
+        input.click();
+      }
+    });
+  });
+
+  grid.querySelectorAll('.photo-remove').forEach(btn => {
+    btn.addEventListener('click', async event => {
+      event.stopPropagation();
+      const slot = parseInt(btn.dataset.slot, 10);
+      const rec = getActiveCompanyRecordFromForm();
+      if (!rec || !rec.photos[slot]) return;
+      rec.photos[slot] = null;
+      await saveCompanyRecord(rec);
+      revokeCompanyObjectUrls(rec.companyId);
+      renderCompanyPhotoGrid(rec);
+      refreshIcexCompanyCard(rec.companyId);
+      setCompanySaveStatus('Foto eliminada');
+    });
+  });
+}
+
+async function openCompanyModal(companyId) {
+  const seed = ICEX_COMPANY_MAP.get(companyId);
+  if (!seed) return;
+
+  const modal = document.getElementById('company-modal');
+  if (!modal) return;
+
+  activeCompanyId = companyId;
+  const record = await loadCompanyRecord(companyId);
+
+  const title = document.getElementById('company-modal-title');
+  const subtitle = document.getElementById('company-modal-subtitle');
+  const desc = document.getElementById('company-field-desc');
+  const contacts = document.getElementById('company-field-contacts');
+  const notes = document.getElementById('company-field-notes');
+
+  if (title) title.textContent = seed.name;
+  if (subtitle) {
+    subtitle.textContent = (seed.nameZh ? seed.nameZh + ' · ' : '') + seed.contactPerson;
+  }
+  if (desc) desc.value = record.description || '';
+  if (contacts) contacts.value = record.contacts || '';
+  if (notes) notes.value = record.notes || '';
+
+  syncMeetingTypePickerButtons(
+    document.getElementById('company-meeting-type-picker'),
+    normalizeMeetingType(record.meetingType)
+  );
+
+  renderCompanyPhotoGrid(record);
+  setCompanySaveStatus('');
+
+  modal.hidden = false;
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('company-modal-open');
+
+  if (!companyModalBound) initCompanyModalControls();
+}
+
+function closeCompanyModal() {
+  const modal = document.getElementById('company-modal');
+  if (!modal) return;
+  if (activeCompanyId) {
+    const record = getActiveCompanyRecordFromForm();
+    if (record) {
+      saveCompanyRecord(record).then(() => {
+        refreshIcexCompanyCard(activeCompanyId);
+        renderMeetingsSummary();
+      });
+    }
+    revokeCompanyObjectUrls(activeCompanyId);
+  }
+  activeCompanyId = null;
+  activePhotoSlot = null;
+  modal.hidden = true;
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('company-modal-open');
+}
+
+function initCompanyModalControls() {
+  if (companyModalBound) return;
+  companyModalBound = true;
+
+  const closeBtn = document.getElementById('company-modal-close');
+  const backdrop = document.getElementById('company-modal-backdrop');
+  const photoInput = document.getElementById('company-photo-input');
+
+  if (closeBtn) closeBtn.addEventListener('click', closeCompanyModal);
+  if (backdrop) backdrop.addEventListener('click', closeCompanyModal);
+
+  ['company-field-desc', 'company-field-contacts', 'company-field-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', scheduleCompanySave);
+  });
+
+  const modalPicker = document.getElementById('company-meeting-type-picker');
+  if (modalPicker) {
+    modalPicker.querySelectorAll('.meeting-type-btn').forEach(btn => {
+      btn.addEventListener('click', async e => {
+        e.preventDefault();
+        if (!activeCompanyId) return;
+        const type = btn.dataset.type;
+        const record = await loadCompanyRecord(activeCompanyId);
+        const next = record.meetingType === type ? '' : type;
+        await setCompanyMeetingType(activeCompanyId, next);
+        syncMeetingTypePickerButtons(modalPicker, next);
+        document.querySelectorAll(`.meeting-type-picker[data-company-id="${activeCompanyId}"]`)
+          .forEach(p => syncMeetingTypePickerButtons(p, next));
+      });
+    });
+  }
+
+  if (photoInput) {
+    photoInput.addEventListener('change', async () => {
+      const file = photoInput.files && photoInput.files[0];
+      if (!file || activeCompanyId == null || activePhotoSlot == null) return;
+
+      setCompanySaveStatus('Procesando foto…');
+      try {
+        const blob = await compressImageFile(file);
+        const record = getActiveCompanyRecordFromForm() || await loadCompanyRecord(activeCompanyId);
+        record.photos[activePhotoSlot] = {
+          blob,
+          name: file.name || 'foto.jpg',
+          addedAt: Date.now()
+        };
+        await saveCompanyRecord(record);
+        renderCompanyPhotoGrid(record);
+        refreshIcexCompanyCard(activeCompanyId);
+        setCompanySaveStatus('Foto guardada');
+      } catch (err) {
+        console.warn(err);
+        setCompanySaveStatus('No se pudo guardar la foto', true);
+      }
+      activePhotoSlot = null;
+      photoInput.value = '';
+    });
+  }
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && activeCompanyId) closeCompanyModal();
+  });
+}
+
+
+/* ──────────────────────────────────────────────
+   RENDER — Resumen B2B + Visitas
+────────────────────────────────────────────── */
+async function renderMeetingsSummary() {
+  const root = document.getElementById('meetings-summary-root');
+  if (!root) return;
+
+  const entries = await loadAllIcexRecords();
+  const stats = aggregateMeetings(entries);
+
+  const officeBlocks = stats.byOffice.map(block => {
+    const lines = block.items.length
+      ? block.items.map(({ company, type }) => `
+          <button type="button" class="summary-meeting-row" data-open-company="${escapeHtml(company.id)}">
+            <span class="summary-meeting-type summary-meeting-type--${type}">${type === 'b2b' ? '🤝' : '🏭'}</span>
+            <span class="summary-meeting-name">${escapeHtml(company.name)}</span>
+          </button>`).join('')
+      : '<p class="summary-empty-office">Ninguna reunión asignada aún</p>';
+
+    return `
+      <section class="summary-office-block">
+        <header class="summary-office-head">
+          <h3 class="summary-office-title">${escapeHtml(block.office.heroTitle)}</h3>
+          <div class="summary-office-counts">
+            <span class="icex-stat icex-stat--b2b">🤝 ${block.b2b}</span>
+            <span class="icex-stat icex-stat--visita">🏭 ${block.visita}</span>
+          </div>
+        </header>
+        <div class="summary-meeting-list">${lines}</div>
+      </section>`;
+  }).join('');
+
+  root.innerHTML = `
+    <article class="summary-hero card-hero card-hero--blue">
+      <p class="summary-hero-label">Reuniones confirmadas</p>
+      <p class="summary-hero-value">${stats.total}</p>
+      <p class="summary-hero-sub">B2B + visitas · de ${stats.totalCompanies} empresas ICEX</p>
+    </article>
+    <div class="summary-stats-grid">
+      <div class="summary-stat-card summary-stat-card--b2b">
+        <span class="summary-stat-icon">🤝</span>
+        <span class="summary-stat-value">${stats.b2b}</span>
+        <span class="summary-stat-label">B2B</span>
+      </div>
+      <div class="summary-stat-card summary-stat-card--visita">
+        <span class="summary-stat-icon">🏭</span>
+        <span class="summary-stat-value">${stats.visita}</span>
+        <span class="summary-stat-label">Visitas</span>
+      </div>
+    </div>
+    ${stats.unset > 0 ? `
+      <div class="alert-box alert-box--warn">
+        <span class="alert-icon">⚠️</span>
+        <p><strong>${stats.unset}</strong> empresa${stats.unset === 1 ? '' : 's'} sin tipo asignado en Eventos → ICEX.</p>
+      </div>` : ''}
+    <p class="section-lead summary-list-lead">Detalle por oficina</p>
+    ${officeBlocks}
+    <div class="alert-box alert-box--info">
+      <span class="alert-icon">ℹ️</span>
+      <p>Marca <strong>B2B</strong> o <strong>Visita</strong> en cada tarjeta ICEX. Pulsa de nuevo el mismo botón para quitar la asignación.</p>
+    </div>`;
+
+  root.querySelectorAll('[data-open-company]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const companyId = btn.dataset.openCompany;
+      if (!companyId) return;
+      const seed = ICEX_COMPANY_MAP.get(companyId);
+      if (seed && window.switchView && window.switchEventTab) {
+        window.switchView('eventos');
+        window.switchEventTab(seed.officeId);
+      }
+      setTimeout(() => openCompanyModal(companyId), 120);
     });
   });
 }
@@ -1013,7 +1652,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '12');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '15');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
@@ -1054,8 +1693,9 @@ function bootApp() {
   renderLogistics();
   renderContacts();
   renderEventAgendas();
-  renderB2BAndVisits();
-  bindCompanyCardClicks();
+  openCompanyDatabase()
+    .then(() => renderIcexOffices())
+    .catch(() => renderIcexOffices());
   initPWA();
 }
 

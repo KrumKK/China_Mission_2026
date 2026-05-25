@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '13';
+      window.__APP_BUILD__ = '15';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -39,6 +39,10 @@
       <button type="button" class="top-nav-item active" data-view="general">
         <span class="top-nav-icon">🏨</span>
         <span class="top-nav-label">General</span>
+      </button>
+      <button type="button" class="top-nav-item" data-view="resumen">
+        <span class="top-nav-icon">📊</span>
+        <span class="top-nav-label">Resumen</span>
       </button>
       <button type="button" class="top-nav-item" data-view="eventos">
         <span class="top-nav-icon">📅</span>
@@ -99,8 +103,14 @@
 
         <div class="alert-box alert-box--info">
           <span class="alert-icon">ℹ️</span>
-          <p>Agendas en <strong>Eventos</strong> · listado completo en <strong>Contactos</strong></p>
+          <p>Agendas en <strong>Eventos</strong> · reuniones ICEX en <strong>Resumen</strong> · contactos en <strong>Contactos</strong></p>
         </div>
+      </section>
+
+      <section class="view" id="view-resumen">
+        <h2 class="section-heading"><span class="section-emoji">📊</span> Resumen de reuniones</h2>
+        <p class="section-lead">B2B y visitas marcadas en las fichas ICEX</p>
+        <div id="meetings-summary-root"></div>
       </section>
 
       <section class="view" id="view-contactos">
@@ -116,30 +126,16 @@
         <nav class="event-subnav" id="event-subnav" aria-label="Tipo de evento">
           <button type="button" class="event-tab active" data-event="cisce">🏛 CISCE</button>
           <button type="button" class="event-tab" data-event="shenzhen">🏙 Shenzhen</button>
-          <button type="button" class="event-tab" data-event="b2b">🤝 B2B</button>
-          <button type="button" class="event-tab" data-event="visitas">🏭 Visitas</button>
+          <button type="button" class="event-tab" data-event="icex-canton">🏙 ICEX Cantón</button>
+          <button type="button" class="event-tab" data-event="icex-shanghai">🌆 ICEX Shanghai</button>
+          <button type="button" class="event-tab" data-event="icex-pekin">🏯 ICEX Pekín</button>
         </nav>
 
         <div class="event-panel active" id="event-panel-cisce" data-event="cisce"></div>
         <div class="event-panel" id="event-panel-shenzhen" data-event="shenzhen"></div>
-
-        <div class="event-panel" id="event-panel-b2b" data-event="b2b">
-          <div id="b2b-list" class="company-list"></div>
-          <div class="empty-state" id="empty-b2b" hidden>
-            <div class="empty-icon">谈</div>
-            <h3 class="empty-title">Sin reuniones B2B</h3>
-            <p class="empty-desc">Añadid entradas con categoría <strong>b2b</strong> en COMPANIES (app.js).</p>
-          </div>
-        </div>
-
-        <div class="event-panel" id="event-panel-visitas" data-event="visitas">
-          <div id="visits-list" class="visits-list"></div>
-          <div class="empty-state" id="empty-visitas" hidden>
-            <div class="empty-icon">厂</div>
-            <h3 class="empty-title">Sin visitas confirmadas</h3>
-            <p class="empty-desc">Añadid entradas con categoría <strong>visita</strong> en COMPANIES (app.js).</p>
-          </div>
-        </div>
+        <div class="event-panel" id="event-panel-icex-canton" data-event="icex-canton"></div>
+        <div class="event-panel" id="event-panel-icex-shanghai" data-event="icex-shanghai"></div>
+        <div class="event-panel" id="event-panel-icex-pekin" data-event="icex-pekin"></div>
       </section>
 
       <section class="view view--brochure" id="view-brochure">
@@ -167,6 +163,48 @@
       </section>
 
     </main>
+  </div>
+
+  <div id="company-modal" class="company-modal" hidden aria-hidden="true">
+    <div class="company-modal-backdrop" id="company-modal-backdrop"></div>
+    <div class="company-modal-sheet" role="dialog" aria-modal="true" aria-labelledby="company-modal-title">
+      <header class="company-modal-header">
+        <div>
+          <h3 class="company-modal-title" id="company-modal-title">Empresa</h3>
+          <p class="company-modal-subtitle" id="company-modal-subtitle"></p>
+        </div>
+        <button type="button" class="company-modal-close" id="company-modal-close" aria-label="Cerrar ficha">✕</button>
+      </header>
+      <div class="company-modal-body">
+        <span class="field-label">Tipo de reunión</span>
+        <div class="meeting-type-picker meeting-type-picker--modal" id="company-meeting-type-picker" role="group" aria-label="Tipo de reunión">
+          <button type="button" class="meeting-type-btn" data-type="b2b">🤝 B2B</button>
+          <button type="button" class="meeting-type-btn" data-type="visita">🏭 Visita</button>
+        </div>
+
+        <label class="field-label" for="company-field-desc">Descripción de la empresa</label>
+        <textarea id="company-field-desc" class="field-textarea" rows="4" placeholder="Sector, productos, capacidad, interés para Lizarte…"></textarea>
+
+        <label class="field-label" for="company-field-contacts">Personas de contacto</label>
+        <textarea id="company-field-contacts" class="field-textarea" rows="3" placeholder="Nombre, cargo, teléfono, email, idioma…"></textarea>
+
+        <label class="field-label" for="company-field-notes">Notas</label>
+        <textarea id="company-field-notes" class="field-textarea" rows="4" placeholder="Espacio libre para la reunión…"></textarea>
+
+        <div class="photo-section">
+          <div class="photo-section-head">
+            <span class="field-label">Fotos</span>
+            <span class="photo-counter" id="company-photo-counter">0 / 5</span>
+          </div>
+          <p class="photo-hint">Hasta 5 fotos por empresa · se guardan solo en este dispositivo</p>
+          <div class="photo-grid" id="company-photo-grid"></div>
+          <input type="file" id="company-photo-input" accept="image/*" capture="environment" hidden />
+        </div>
+      </div>
+      <footer class="company-modal-footer">
+        <span class="save-status" id="company-save-status" aria-live="polite"></span>
+      </footer>
+    </div>
   </div>
 
   <div id="brochure-fs-portal" class="brochure-fs-portal" hidden aria-hidden="true">
@@ -242,7 +280,7 @@
 
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '13';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '15';
       var s = document.createElement('script');
       s.src = 'app.js?v=' + encodeURIComponent(bust);
       document.body.appendChild(s);
