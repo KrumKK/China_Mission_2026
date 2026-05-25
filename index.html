@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Misión China" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#D1007A" />
+  <meta name="theme-color" content="#0f1419" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -16,11 +16,11 @@
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
   <link rel="apple-touch-icon" href="icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '3';
+      window.__APP_BUILD__ = '4';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -33,195 +33,175 @@
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="app-header">
-    <div class="header-inner">
-      <div class="header-brand">
-        <span class="brand-zh">龙华</span>
-        <div class="brand-text">
-          <span class="brand-main">MISIÓN CHINA</span>
-          <span class="brand-sub">Lizarte · Junio 2026</span>
-        </div>
-      </div>
-      <div class="header-actions">
-        <button class="refresh-app-btn" id="btn-hard-refresh" type="button" aria-label="Descargar la última versión de la aplicación">
-          Actualizar
+  <div class="app-wrap">
+
+    <nav class="top-nav" aria-label="Secciones principales">
+      <button type="button" class="top-nav-item active" data-view="general">
+        <span class="top-nav-icon">🏨</span>
+        <span class="top-nav-label">General</span>
+      </button>
+      <button type="button" class="top-nav-item" data-view="eventos">
+        <span class="top-nav-icon">📅</span>
+        <span class="top-nav-label">Eventos</span>
+      </button>
+      <button type="button" class="top-nav-item" data-view="contactos">
+        <span class="top-nav-icon">👥</span>
+        <span class="top-nav-label">Contactos</span>
+      </button>
+    </nav>
+
+    <main class="app-main" id="app-main">
+
+      <div class="trip-overview">
+        <article class="card-hero card-hero--blue">
+          <h1 class="card-hero-title">Misión China 2026</h1>
+          <p class="card-hero-meta">22–26 Jun · Beijing &amp; Shenzhen · Lizarte</p>
+          <div class="card-hero-nested">
+            <div class="tz-row">
+              <span class="tz-flag">🇪🇸</span>
+              <span class="tz-name">España</span>
+            </div>
+            <div class="tz-row">
+              <span class="tz-flag">🇨🇳</span>
+              <span class="tz-name">China</span>
+            </div>
+            <span class="tz-badge">China +6h vs España</span>
+          </div>
+        </article>
+
+        <article class="card-hero card-hero--green" id="countdown-card">
+          <div class="countdown-head">
+            <span class="countdown-emoji">⏱</span>
+            <span class="countdown-label">Cuenta atrás</span>
+          </div>
+          <p class="countdown-value" id="countdown-days">—</p>
+          <p class="countdown-sub" id="countdown-sub">días para el viaje</p>
+        </article>
+
+        <button class="btn-refresh" id="btn-hard-refresh" type="button" aria-label="Descargar la última versión">
+          ↻ Actualizar aplicación
         </button>
-        <div class="header-badge" id="countdown-badge">
-          <span id="countdown-days">—</span>
-          <span class="badge-label">días</span>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- MAIN CONTENT -->
-  <main class="app-main" id="app-main">
-
-    <!-- ══════════════════════════════════════════
-         Pestaña: General — logística del viaje
-    ══════════════════════════════════════════ -->
-    <section class="view active" id="view-general">
-
-      <div class="section-hero">
-        <div class="hero-tag">Datos generales</div>
-        <h1 class="hero-title">Logística<br/>del viaje</h1>
-        <p class="hero-desc">Ciudades, hoteles (castellano y chino) y hora de salida del hotel. Junio 2026 · Beijing y Shenzhen.</p>
       </div>
 
-      <div class="section-header">
-        <h2 class="section-title">Hoteles y ciudades</h2>
-        <p class="section-desc">Actualizar nombres y horarios en app.js cuando confirméis reservas</p>
-      </div>
-      <div id="logistics-list" class="logistics-list"></div>
+      <section class="view active" id="view-general">
+        <h2 class="section-heading"><span class="section-emoji">🏨</span> Hoteles y ciudades</h2>
+        <p class="section-lead">Nombres en castellano y chino · salida del hotel</p>
+        <div id="logistics-list" class="logistics-list"></div>
 
-      <!-- EQUIPO -->
-      <div class="block-title">Equipo del viaje</div>
-      <div class="team-list">
-        <div class="team-card">
-          <div class="team-initials">ÓH</div>
-          <div class="team-info">
-            <span class="team-name">Óscar Huarte</span>
-            <span class="team-role">CEO / Managing Director</span>
-            <span class="team-email">ohuarte@lizarte.com</span>
+        <h2 class="section-heading"><span class="section-emoji">🧳</span> Equipo del viaje</h2>
+        <div class="team-list">
+          <div class="team-card">
+            <div class="team-initials">ÓH</div>
+            <div class="team-info">
+              <span class="team-name">Óscar Huarte</span>
+              <span class="team-role">CEO / Managing Director</span>
+              <span class="team-email">ohuarte@lizarte.com</span>
+            </div>
+          </div>
+          <div class="team-card">
+            <div class="team-initials">KK</div>
+            <div class="team-info">
+              <span class="team-name">Krum Kovachev</span>
+              <span class="team-role">Innovation Director</span>
+              <span class="team-email">krum@lizarte.com</span>
+            </div>
+          </div>
+          <div class="team-card">
+            <div class="team-initials">JB</div>
+            <div class="team-info">
+              <span class="team-name">Jorge Bobadilla</span>
+              <span class="team-role">R&D Director</span>
+              <span class="team-email">jbobadilla@lizarte.com</span>
+            </div>
+          </div>
+          <div class="team-card">
+            <div class="team-initials">JH</div>
+            <div class="team-info">
+              <span class="team-name">Javier Hualde</span>
+              <span class="team-role">Quality Director</span>
+              <span class="team-email">jhualde@lizarte.com</span>
+            </div>
+          </div>
+          <div class="team-card team-card--highlight">
+            <div class="team-initials">RL</div>
+            <div class="team-info">
+              <span class="team-name">Ray Lee</span>
+              <span class="team-role">Mandarina nativo · Traductor</span>
+              <span class="team-tag">🔑 Activo clave</span>
+            </div>
           </div>
         </div>
-        <div class="team-card">
-          <div class="team-initials">KK</div>
-          <div class="team-info">
-            <span class="team-name">Krum Kovachev</span>
-            <span class="team-role">Innovation Director</span>
-            <span class="team-email">krum@lizarte.com</span>
+
+        <div class="alert-box alert-box--info">
+          <span class="alert-icon">ℹ️</span>
+          <p>Agendas en <strong>Eventos</strong> · listado completo en <strong>Contactos</strong></p>
+        </div>
+      </section>
+
+      <section class="view" id="view-contactos">
+        <h2 class="section-heading"><span class="section-emoji">👥</span> Contactos</h2>
+        <p class="section-lead">ICEX, PIN, CCPIT y equipo</p>
+        <div id="contacts-list"></div>
+      </section>
+
+      <section class="view" id="view-eventos">
+        <h2 class="section-heading"><span class="section-emoji">📅</span> Eventos</h2>
+        <p class="section-lead">Agendas por actividad · Junio 2026</p>
+
+        <nav class="event-subnav" id="event-subnav" aria-label="Tipo de evento">
+          <button type="button" class="event-tab active" data-event="cisce">🏛 CISCE</button>
+          <button type="button" class="event-tab" data-event="shenzhen">🏙 Shenzhen</button>
+          <button type="button" class="event-tab" data-event="b2b">🤝 B2B</button>
+          <button type="button" class="event-tab" data-event="visitas">🏭 Visitas</button>
+        </nav>
+
+        <div class="event-panel active" id="event-panel-cisce" data-event="cisce"></div>
+        <div class="event-panel" id="event-panel-shenzhen" data-event="shenzhen"></div>
+
+        <div class="event-panel" id="event-panel-b2b" data-event="b2b">
+          <div id="b2b-list" class="company-list"></div>
+          <div class="empty-state" id="empty-b2b" hidden>
+            <div class="empty-icon">谈</div>
+            <h3 class="empty-title">Sin reuniones B2B</h3>
+            <p class="empty-desc">Añadid entradas con categoría <strong>b2b</strong> en COMPANIES (app.js).</p>
           </div>
         </div>
-        <div class="team-card">
-          <div class="team-initials">JB</div>
-          <div class="team-info">
-            <span class="team-name">Jorge Bobadilla</span>
-            <span class="team-role">R&D Director</span>
-            <span class="team-email">jbobadilla@lizarte.com</span>
+
+        <div class="event-panel" id="event-panel-visitas" data-event="visitas">
+          <div id="visits-list" class="visits-list"></div>
+          <div class="empty-state" id="empty-visitas" hidden>
+            <div class="empty-icon">厂</div>
+            <h3 class="empty-title">Sin visitas confirmadas</h3>
+            <p class="empty-desc">Añadid entradas con categoría <strong>visita</strong> en COMPANIES (app.js).</p>
           </div>
         </div>
-        <div class="team-card">
-          <div class="team-initials">JH</div>
-          <div class="team-info">
-            <span class="team-name">Javier Hualde</span>
-            <span class="team-role">Quality Director</span>
-            <span class="team-email">jhualde@lizarte.com</span>
-          </div>
-        </div>
-        <div class="team-card team-card--highlight">
-          <div class="team-initials">RL</div>
-          <div class="team-info">
-            <span class="team-name">Ray Lee</span>
-            <span class="team-role">Mandarina nativo · Traductor</span>
-            <span class="team-tag">🔑 Activo clave</span>
-          </div>
-        </div>
-      </div>
+      </section>
 
-      <div class="info-box">
-        <span class="info-box-icon">ℹ</span>
-        <p>Agendas de feria, misión, B2B y visitas en la pestaña <strong>Eventos</strong>. Listado completo de contactos en <strong>Contactos</strong>.</p>
-      </div>
+    </main>
+  </div>
 
-    </section>
-
-    <section class="view" id="view-contactos">
-      <div class="section-header">
-        <h2 class="section-title">Contactos</h2>
-        <p class="section-desc">ICEX, PIN, CCPIT y equipo · editar en app.js</p>
-      </div>
-      <div id="contacts-list"></div>
-    </section>
-
-    <section class="view" id="view-eventos">
-      <div class="section-header">
-        <h2 class="section-title">Eventos</h2>
-        <p class="section-desc">Agendas por actividad · Junio 2026</p>
-      </div>
-
-      <nav class="event-subnav" id="event-subnav" aria-label="Tipo de evento">
-        <button type="button" class="event-tab active" data-event="cisce">CISCE</button>
-        <button type="button" class="event-tab" data-event="shenzhen">Shenzhen</button>
-        <button type="button" class="event-tab" data-event="b2b">B2B</button>
-        <button type="button" class="event-tab" data-event="visitas">Visitas</button>
-      </nav>
-
-      <div class="event-panel active" id="event-panel-cisce" data-event="cisce"></div>
-      <div class="event-panel" id="event-panel-shenzhen" data-event="shenzhen"></div>
-
-      <div class="event-panel" id="event-panel-b2b" data-event="b2b">
-        <div id="b2b-list" class="company-list"></div>
-        <div class="empty-state empty-state--bare" id="empty-b2b" hidden>
-          <div class="empty-icon">谈</div>
-          <h3 class="empty-title">Sin reuniones B2B</h3>
-          <p class="empty-desc">Cuando el CCPIT confirme la agenda, añadid entradas con categoría <strong>b2b</strong> en COMPANIES (app.js).</p>
-        </div>
-      </div>
-
-      <div class="event-panel" id="event-panel-visitas" data-event="visitas">
-        <div id="visits-list" class="visits-list"></div>
-        <div class="empty-state empty-state--bare" id="empty-visitas" hidden>
-          <div class="empty-icon">厂</div>
-          <h3 class="empty-title">Sin visitas confirmadas</h3>
-          <p class="empty-desc">Visitas a planta o fábrica. Añadid entradas con categoría <strong>visita</strong> en COMPANIES (app.js).</p>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <button class="nav-item active" data-view="general" onclick="switchView('general')">
-      <span class="nav-icon">⌂</span>
-      <span class="nav-label">General</span>
-    </button>
-    <button class="nav-item" data-view="eventos" onclick="switchView('eventos')">
-      <span class="nav-icon">历</span>
-      <span class="nav-label">Eventos</span>
-    </button>
-    <button class="nav-item" data-view="contactos" onclick="switchView('contactos')">
-      <span class="nav-icon">👥</span>
-      <span class="nav-label">Contactos</span>
-    </button>
-  </nav>
-
-  <!-- Actualización forzada: inline para que funcione aunque app.js esté en caché -->
   <script>
     (function () {
       'use strict';
-
       var BTN_ID = 'btn-hard-refresh';
 
       function notifyWorkerClear() {
-        if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
-          return Promise.resolve();
-        }
-        try {
-          navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHES' });
-        } catch (_) { /* ignore */ }
-        return new Promise(function (resolve) {
-          setTimeout(resolve, 150);
-        });
+        if (!navigator.serviceWorker || !navigator.serviceWorker.controller) return Promise.resolve();
+        try { navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHES' }); } catch (_) {}
+        return new Promise(function (r) { setTimeout(r, 150); });
       }
 
       function deleteAllCaches() {
         if (!window.caches) return Promise.resolve();
         return caches.keys().then(function (keys) {
-          return Promise.all(keys.map(function (key) {
-            return caches.delete(key);
-          }));
+          return Promise.all(keys.map(function (k) { return caches.delete(k); }));
         });
       }
 
       function unregisterAllWorkers() {
         if (!navigator.serviceWorker) return Promise.resolve();
         return navigator.serviceWorker.getRegistrations().then(function (regs) {
-          return Promise.all(regs.map(function (reg) {
-            return reg.unregister();
-          }));
+          return Promise.all(regs.map(function (r) { return r.unregister(); }));
         });
       }
 
@@ -232,33 +212,25 @@
       }
 
       function handleRefresh(event) {
-        if (event) {
-          event.preventDefault();
-          event.stopImmediatePropagation();
-        }
-
+        if (event) { event.preventDefault(); event.stopImmediatePropagation(); }
         var btn = document.getElementById(BTN_ID);
         if (!btn || btn.getAttribute('data-busy') === '1') return;
-
         btn.setAttribute('data-busy', '1');
         btn.disabled = true;
         btn.textContent = 'Actualizando…';
-
         notifyWorkerClear()
           .then(deleteAllCaches)
           .then(unregisterAllWorkers)
           .then(function () {
-            try { localStorage.clear(); } catch (_) { /* ignore */ }
-            try { sessionStorage.clear(); } catch (_) { /* ignore */ }
+            try { localStorage.clear(); sessionStorage.clear(); } catch (_) {}
           })
-          .catch(function () { /* seguir con recarga igualmente */ })
+          .catch(function () {})
           .then(reloadFresh);
       }
 
       function bindRefreshButton() {
         var btn = document.getElementById(BTN_ID);
-        if (!btn) return;
-        btn.addEventListener('click', handleRefresh, false);
+        if (btn) btn.addEventListener('click', handleRefresh, false);
       }
 
       if (document.readyState === 'loading') {
@@ -272,7 +244,7 @@
   <script>
     (function () {
       var script = document.createElement('script');
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '1';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '4';
       script.src = 'app.js?v=' + encodeURIComponent(bust);
       document.body.appendChild(script);
     })();

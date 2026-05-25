@@ -210,19 +210,20 @@ const COMPANIES = [
 ────────────────────────────────────────────── */
 function initCountdown() {
   const departureDate = new Date('2026-06-22T00:00:00');
-  const el = document.getElementById('countdown-days');
-  if (!el) return;
+  const daysEl = document.getElementById('countdown-days');
+  const subEl = document.getElementById('countdown-sub');
+  if (!daysEl) return;
 
   function update() {
     const now = new Date();
     const diff = departureDate - now;
     if (diff <= 0) {
-      el.textContent = '✈';
-      const label = document.querySelector('.badge-label');
-      if (label) label.textContent = '¡viaje!';
+      daysEl.textContent = '¡Ya!';
+      if (subEl) subEl.textContent = 'El viaje ha comenzado';
       return;
     }
-    el.textContent = String(Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    daysEl.textContent = String(Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    if (subEl) subEl.textContent = 'días para el viaje';
   }
 
   update();
@@ -259,7 +260,7 @@ function initNavigation() {
   function activateViewByName(target) {
     if (!target) return;
 
-    document.querySelectorAll('.nav-item').forEach(n => {
+    document.querySelectorAll('.top-nav-item').forEach(n => {
       n.classList.toggle('active', n.dataset.view === target);
     });
     document.querySelectorAll('.view').forEach(v => {
@@ -276,16 +277,14 @@ function initNavigation() {
   window.switchView = activateViewByName;
   window.switchEventTab = activateEventTab;
 
-  const nav = document.querySelector('.bottom-nav');
+  const nav = document.querySelector('.top-nav');
   if (nav) {
-    const onNav = event => {
-      const button = event.target.closest('.nav-item');
+    nav.addEventListener('click', event => {
+      const button = event.target.closest('.top-nav-item');
       if (!button) return;
       event.preventDefault();
       activateViewByName(button.dataset.view);
-    };
-    nav.addEventListener('click', onNav);
-    nav.addEventListener('touchend', onNav, { passive: false });
+    });
   }
 
   const subnav = document.getElementById('event-subnav');
@@ -556,7 +555,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '3');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '4');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
