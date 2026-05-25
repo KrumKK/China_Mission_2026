@@ -187,6 +187,219 @@ html, body {
 }
 .view.active { display: block; }
 
+/* ── EVENT SUB-NAV ───────────────────────────── */
+.event-subnav {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0 14px;
+  margin-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.event-subnav::-webkit-scrollbar { display: none; }
+
+.event-tab {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.event-tab.active {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.event-panel { display: none; }
+.event-panel.active { display: block; }
+
+.event-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.event-hero-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 6px 0 4px;
+}
+.event-hero-desc {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* ── HOTEL / LOGISTICS CARDS ─────────────────── */
+.logistics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.hotel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  border-left: 4px solid var(--red);
+}
+.hotel-card--travel {
+  border-left-color: var(--gold);
+  background: var(--gold-light);
+}
+
+.hotel-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.hotel-city-es {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.hotel-city-zh {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--red);
+  line-height: 1.2;
+}
+.hotel-dates {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  background: var(--paper);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.hotel-names {
+  margin-bottom: 10px;
+}
+.hotel-name-es {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.hotel-name-zh {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--ink-mid);
+  margin-top: 2px;
+}
+
+.hotel-address, .hotel-address-zh, .hotel-phone {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+.hotel-address-zh {
+  font-family: var(--font-display);
+}
+
+.hotel-departure {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--red-light);
+  border-radius: var(--radius-md);
+  margin-top: 8px;
+}
+.hotel-departure--pending {
+  background: var(--pending-bg);
+}
+.departure-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.departure-time {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--red-dark);
+}
+.departure-note, .hotel-travel-note {
+  font-size: 13px;
+  color: var(--ink-mid);
+}
+.hotel-notes {
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+/* ── VISIT CARDS ───────────────────────────────── */
+.visits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.visit-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+.visit-card--priority {
+  border-color: var(--red);
+  background: var(--red-light);
+}
+.visit-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.visit-name-zh {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--red);
+}
+.visit-date, .visit-location, .visit-objective, .visit-notes {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+}
+.company-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.company-objective, .company-notes {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 8px;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }

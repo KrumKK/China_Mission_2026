@@ -1,7 +1,7 @@
 /* Misión China 2026 - Service Worker */
 'use strict';
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `mision-china-cache-${CACHE_VERSION}`;
 const APP_SHELL = [
   './',
