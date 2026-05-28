@@ -2298,10 +2298,23 @@ function startApp() {
 window.startApp = startApp;
 
 function bootApp() {
+  document.body.classList.add('app-locked');
+  document.body.classList.remove('app-authenticated');
+  const login = document.getElementById('login-screen');
+  if (login) {
+    login.hidden = false;
+    login.setAttribute('aria-hidden', 'false');
+  }
+
   if (typeof window.initLoginScreen === 'function') {
     window.initLoginScreen();
-  } else {
-    startApp();
+    return;
+  }
+
+  const err = document.getElementById('login-error');
+  if (err) {
+    err.textContent = 'No se cargó graph-sync.js. Comprueba la conexión y actualiza la app.';
+    err.hidden = false;
   }
 }
 

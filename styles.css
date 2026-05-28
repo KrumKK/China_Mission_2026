@@ -221,7 +221,14 @@ body.app-locked .app-wrap {
 }
 
 body.app-authenticated .login-screen {
-  display: none;
+  display: none !important;
+}
+
+body.app-authenticated .app-wrap {
+  visibility: visible;
+  pointer-events: auto;
+  height: auto;
+  overflow: visible;
 }
 
 .login-card {

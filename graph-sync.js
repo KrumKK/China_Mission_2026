@@ -112,6 +112,7 @@ function setGraphInitChip(ok, detail) {
 }
 
 function unlockApp() {
+  document.body.classList.remove('app-locked');
   document.body.classList.add('app-authenticated');
   const screen = document.getElementById('login-screen');
   if (screen) {
@@ -169,11 +170,19 @@ async function handleLoginSubmit(userId) {
   }
 }
 
+let loginScreenBound = false;
+
 function initLoginScreen() {
   const screen = document.getElementById('login-screen');
   if (!screen) return;
 
+  document.body.classList.add('app-locked');
   document.body.classList.remove('app-authenticated');
+  screen.hidden = false;
+  screen.setAttribute('aria-hidden', 'false');
+
+  if (loginScreenBound) return;
+  loginScreenBound = true;
 
   const pinInput = document.getElementById('login-pin');
   if (pinInput) {

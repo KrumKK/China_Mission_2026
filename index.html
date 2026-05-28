@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '20';
+      window.__APP_BUILD__ = '21';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -353,20 +353,19 @@
     })();
   </script>
 
-  <script src="config.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '20';
-      function loadScript(src, next) {
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '21';
+      var q = '?v=' + encodeURIComponent(bust);
+      function loadNext(files, i) {
+        if (i >= files.length) return;
         var s = document.createElement('script');
-        s.src = src;
-        s.onload = next;
-        s.onerror = next;
+        s.src = files[i] + q;
+        s.onload = function () { loadNext(files, i + 1); };
+        s.onerror = function () { loadNext(files, i + 1); };
         document.body.appendChild(s);
       }
-      loadScript('graph-sync.js?v=' + encodeURIComponent(bust), function () {
-        loadScript('app.js?v=' + encodeURIComponent(bust));
-      });
+      loadNext(['config.js', 'graph-sync.js', 'app.js'], 0);
     })();
   </script>
 </body>
