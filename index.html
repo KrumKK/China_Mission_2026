@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '17';
+      window.__APP_BUILD__ = '18';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -57,6 +57,8 @@
         <span class="top-nav-label">Brochure</span>
       </button>
     </nav>
+
+    <div class="active-user-chip" id="active-user-chip" hidden>Usuario: —</div>
 
     <main class="app-main" id="app-main">
 
@@ -197,6 +199,18 @@
     </main>
   </div>
 
+  <div id="user-selector-modal" class="user-selector-modal" hidden aria-hidden="true">
+    <div class="user-selector-backdrop"></div>
+    <div class="user-selector-card" role="dialog" aria-modal="true" aria-labelledby="user-selector-title">
+      <h2 class="user-selector-title" id="user-selector-title">¿Quién está usando la app?</h2>
+      <p class="user-selector-subtitle">Selecciona tu perfil para continuar</p>
+      <div class="user-selector-actions">
+        <button type="button" class="user-selector-btn" data-user="Krum">Soy Krum</button>
+        <button type="button" class="user-selector-btn" data-user="Óscar">Soy Óscar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="company-modal" class="company-modal" hidden aria-hidden="true">
     <div class="company-modal-backdrop" id="company-modal-backdrop"></div>
     <div class="company-modal-sheet" role="dialog" aria-modal="true" aria-labelledby="company-modal-title">
@@ -322,7 +336,7 @@
 
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '17';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '18';
       var s = document.createElement('script');
       s.src = 'app.js?v=' + encodeURIComponent(bust);
       document.body.appendChild(s);

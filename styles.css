@@ -160,9 +160,94 @@ body::before {
   text-align: center;
 }
 
+.active-user-chip {
+  margin: 8px 14px 4px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--bg-elevated);
+  color: var(--accent-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 /* ═══ MAIN ═══════════════════════════════════════════════ */
 .app-main {
   padding: 0 14px calc(24px + var(--safe-bottom));
+}
+
+/* ═══ SELECTOR DE USUARIO (apertura) ═════════════════════ */
+.user-selector-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.user-selector-modal[hidden] {
+  display: none !important;
+}
+
+.user-selector-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(45, 38, 58, 0.55);
+}
+
+.user-selector-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 40px rgba(61, 53, 80, 0.25);
+  padding: 20px;
+}
+
+.user-selector-title {
+  font-size: 20px;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.user-selector-subtitle {
+  margin-top: 6px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.user-selector-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.user-selector-btn {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--card-border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.user-selector-btn:active {
+  transform: translateY(1px);
+}
+
+body.user-selector-open {
+  overflow: hidden;
 }
 
 /* ═══ HERO CARDS (viaje + cuenta atrás) ══════════════════ */
