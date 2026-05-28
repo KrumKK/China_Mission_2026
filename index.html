@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '18';
+      window.__APP_BUILD__ = '19';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -230,12 +230,15 @@
 
         <label class="field-label" for="company-field-desc">Descripción de la empresa</label>
         <textarea id="company-field-desc" class="field-textarea" rows="4" placeholder="Sector, productos, capacidad, interés para Lizarte…"></textarea>
+        <p class="field-meta" id="company-field-desc-by">Sin edición</p>
 
         <label class="field-label" for="company-field-contacts">Personas de contacto</label>
         <textarea id="company-field-contacts" class="field-textarea" rows="3" placeholder="Nombre, cargo, teléfono, email, idioma…"></textarea>
+        <p class="field-meta" id="company-field-contacts-by">Sin edición</p>
 
         <label class="field-label" for="company-field-notes">Notas</label>
         <textarea id="company-field-notes" class="field-textarea" rows="4" placeholder="Espacio libre para la reunión…"></textarea>
+        <p class="field-meta" id="company-field-notes-by">Sin edición</p>
 
         <div class="photo-section">
           <div class="photo-section-head">
@@ -336,7 +339,7 @@
 
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '18';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '19';
       var s = document.createElement('script');
       s.src = 'app.js?v=' + encodeURIComponent(bust);
       document.body.appendChild(s);

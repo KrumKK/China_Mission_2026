@@ -426,6 +426,19 @@ function setActiveUser(name) {
   }
 }
 
+function labelEditor(name) {
+  return name ? 'Última edición: ' + name : 'Sin edición';
+}
+
+function countPhotosByUser(record) {
+  const map = new Map();
+  (record.photos || []).forEach(p => {
+    if (!p || !p.blob || !p.addedBy) return;
+    map.set(p.addedBy, (map.get(p.addedBy) || 0) + 1);
+  });
+  return map;
+}
+
 function openUserSelector() {
   const modal = document.getElementById('user-selector-modal');
   if (!modal) return;
@@ -500,8 +513,12 @@ function defaultCompanyRecord(companyId) {
     companyId,
     meetingType: '',
     description: '',
+    descriptionBy: '',
     contacts: contactsSeed,
+    contactsBy: '',
     notes: '',
+    notesBy: '',
+    lastEditedBy: '',
     photos: emptyPhotoSlots(),
     updatedAt: Date.now()
   };
@@ -513,15 +530,26 @@ function normalizeCompanyRecord(raw, companyId) {
   const photos = emptyPhotoSlots();
   if (Array.isArray(raw.photos)) {
     raw.photos.slice(0, PHOTOS_PER_COMPANY).forEach((p, i) => {
-      if (p && p.blob instanceof Blob) photos[i] = p;
+      if (p && p.blob instanceof Blob) {
+        photos[i] = {
+          blob: p.blob,
+          name: typeof p.name === 'string' ? p.name : 'foto.jpg',
+          addedAt: p.addedAt || null,
+          addedBy: typeof p.addedBy === 'string' ? p.addedBy : ''
+        };
+      }
     });
   }
   return {
     companyId,
     meetingType: normalizeMeetingType(raw.meetingType),
     description: typeof raw.description === 'string' ? raw.description : base.description,
+    descriptionBy: typeof raw.descriptionBy === 'string' ? raw.descriptionBy : base.descriptionBy,
     contacts: typeof raw.contacts === 'string' ? raw.contacts : base.contacts,
+    contactsBy: typeof raw.contactsBy === 'string' ? raw.contactsBy : base.contactsBy,
     notes: typeof raw.notes === 'string' ? raw.notes : base.notes,
+    notesBy: typeof raw.notesBy === 'string' ? raw.notesBy : base.notesBy,
+    lastEditedBy: typeof raw.lastEditedBy === 'string' ? raw.lastEditedBy : base.lastEditedBy,
     photos,
     updatedAt: raw.updatedAt || Date.now()
   };
@@ -530,6 +558,7 @@ function normalizeCompanyRecord(raw, companyId) {
 async function setCompanyMeetingType(companyId, meetingType) {
   const record = await loadCompanyRecord(companyId);
   record.meetingType = normalizeMeetingType(meetingType);
+  if (activeUserName) record.lastEditedBy = activeUserName;
   await saveCompanyRecord(record);
   refreshIcexCompanyCard(companyId);
   renderMeetingsSummary();
@@ -699,6 +728,7 @@ async function serializeRecordForBackup(record, includePhotos) {
         name: p.name || 'foto-' + (i + 1) + '.jpg',
         mime: p.blob.type || 'image/jpeg',
         addedAt: p.addedAt || null,
+        addedBy: p.addedBy || '',
         dataBase64: await blobToBase64(p.blob)
       });
     } else {
@@ -709,8 +739,12 @@ async function serializeRecordForBackup(record, includePhotos) {
     companyId: record.companyId,
     meetingType: normalizeMeetingType(record.meetingType),
     description: record.description || '',
+    descriptionBy: record.descriptionBy || '',
     contacts: record.contacts || '',
+    contactsBy: record.contactsBy || '',
     notes: record.notes || '',
+    notesBy: record.notesBy || '',
+    lastEditedBy: record.lastEditedBy || '',
     photos,
     updatedAt: record.updatedAt || Date.now()
   };
@@ -724,6 +758,7 @@ function deserializeRecordFromBackup(entry) {
         photos[i] = {
           name: p.name || 'foto.jpg',
           addedAt: p.addedAt || Date.now(),
+          addedBy: p.addedBy || '',
           blob: base64ToBlob(p.dataBase64, p.mime || 'image/jpeg')
         };
       }
@@ -733,8 +768,12 @@ function deserializeRecordFromBackup(entry) {
     companyId: entry.companyId,
     meetingType: entry.meetingType,
     description: entry.description,
+    descriptionBy: entry.descriptionBy,
     contacts: entry.contacts,
+    contactsBy: entry.contactsBy,
     notes: entry.notes,
+    notesBy: entry.notesBy,
+    lastEditedBy: entry.lastEditedBy,
     photos,
     updatedAt: entry.updatedAt
   }, entry.companyId);
@@ -786,7 +825,7 @@ async function buildBackupPayload(includePhotos, onProgress) {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
-    appBuild: window.__APP_BUILD__ || '18',
+    appBuild: window.__APP_BUILD__ || '19',
     includesPhotos: !!includePhotos,
     companyCount: serialized.length,
     photoCount: countBackupPhotos(serialized),
@@ -1160,7 +1199,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '18';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '19';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -1757,6 +1796,10 @@ async function renderIcexOffices() {
       else officeStats.unset += 1;
 
       const photoCount = countFilledPhotos(record);
+      const photoByUser = countPhotosByUser(record);
+      const photoByUserText = Array.from(photoByUser.entries())
+        .map(([name, count]) => name + ': ' + count)
+        .join(' · ');
       const hasNotes = !!(record.description || record.notes);
       const preview = record.description
         ? truncateText(record.description, 72)
@@ -1777,6 +1820,8 @@ async function renderIcexOffices() {
           ${buildMeetingTypePickerHtml(company.id, meetingType, 'meeting-type-picker--card')}
           <p class="company-contact-person">👤 ${escapeHtml(company.contactPerson)} · ${escapeHtml(company.role)}</p>
           <p class="company-card-preview ${hasNotes ? '' : 'company-card-preview--empty'}">${escapeHtml(preview)}</p>
+          <p class="company-card-meta">✍ ${escapeHtml(record.lastEditedBy || 'Sin edición')}</p>
+          <p class="company-card-meta" ${photoByUserText ? '' : 'hidden'}>📷 ${escapeHtml(photoByUserText || '')}</p>
         </article>`;
     }).join('');
 
@@ -1865,6 +1910,10 @@ function refreshIcexCompanyCard(companyId) {
     const preview = record.description
       ? truncateText(record.description, 72)
       : 'Pulsa para completar ficha y subir fotos';
+    const photoByUser = countPhotosByUser(record);
+    const photoByUserText = Array.from(photoByUser.entries())
+      .map(([name, count]) => name + ': ' + count)
+      .join(' · ');
 
     const meetingType = normalizeMeetingType(record.meetingType);
     const badges = card.querySelector('.company-badges');
@@ -1880,12 +1929,23 @@ function refreshIcexCompanyCard(companyId) {
       previewEl.textContent = preview;
       previewEl.classList.toggle('company-card-preview--empty', !hasNotes);
     }
+    const metaEls = card.querySelectorAll('.company-card-meta');
+    if (metaEls[0]) metaEls[0].textContent = '✍ ' + (record.lastEditedBy || 'Sin edición');
+    if (metaEls[1]) {
+      if (photoByUserText) {
+        metaEls[1].textContent = '📷 ' + photoByUserText;
+        metaEls[1].hidden = false;
+      } else {
+        metaEls[1].hidden = true;
+      }
+    }
   });
 }
 
 function getActiveCompanyRecordFromForm() {
   if (!activeCompanyId) return null;
   const cached = companyRecordCache.get(activeCompanyId);
+  const previous = cached || defaultCompanyRecord(activeCompanyId);
   const record = cached
     ? { ...cached, photos: cached.photos.slice() }
     : defaultCompanyRecord(activeCompanyId);
@@ -1893,13 +1953,38 @@ function getActiveCompanyRecordFromForm() {
   const desc = document.getElementById('company-field-desc');
   const contacts = document.getElementById('company-field-contacts');
   const notes = document.getElementById('company-field-notes');
-  if (desc) record.description = desc.value;
-  if (contacts) record.contacts = contacts.value;
-  if (notes) record.notes = notes.value;
+  let changed = false;
+  if (desc) {
+    const next = desc.value;
+    if (next !== previous.description) {
+      changed = true;
+      if (activeUserName) record.descriptionBy = activeUserName;
+    }
+    record.description = next;
+  }
+  if (contacts) {
+    const next = contacts.value;
+    if (next !== previous.contacts) {
+      changed = true;
+      if (activeUserName) record.contactsBy = activeUserName;
+    }
+    record.contacts = next;
+  }
+  if (notes) {
+    const next = notes.value;
+    if (next !== previous.notes) {
+      changed = true;
+      if (activeUserName) record.notesBy = activeUserName;
+    }
+    record.notes = next;
+  }
 
   const modalPicker = document.getElementById('company-meeting-type-picker');
   const activeBtn = modalPicker && modalPicker.querySelector('.meeting-type-btn.active');
-  record.meetingType = activeBtn ? normalizeMeetingType(activeBtn.dataset.type) : normalizeMeetingType(record.meetingType);
+  const nextMeetingType = activeBtn ? normalizeMeetingType(activeBtn.dataset.type) : normalizeMeetingType(record.meetingType);
+  if (nextMeetingType !== previous.meetingType) changed = true;
+  record.meetingType = nextMeetingType;
+  if (changed && activeUserName) record.lastEditedBy = activeUserName;
 
   return record;
 }
@@ -1912,9 +1997,20 @@ function scheduleCompanySave() {
     setCompanySaveStatus('Guardando…');
     const ok = await saveCompanyRecord(record);
     setCompanySaveStatus(ok ? 'Guardado en el dispositivo' : 'Error al guardar', !ok);
+    updateCompanyEditorBadges(record);
     refreshIcexCompanyCard(record.companyId);
     renderMeetingsSummary();
   }, 450);
+}
+
+function updateCompanyEditorBadges(record) {
+  if (!record) return;
+  const descBy = document.getElementById('company-field-desc-by');
+  const contactsBy = document.getElementById('company-field-contacts-by');
+  const notesBy = document.getElementById('company-field-notes-by');
+  if (descBy) descBy.textContent = labelEditor(record.descriptionBy);
+  if (contactsBy) contactsBy.textContent = labelEditor(record.contactsBy);
+  if (notesBy) notesBy.textContent = labelEditor(record.notesBy);
 }
 
 function renderCompanyPhotoGrid(record) {
@@ -1931,6 +2027,7 @@ function renderCompanyPhotoGrid(record) {
       return `
         <div class="photo-slot photo-slot--filled">
           <img src="${url}" alt="Foto ${index + 1}" class="photo-thumb" loading="lazy" />
+          ${photo.addedBy ? `<span class="photo-owner">${escapeHtml(photo.addedBy)}</span>` : ''}
           <button type="button" class="photo-remove" data-slot="${index}" aria-label="Eliminar foto ${index + 1}">✕</button>
         </div>`;
     }
@@ -1991,6 +2088,7 @@ async function openCompanyModal(companyId) {
   if (desc) desc.value = record.description || '';
   if (contacts) contacts.value = record.contacts || '';
   if (notes) notes.value = record.notes || '';
+  updateCompanyEditorBadges(record);
 
   syncMeetingTypePickerButtons(
     document.getElementById('company-meeting-type-picker'),
@@ -2072,9 +2170,12 @@ function initCompanyModalControls() {
         record.photos[activePhotoSlot] = {
           blob,
           name: file.name || 'foto.jpg',
-          addedAt: Date.now()
+          addedAt: Date.now(),
+          addedBy: activeUserName || ''
         };
+        if (activeUserName) record.lastEditedBy = activeUserName;
         await saveCompanyRecord(record);
+        updateCompanyEditorBadges(record);
         renderCompanyPhotoGrid(record);
         refreshIcexCompanyCard(activeCompanyId);
         setCompanySaveStatus('Foto guardada');
@@ -2179,7 +2280,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '18');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '19');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
