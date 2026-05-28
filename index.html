@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '19';
+      window.__APP_BUILD__ = '20';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -31,7 +31,32 @@
     })();
   </script>
 </head>
-<body>
+<body class="app-locked">
+
+  <div id="login-screen" class="login-screen" aria-hidden="false">
+    <div class="login-card">
+      <h2 class="login-title">Misión China 2026</h2>
+      <p class="login-subtitle">Acceso Lizarte · sincronización SharePoint</p>
+      <label class="login-pin-label" for="login-pin">PIN (4 dígitos)</label>
+      <input
+        type="password"
+        id="login-pin"
+        class="login-pin-input"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="4"
+        autocomplete="off"
+        aria-describedby="login-error"
+      />
+      <p id="login-error" class="login-error" hidden></p>
+      <div class="login-user-actions">
+        <button type="button" class="login-user-btn" data-user="krum">Soy Krum</button>
+        <button type="button" class="login-user-btn" data-user="oscar">Soy Óscar</button>
+      </div>
+      <p id="login-sync-status" class="login-sync-status" aria-live="polite">Introduce el PIN y elige usuario</p>
+      <p class="login-hint">Prueba en producción: <strong>krumkk.github.io/China_Mission_2026</strong> (localhost puede fallar por CORS).</p>
+    </div>
+  </div>
 
   <div class="app-wrap">
 
@@ -58,7 +83,10 @@
       </button>
     </nav>
 
-    <div class="active-user-chip" id="active-user-chip" hidden>Usuario: —</div>
+    <div class="app-status-bar">
+      <span class="active-user-chip" id="active-user-chip" hidden>Usuario: —</span>
+      <span class="graph-init-chip" id="graph-init-chip" title="">Graph: pendiente</span>
+    </div>
 
     <main class="app-main" id="app-main">
 
@@ -199,18 +227,6 @@
     </main>
   </div>
 
-  <div id="user-selector-modal" class="user-selector-modal" hidden aria-hidden="true">
-    <div class="user-selector-backdrop"></div>
-    <div class="user-selector-card" role="dialog" aria-modal="true" aria-labelledby="user-selector-title">
-      <h2 class="user-selector-title" id="user-selector-title">¿Quién está usando la app?</h2>
-      <p class="user-selector-subtitle">Selecciona tu perfil para continuar</p>
-      <div class="user-selector-actions">
-        <button type="button" class="user-selector-btn" data-user="Krum">Soy Krum</button>
-        <button type="button" class="user-selector-btn" data-user="Óscar">Soy Óscar</button>
-      </div>
-    </div>
-  </div>
-
   <div id="company-modal" class="company-modal" hidden aria-hidden="true">
     <div class="company-modal-backdrop" id="company-modal-backdrop"></div>
     <div class="company-modal-sheet" role="dialog" aria-modal="true" aria-labelledby="company-modal-title">
@@ -337,12 +353,20 @@
     })();
   </script>
 
+  <script src="config.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '19';
-      var s = document.createElement('script');
-      s.src = 'app.js?v=' + encodeURIComponent(bust);
-      document.body.appendChild(s);
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '20';
+      function loadScript(src, next) {
+        var s = document.createElement('script');
+        s.src = src;
+        s.onload = next;
+        s.onerror = next;
+        document.body.appendChild(s);
+      }
+      loadScript('graph-sync.js?v=' + encodeURIComponent(bust), function () {
+        loadScript('app.js?v=' + encodeURIComponent(bust));
+      });
     })();
   </script>
 </body>

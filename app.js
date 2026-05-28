@@ -412,11 +412,17 @@ let activeCompanyId = null;
 let activePhotoSlot = null;
 let companySaveTimer = null;
 let companyModalBound = false;
-let userSelectorBound = false;
 let activeUserName = '';
 
-function setActiveUser(name) {
-  activeUserName = name || '';
+function userIdToDisplayName(userId) {
+  if (userId === 'krum') return 'Krum';
+  if (userId === 'oscar') return 'Óscar';
+  return userId || '';
+}
+
+function setActiveUser(userIdOrName) {
+  const raw = userIdOrName || (typeof window.getCurrentUser === 'function' ? window.getCurrentUser() : '');
+  activeUserName = userIdToDisplayName(raw) || raw || '';
   window.__ACTIVE_USER__ = activeUserName;
 
   const chip = document.getElementById('active-user-chip');
@@ -425,6 +431,8 @@ function setActiveUser(name) {
     chip.hidden = false;
   }
 }
+
+window.setActiveUser = setActiveUser;
 
 function labelEditor(name) {
   return name ? 'Última edición: ' + name : 'Sin edición';
@@ -437,47 +445,6 @@ function countPhotosByUser(record) {
     map.set(p.addedBy, (map.get(p.addedBy) || 0) + 1);
   });
   return map;
-}
-
-function openUserSelector() {
-  const modal = document.getElementById('user-selector-modal');
-  if (!modal) return;
-  modal.hidden = false;
-  modal.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('user-selector-open');
-}
-
-function closeUserSelector() {
-  const modal = document.getElementById('user-selector-modal');
-  if (!modal) return;
-  modal.hidden = true;
-  modal.setAttribute('aria-hidden', 'true');
-  document.body.classList.remove('user-selector-open');
-}
-
-function initUserSelector() {
-  if (userSelectorBound) {
-    openUserSelector();
-    return;
-  }
-  userSelectorBound = true;
-
-  const modal = document.getElementById('user-selector-modal');
-  if (!modal) return;
-
-  modal.querySelectorAll('.user-selector-btn[data-user]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const selected = btn.dataset.user || '';
-      if (!selected) return;
-      setActiveUser(selected);
-      try {
-        sessionStorage.setItem('mision-china-active-user', selected);
-      } catch (_) { /* ignore */ }
-      closeUserSelector();
-    });
-  });
-
-  openUserSelector();
 }
 
 function openCompanyDatabase() {
@@ -825,7 +792,7 @@ async function buildBackupPayload(includePhotos, onProgress) {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
-    appBuild: window.__APP_BUILD__ || '19',
+    appBuild: window.__APP_BUILD__ || '20',
     includesPhotos: !!includePhotos,
     companyCount: serialized.length,
     photoCount: countBackupPhotos(serialized),
@@ -1199,7 +1166,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '19';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '20';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -2280,7 +2247,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '19');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '20');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
@@ -2312,12 +2279,10 @@ function escapeHtml(str) {
 /* ──────────────────────────────────────────────
    INIT — compatible con carga dinámica de app.js
 ────────────────────────────────────────────── */
-function bootApp() {
-  setActiveUser('');
+function startApp() {
   initCountdown();
   initNavAutoHide();
   initNavigation();
-  initUserSelector();
   initBrochureControls();
   initBackupControls();
   renderFlights();
@@ -2328,6 +2293,16 @@ function bootApp() {
     .then(() => renderIcexOffices())
     .catch(() => renderIcexOffices());
   initPWA();
+}
+
+window.startApp = startApp;
+
+function bootApp() {
+  if (typeof window.initLoginScreen === 'function') {
+    window.initLoginScreen();
+  } else {
+    startApp();
+  }
 }
 
 if (document.readyState === 'loading') {
