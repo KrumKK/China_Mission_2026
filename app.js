@@ -405,6 +405,7 @@ let remoteFichaMapLoaded = false;
 let activeCompanyId = null;
 let activePhotoSlot = null;
 let activeModalFicha = null;
+let activeManualDraft = false;
 let companyModalBound = false;
 let activeUserName = '';
 
@@ -451,6 +452,60 @@ function companyMetaFromSeed(companyId) {
   };
 }
 
+function isManualFichaId(companyId) {
+  return String(companyId || '').indexOf('otras-') === 0;
+}
+
+function isIcexCompanyId(companyId) {
+  return ICEX_COMPANY_MAP.has(companyId);
+}
+
+function isManualFicha(ficha) {
+  if (!ficha) return false;
+  return ficha.isManual === true || isManualFichaId(ficha.id);
+}
+
+function metaFromFicha(ficha, companyId) {
+  if (isManualFicha(ficha) || isManualFichaId(companyId)) {
+    return {
+      companyId,
+      name: (ficha && ficha.name) || '',
+      nameZh: (ficha && ficha.nameZh) || '',
+      contactPerson: (ficha && ficha.contactPerson) || '',
+      role: (ficha && ficha.role) || '',
+      icexOffice: '',
+      isManual: true
+    };
+  }
+  return companyMetaFromSeed(companyId);
+}
+
+function createManualFichaDraft() {
+  const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : 'user';
+  return {
+    id: 'otras-' + uid + '-' + Date.now(),
+    isManual: true,
+    name: '',
+    nameZh: '',
+    contactPerson: '',
+    role: '',
+    icexOffice: '',
+    meetingType: null,
+    userEntries: {
+      krum: emptyUserEntry(),
+      oscar: emptyUserEntry()
+    }
+  };
+}
+
+function refreshAfterFichaChange(companyId) {
+  if (isManualFichaId(companyId) || isManualFicha(getCachedFicha(companyId))) {
+    renderOtrasReuniones().catch(err => console.warn('Otras:', err));
+  } else {
+    refreshIcexCompanyCard(companyId);
+  }
+}
+
 function otherUserId(currentUser) {
   return currentUser === 'krum' ? 'oscar' : 'krum';
 }
@@ -490,13 +545,51 @@ async function loadAllRemoteFichas(force) {
     })
   );
   remoteFichaMap = new Map(results);
+
+  try {
+    const allIds = await listRemoteFichaIds();
+    const manualIds = allIds.filter(id => isManualFichaId(id));
+    const manualResults = await Promise.allSettled(
+      manualIds.map(async id => {
+        const raw = await getRemoteFicha(id);
+        const ficha = normalizeRemoteFicha(raw, id, metaFromFicha(raw, id));
+        return [id, ficha];
+      })
+    );
+    manualResults.forEach(result => {
+      if (result.status === 'fulfilled') {
+        remoteFichaMap.set(result.value[0], result.value[1]);
+      }
+    });
+  } catch (err) {
+    console.warn('Fichas manuales:', err);
+  }
+
   remoteFichaMapLoaded = true;
   return remoteFichaMap;
 }
 
 function getCachedFicha(companyId) {
   if (remoteFichaMap.has(companyId)) return remoteFichaMap.get(companyId);
+  if (isManualFichaId(companyId)) {
+    return normalizeRemoteFicha(null, companyId, metaFromFicha(null, companyId));
+  }
   return normalizeRemoteFicha(null, companyId, companyMetaFromSeed(companyId));
+}
+
+function getManualFichasFromCache() {
+  const list = [];
+  remoteFichaMap.forEach((ficha, id) => {
+    if (isManualFicha(ficha) || isManualFichaId(id)) {
+      list.push(ficha);
+    }
+  });
+  list.sort((a, b) => String(a.name || a.id || '').localeCompare(
+    String(b.name || b.id || ''),
+    'es',
+    { sensitivity: 'base' }
+  ));
+  return list;
 }
 
 function setCachedFicha(companyId, ficha) {
@@ -561,15 +654,25 @@ async function getAllRecordsFromDatabase() {
 }
 
 async function setCompanyMeetingType(companyId, meetingType) {
-  const meta = companyMetaFromSeed(companyId);
+  const ficha = getCachedFicha(companyId);
+  const meta = metaFromFicha(ficha, companyId);
   const next = normalizeMeetingType(meetingType);
+  const formState = {
+    meta,
+    meetingType: next || ''
+  };
+  if (isManualFicha(ficha)) {
+    formState.name = ficha.name || '';
+    formState.nameZh = ficha.nameZh || '';
+    formState.contactPerson = ficha.contactPerson || '';
+    formState.role = ficha.role || '';
+    formState.isManual = true;
+    formState.icexOffice = '';
+  }
   try {
-    const merged = await saveFichaAtomic(companyId, {
-      meta,
-      meetingType: next || ''
-    });
+    const merged = await saveFichaAtomic(companyId, formState);
     setCachedFicha(companyId, merged);
-    refreshIcexCompanyCard(companyId);
+    refreshAfterFichaChange(companyId);
     renderMeetingsSummary();
     return merged;
   } catch (err) {
@@ -693,7 +796,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '20';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '25';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -1018,6 +1121,10 @@ function initNavigation() {
       renderMeetingsSummary();
     }
 
+    if (target === 'otras') {
+      renderOtrasReuniones().catch(err => console.warn('Otras:', err));
+    }
+
     document.body.classList.toggle('mode-brochure', target === 'brochure');
 
     if (target === 'brochure') {
@@ -1269,6 +1376,91 @@ function renderEventAgendas() {
 
 
 /* ──────────────────────────────────────────────
+   RENDER — Tarjetas empresa (ICEX + Otras)
+────────────────────────────────────────────── */
+function buildCompanyCardHtml(ficha, companyId, seedCompany) {
+  const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
+  const meetingType = normalizeMeetingType(ficha.meetingType);
+  const photos = countPhotosInFicha(ficha);
+  const mine = ficha.userEntries && ficha.userEntries[uid] ? ficha.userEntries[uid] : {};
+  const hasNotes = !!(mine.description || mine.notes);
+  const displayName = trimText(ficha.name) || (seedCompany && seedCompany.name) || 'Sin nombre';
+  const nameZh = ficha.nameZh || (seedCompany && seedCompany.nameZh) || '';
+  const contactPerson = ficha.contactPerson || (seedCompany && seedCompany.contactPerson) || '';
+  const role = ficha.role || (seedCompany && seedCompany.role) || '';
+  const preview = mine.description
+    ? truncateText(mine.description, 72)
+    : 'Pulsa para abrir ficha en SharePoint';
+  const photoLabel = photos.total > 0
+    ? 'Krum:' + countUserPhotos(ficha.userEntries.krum || {})
+      + ' · Óscar:' + countUserPhotos(ficha.userEntries.oscar || {})
+    : '';
+  const contactLine = [contactPerson, role].filter(Boolean).join(' · ');
+
+  return `
+    <article class="company-card icex-company-card" data-company-id="${escapeHtml(companyId)}" role="button" tabindex="0" aria-label="Abrir ficha de ${escapeHtml(displayName)}">
+      <div class="company-card-header">
+        <div>
+          <span class="company-name">${escapeHtml(displayName)}</span>
+          ${nameZh ? `<span class="company-name-zh">${escapeHtml(nameZh)}</span>` : ''}
+        </div>
+        <div class="company-badges">
+          ${meetingTypeBadgeHtml(meetingType)}
+          ${photos.total > 0 ? `<span class="company-badge badge-photos">📷 ${photos.total}</span>` : ''}
+        </div>
+      </div>
+      ${buildMeetingTypePickerHtml(companyId, meetingType, 'meeting-type-picker--card')}
+      ${contactLine ? `<p class="company-contact-person">👤 ${escapeHtml(contactLine)}</p>` : ''}
+      <p class="company-card-preview ${hasNotes ? '' : 'company-card-preview--empty'}">${escapeHtml(preview)}</p>
+      <p class="company-card-meta" ${photoLabel ? '' : 'hidden'}>📷 ${escapeHtml(photoLabel)}</p>
+    </article>`;
+}
+
+async function renderOtrasReuniones() {
+  const root = document.getElementById('otras-reuniones-root');
+  if (!root) return;
+
+  try {
+    await loadAllRemoteFichas(false);
+  } catch (err) {
+    console.warn('Carga fichas otras:', err);
+  }
+
+  const fichas = getManualFichasFromCache();
+
+  if (!fichas.length) {
+    root.innerHTML = `
+      <div class="otras-empty">
+        <p class="otras-empty-text">Aún no hay otras reuniones. Pulsa <strong>+</strong> para añadir la primera.</p>
+      </div>`;
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="alert-box alert-box--info">
+      <span class="alert-icon">☁️</span>
+      <p>Reuniones añadidas manualmente · mismas fichas en SharePoint que ICEX.</p>
+    </div>
+    <div class="company-list otras-company-list">${fichas.map(f => buildCompanyCardHtml(f, f.id)).join('')}</div>`;
+
+  bindIcexCompanyCards();
+  bindMeetingTypePickers();
+}
+
+function openNewManualFicha() {
+  const ficha = createManualFichaDraft();
+  openCompanyModal(ficha.id, { draft: true, ficha });
+}
+
+function initOtrasReuniones() {
+  const fab = document.getElementById('btn-otras-add');
+  if (fab && fab.dataset.bound !== '1') {
+    fab.dataset.bound = '1';
+    fab.addEventListener('click', () => openNewManualFicha());
+  }
+}
+
+/* ──────────────────────────────────────────────
    RENDER — Oficinas ICEX (empresas + fichas)
 ────────────────────────────────────────────── */
 async function renderIcexOffices() {
@@ -1277,8 +1469,6 @@ async function renderIcexOffices() {
   } catch (err) {
     console.warn('Listado fichas:', err);
   }
-
-  const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
 
   ICEX_OFFICES.forEach(office => {
     const panel = document.getElementById('event-panel-' + office.id);
@@ -1291,35 +1481,7 @@ async function renderIcexOffices() {
       if (meetingType === 'b2b') officeStats.b2b += 1;
       else if (meetingType === 'visita') officeStats.visita += 1;
       else officeStats.unset += 1;
-
-      const photos = countPhotosInFicha(ficha);
-      const mine = ficha.userEntries && ficha.userEntries[uid] ? ficha.userEntries[uid] : {};
-      const hasNotes = !!(mine.description || mine.notes);
-      const preview = mine.description
-        ? truncateText(mine.description, 72)
-        : 'Pulsa para abrir ficha en SharePoint';
-      const photoLabel = photos.total > 0
-        ? 'Krum:' + countUserPhotos(ficha.userEntries.krum || {})
-          + ' · Óscar:' + countUserPhotos(ficha.userEntries.oscar || {})
-        : '';
-
-      return `
-        <article class="company-card icex-company-card" data-company-id="${escapeHtml(company.id)}" role="button" tabindex="0" aria-label="Abrir ficha de ${escapeHtml(company.name)}">
-          <div class="company-card-header">
-            <div>
-              <span class="company-name">${escapeHtml(company.name)}</span>
-              ${company.nameZh ? `<span class="company-name-zh">${escapeHtml(company.nameZh)}</span>` : ''}
-            </div>
-            <div class="company-badges">
-              ${meetingTypeBadgeHtml(meetingType)}
-              ${photos.total > 0 ? `<span class="company-badge badge-photos">📷 ${photos.total}</span>` : ''}
-            </div>
-          </div>
-          ${buildMeetingTypePickerHtml(company.id, meetingType, 'meeting-type-picker--card')}
-          <p class="company-contact-person">👤 ${escapeHtml(company.contactPerson)} · ${escapeHtml(company.role)}</p>
-          <p class="company-card-preview ${hasNotes ? '' : 'company-card-preview--empty'}">${escapeHtml(preview)}</p>
-          <p class="company-card-meta" ${photoLabel ? '' : 'hidden'}>📷 ${escapeHtml(photoLabel)}</p>
-        </article>`;
+      return buildCompanyCardHtml(ficha, company.id, company);
     }).join('');
 
     panel.innerHTML = `
@@ -1348,8 +1510,12 @@ async function renderIcexOffices() {
   renderMeetingsSummary();
 }
 
+function trimText(s) {
+  return String(s == null ? '' : s).trim();
+}
+
 function truncateText(text, max) {
-  const t = String(text || '').trim();
+  const t = trimText(text);
   if (t.length <= max) return t;
   return t.slice(0, max - 1) + '…';
 }
@@ -1398,7 +1564,37 @@ function bindMeetingTypePickers() {
   });
 }
 
+function setModalHeaderMode(isManual) {
+  const title = document.getElementById('company-modal-title');
+  const subtitle = document.getElementById('company-modal-subtitle');
+  const fields = document.getElementById('company-modal-manual-fields');
+  const deleteBtn = document.getElementById('company-btn-delete');
+  const showDelete = isManual && !activeManualDraft;
+
+  if (title) title.hidden = isManual;
+  if (subtitle) subtitle.hidden = isManual;
+  if (fields) fields.hidden = !isManual;
+  if (deleteBtn) deleteBtn.hidden = !showDelete;
+}
+
+function updateManualSaveButtonState() {
+  const saveBtn = document.getElementById('company-btn-save');
+  if (!saveBtn) return;
+  if (!activeModalFicha || !isManualFicha(activeModalFicha)) {
+    saveBtn.disabled = false;
+    return;
+  }
+  const nameInput = document.getElementById('company-manual-name');
+  const name = nameInput ? trimText(nameInput.value) : trimText(activeModalFicha.name);
+  saveBtn.disabled = !name;
+}
+
 function refreshIcexCompanyCard(companyId) {
+  if (isManualFichaId(companyId) || isManualFicha(getCachedFicha(companyId))) {
+    renderOtrasReuniones().catch(() => undefined);
+    return;
+  }
+
   const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
   const ficha = getCachedFicha(companyId);
   const card = document.querySelector(`.icex-company-card[data-company-id="${companyId}"]`);
@@ -1465,14 +1661,38 @@ function getFormStateFromModal() {
   if (notes) entry.notes = notes.value;
   activeModalFicha.userEntries[uid] = entry;
 
-  return {
-    meta: companyMetaFromSeed(activeCompanyId),
+  const formState = {
+    meta: metaFromFicha(activeModalFicha, activeCompanyId),
     meetingType: meetingType || '',
     myDescription: entry.description,
     myContacts: entry.contacts,
     myNotes: entry.notes,
     myPhotos: entry.photos.slice()
   };
+
+  if (isManualFicha(activeModalFicha)) {
+    const nameInput = document.getElementById('company-manual-name');
+    const nameZhInput = document.getElementById('company-manual-name-zh');
+    const contactInput = document.getElementById('company-manual-contact');
+    const roleInput = document.getElementById('company-manual-role');
+    formState.name = nameInput ? trimText(nameInput.value) : '';
+    formState.nameZh = nameZhInput ? trimText(nameZhInput.value) : '';
+    formState.contactPerson = contactInput ? trimText(contactInput.value) : '';
+    formState.role = roleInput ? trimText(roleInput.value) : '';
+    formState.isManual = true;
+    formState.icexOffice = '';
+    formState.meta = {
+      companyId: activeCompanyId,
+      name: formState.name,
+      nameZh: formState.nameZh,
+      contactPerson: formState.contactPerson,
+      role: formState.role,
+      icexOffice: '',
+      isManual: true
+    };
+  }
+
+  return formState;
 }
 
 function fillCompanyModalFromFicha(ficha) {
@@ -1481,6 +1701,20 @@ function fillCompanyModalFromFicha(ficha) {
   const mine = ficha.userEntries[uid] || emptyUserEntry();
   const other = ficha.userEntries[otherId] || emptyUserEntry();
   const otherName = userIdToDisplayName(otherId);
+  const manual = isManualFicha(ficha);
+
+  setModalHeaderMode(manual);
+
+  const nameInput = document.getElementById('company-manual-name');
+  const nameZhInput = document.getElementById('company-manual-name-zh');
+  const contactInput = document.getElementById('company-manual-contact');
+  const roleInput = document.getElementById('company-manual-role');
+  if (manual) {
+    if (nameInput) nameInput.value = ficha.name || '';
+    if (nameZhInput) nameZhInput.value = ficha.nameZh || '';
+    if (contactInput) contactInput.value = ficha.contactPerson || '';
+    if (roleInput) roleInput.value = ficha.role || '';
+  }
 
   const desc = document.getElementById('company-field-desc');
   const contacts = document.getElementById('company-field-contacts');
@@ -1492,7 +1726,7 @@ function fillCompanyModalFromFicha(ficha) {
 
   if (desc) desc.value = mine.description || '';
   let contactsVal = mine.contacts || '';
-  if (!contactsVal && activeCompanyId) {
+  if (!contactsVal && activeCompanyId && !manual) {
     const seed = ICEX_COMPANY_MAP.get(activeCompanyId);
     if (seed) contactsVal = seed.contactPerson + ' — ' + seed.role;
   }
@@ -1508,6 +1742,7 @@ function fillCompanyModalFromFicha(ficha) {
     normalizeMeetingType(ficha.meetingType)
   );
   renderCompanyPhotoGrid(ficha);
+  updateManualSaveButtonState();
 }
 
 function renderCompanyPhotoGrid(ficha) {
@@ -1587,29 +1822,43 @@ function renderCompanyPhotoGrid(ficha) {
 async function saveCompanyModal() {
   if (!activeCompanyId || !activeModalFicha) return;
   const saveBtn = document.getElementById('company-btn-save');
+  const formState = getFormStateFromModal();
+
+  if (isManualFicha(activeModalFicha) && !trimText(formState.name)) {
+    setCompanySaveStatus('El nombre de la empresa es obligatorio', true);
+    return;
+  }
+
   if (saveBtn) saveBtn.disabled = true;
   setCompanySaveStatus('Guardando…');
 
-  const formState = getFormStateFromModal();
   try {
     const merged = await saveFichaAtomic(activeCompanyId, formState);
     activeModalFicha = merged;
+    activeManualDraft = false;
     setCachedFicha(activeCompanyId, merged);
     setCompanySaveStatus('Guardado');
-    refreshIcexCompanyCard(activeCompanyId);
+    refreshAfterFichaChange(activeCompanyId);
     renderMeetingsSummary();
+    setModalHeaderMode(true);
     setTimeout(() => closeCompanyModal(false), 1000);
   } catch (err) {
     console.warn(err);
     setCompanySaveStatus(connectionErrorMessage(), true);
+    updateManualSaveButtonState();
   } finally {
-    if (saveBtn) saveBtn.disabled = false;
+    if (saveBtn && !isManualFicha(activeModalFicha)) saveBtn.disabled = false;
+    else updateManualSaveButtonState();
   }
 }
 
-async function openCompanyModal(companyId) {
+async function openCompanyModal(companyId, options) {
+  options = options || {};
   const seed = ICEX_COMPANY_MAP.get(companyId);
-  if (!seed) return;
+  const isDraft = !!options.draft;
+  const isManual = isDraft || isManualFichaId(companyId) || (options.ficha && isManualFicha(options.ficha));
+
+  if (!seed && !isManual) return;
 
   const modal = document.getElementById('company-modal');
   if (!modal) return;
@@ -1617,30 +1866,44 @@ async function openCompanyModal(companyId) {
   activeCompanyId = companyId;
   activeModalFicha = null;
   activePhotoSlot = null;
+  activeManualDraft = isDraft;
 
   const title = document.getElementById('company-modal-title');
   const subtitle = document.getElementById('company-modal-subtitle');
-  if (title) title.textContent = seed.name;
-  if (subtitle) {
-    subtitle.textContent = (seed.nameZh ? seed.nameZh + ' · ' : '') + seed.contactPerson;
+
+  setModalHeaderMode(isManual);
+
+  if (!isManual && seed) {
+    if (title) title.textContent = seed.name;
+    if (subtitle) {
+      subtitle.textContent = (seed.nameZh ? seed.nameZh + ' · ' : '') + seed.contactPerson;
+    }
   }
 
   setCompanySaveStatus('');
-  setCompanyModalLoading(true);
   modal.hidden = false;
   modal.setAttribute('aria-hidden', 'false');
   document.body.classList.add('company-modal-open');
 
   if (!companyModalBound) initCompanyModalControls();
 
+  if (isDraft && options.ficha) {
+    activeModalFicha = options.ficha;
+    setCompanyModalLoading(false);
+    fillCompanyModalFromFicha(activeModalFicha);
+    return;
+  }
+
+  setCompanyModalLoading(true);
+
   try {
     const raw = await getRemoteFicha(companyId);
-    activeModalFicha = normalizeRemoteFicha(raw, companyId, companyMetaFromSeed(companyId));
+    activeModalFicha = normalizeRemoteFicha(raw, companyId, metaFromFicha(raw, companyId));
     setCachedFicha(companyId, activeModalFicha);
     fillCompanyModalFromFicha(activeModalFicha);
   } catch (err) {
     console.warn(err);
-    activeModalFicha = normalizeRemoteFicha(null, companyId, companyMetaFromSeed(companyId));
+    activeModalFicha = normalizeRemoteFicha(null, companyId, metaFromFicha(null, companyId));
     fillCompanyModalFromFicha(activeModalFicha);
     setCompanySaveStatus(connectionErrorMessage(), true);
   } finally {
@@ -1648,9 +1911,34 @@ async function openCompanyModal(companyId) {
   }
 }
 
-function closeCompanyModal(confirmDiscard) {
+async function deleteActiveManualFicha() {
+  if (!activeCompanyId || !activeModalFicha || !isManualFicha(activeModalFicha)) return;
+
+  const ok = window.confirm(
+    '¿Eliminar esta ficha?\n\nEsta acción no se puede deshacer.'
+  );
+  if (!ok) return;
+
+  const id = activeCompanyId;
+  try {
+    await deleteRemoteFicha(id);
+    remoteFichaMap.delete(id);
+    closeCompanyModal(false);
+    await renderOtrasReuniones();
+  } catch (err) {
+    console.warn(err);
+    setCompanySaveStatus('No se ha podido eliminar. Reintenta cuando tengas conexión.', true);
+  }
+}
+
+function closeCompanyModal() {
   const modal = document.getElementById('company-modal');
   if (!modal) return;
+
+  if (activeManualDraft) {
+    activeManualDraft = false;
+  }
+
   activeCompanyId = null;
   activePhotoSlot = null;
   activeModalFicha = null;
@@ -1658,6 +1946,7 @@ function closeCompanyModal(confirmDiscard) {
   modal.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('company-modal-open');
   setCompanyModalLoading(false);
+  setModalHeaderMode(false);
 }
 
 function initCompanyModalControls() {
@@ -1672,6 +1961,14 @@ function initCompanyModalControls() {
   if (closeBtn) closeBtn.addEventListener('click', () => closeCompanyModal());
   if (backdrop) backdrop.addEventListener('click', () => closeCompanyModal());
   if (saveBtn) saveBtn.addEventListener('click', () => saveCompanyModal());
+
+  const deleteBtn = document.getElementById('company-btn-delete');
+  if (deleteBtn) deleteBtn.addEventListener('click', () => deleteActiveManualFicha());
+
+  ['company-manual-name', 'company-manual-name-zh', 'company-manual-contact', 'company-manual-role'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateManualSaveButtonState);
+  });
 
   const modalPicker = document.getElementById('company-meeting-type-picker');
   if (modalPicker) {
@@ -1690,6 +1987,7 @@ function initCompanyModalControls() {
           document.querySelectorAll(`.meeting-type-picker[data-company-id="${activeCompanyId}"]`)
             .forEach(p => syncMeetingTypePickerButtons(p, next));
           if (activeModalFicha) activeModalFicha.meetingType = next || null;
+          refreshAfterFichaChange(activeCompanyId);
         } catch (_) { /* error mostrado */ }
       });
     });
@@ -1886,7 +2184,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '24');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '25');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
@@ -1924,6 +2222,7 @@ function startApp() {
   initNavigation();
   initBrochureControls();
   initDevPanel();
+  initOtrasReuniones();
   if (typeof window.initResumenGenerator === 'function') {
     window.initResumenGenerator();
   }

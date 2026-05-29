@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '24';
+      window.__APP_BUILD__ = '25';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -72,6 +72,10 @@
       <button type="button" class="top-nav-item" data-view="eventos">
         <span class="top-nav-icon">📅</span>
         <span class="top-nav-label">Eventos</span>
+      </button>
+      <button type="button" class="top-nav-item top-nav-item--otras" data-view="otras">
+        <span class="top-nav-icon">⊕</span>
+        <span class="top-nav-label">Otras Reuniones</span>
       </button>
       <button type="button" class="top-nav-item" data-view="contactos">
         <span class="top-nav-icon">👥</span>
@@ -158,6 +162,13 @@
         </section>
       </section>
 
+      <section class="view view--otras" id="view-otras">
+        <h2 class="section-heading"><span class="section-emoji">⊕</span> Otras Reuniones</h2>
+        <p class="section-lead">Empresas encontradas sobre la marcha · no están en la lista ICEX</p>
+        <div id="otras-reuniones-root" class="otras-reuniones-root"></div>
+        <button type="button" class="otras-fab" id="btn-otras-add" aria-label="Añadir otra reunión">+</button>
+      </section>
+
       <section class="view" id="view-contactos">
         <h2 class="section-heading"><span class="section-emoji">👥</span> Contactos</h2>
         <p class="section-lead">Listado v5 · 25 mayo 2026 · ICEX, CCPIT, Navarra, consultora</p>
@@ -214,9 +225,19 @@
     <div class="company-modal-backdrop" id="company-modal-backdrop"></div>
     <div class="company-modal-sheet" role="dialog" aria-modal="true" aria-labelledby="company-modal-title">
       <header class="company-modal-header">
-        <div>
+        <div class="company-modal-header-main">
           <h3 class="company-modal-title" id="company-modal-title">Empresa</h3>
           <p class="company-modal-subtitle" id="company-modal-subtitle"></p>
+          <div id="company-modal-manual-fields" class="company-modal-manual-fields" hidden>
+            <label class="field-label" for="company-manual-name">Nombre de la empresa</label>
+            <input type="text" id="company-manual-name" class="field-input" placeholder="Ej: Shanghai Auto Parts" autocomplete="off" />
+            <label class="field-label" for="company-manual-name-zh">Nombre en chino (opcional)</label>
+            <input type="text" id="company-manual-name-zh" class="field-input" placeholder="上海…" autocomplete="off" />
+            <label class="field-label" for="company-manual-contact">Persona de contacto</label>
+            <input type="text" id="company-manual-contact" class="field-input" placeholder="Ej: Wang Li" autocomplete="off" />
+            <label class="field-label" for="company-manual-role">Rol</label>
+            <input type="text" id="company-manual-role" class="field-input" placeholder="Ej: Director comercial" autocomplete="off" />
+          </div>
         </div>
         <button type="button" class="company-modal-close" id="company-modal-close" aria-label="Cerrar ficha">✕</button>
       </header>
@@ -265,6 +286,7 @@
         </div>
       </div>
       <footer class="company-modal-footer">
+        <button type="button" class="btn-company-delete" id="company-btn-delete" hidden>Eliminar esta ficha</button>
         <span class="save-status" id="company-save-status" aria-live="polite"></span>
         <button type="button" class="btn-company-save" id="company-btn-save">Guardar</button>
       </footer>
@@ -369,7 +391,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '24';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '25';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;

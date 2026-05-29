@@ -43,6 +43,7 @@ function defaultRemoteFicha(companyId, meta) {
     role: meta.role || '',
     icexOffice: meta.icexOffice || meta.officeLabel || '',
     meetingType: null,
+    isManual: !!meta.isManual,
     userEntries: {
       krum: emptyUserEntry(),
       oscar: emptyUserEntry()
@@ -60,8 +61,9 @@ function normalizeRemoteFicha(raw, companyId, meta) {
     nameZh: raw.nameZh || base.nameZh,
     contactPerson: raw.contactPerson || base.contactPerson,
     role: raw.role || base.role,
-    icexOffice: raw.icexOffice || base.icexOffice,
+    icexOffice: raw.icexOffice != null ? raw.icexOffice : base.icexOffice,
     meetingType: raw.meetingType != null ? normalizeMeetingTypeValue(raw.meetingType) : null,
+    isManual: raw.isManual === true || String(companyId).indexOf('otras-') === 0,
     userEntries: {
       krum: emptyUserEntry(),
       oscar: emptyUserEntry()
@@ -129,6 +131,15 @@ async function putRemoteFicha(empresaId, ficha) {
   }
 }
 
+async function deleteRemoteFicha(empresaId) {
+  const res = await graphFetch(fichaContentPath(empresaId), { method: 'DELETE' });
+  if (res.status === 404) return;
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error('No se pudo eliminar la ficha (HTTP ' + res.status + ')' + (text ? ': ' + text.slice(0, 80) : ''));
+  }
+}
+
 async function listRemoteFichaIds() {
   const res = await graphFetch(fichaFolderPath());
   if (res.status === 404) return [];
@@ -167,6 +178,13 @@ function mergeFichaForSave(remote, formState, currentUser) {
     }
     entry.updatedAt = new Date().toISOString();
   }
+
+  if (formState.name !== undefined) merged.name = formState.name;
+  if (formState.nameZh !== undefined) merged.nameZh = formState.nameZh;
+  if (formState.contactPerson !== undefined) merged.contactPerson = formState.contactPerson;
+  if (formState.role !== undefined) merged.role = formState.role;
+  if (formState.isManual !== undefined) merged.isManual = !!formState.isManual;
+  if (formState.icexOffice !== undefined) merged.icexOffice = formState.icexOffice;
 
   return merged;
 }
@@ -233,6 +251,7 @@ window.normalizeRemoteFicha = normalizeRemoteFicha;
 window.getRemoteFicha = getRemoteFicha;
 window.putRemoteFicha = putRemoteFicha;
 window.listRemoteFichaIds = listRemoteFichaIds;
+window.deleteRemoteFicha = deleteRemoteFicha;
 window.mergeFichaForSave = mergeFichaForSave;
 window.saveFichaAtomic = saveFichaAtomic;
 window.migrateAllLocalFichasToSharePoint = migrateAllLocalFichasToSharePoint;
