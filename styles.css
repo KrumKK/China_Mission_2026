@@ -1710,6 +1710,125 @@ body.company-modal-open {
   overflow: hidden;
 }
 
+/* ═══ RESUMEN DEL DÍA (Word) ═════════════════════════════ */
+.resumen-dia-actions {
+  margin: 16px 0 20px;
+}
+
+.btn-resumen-dia {
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.btn-resumen-dia:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-resumen-dia:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.resumen-dia-status {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-soft);
+  line-height: 1.4;
+}
+
+.resumen-dia-status--error {
+  color: #b42318;
+  font-weight: 600;
+}
+
+.resumen-download-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 14000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.resumen-download-modal[hidden] {
+  display: none !important;
+}
+
+.resumen-download-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(45, 38, 58, 0.55);
+}
+
+.resumen-download-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 40px rgba(61, 53, 80, 0.25);
+  padding: 22px;
+}
+
+.resumen-download-title {
+  font-size: 18px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.resumen-download-text {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-soft);
+  margin-bottom: 18px;
+}
+
+.resumen-download-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-resumen-download-yes {
+  padding: 12px 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-resumen-download-no {
+  padding: 12px 14px;
+  border: 2px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+body.resumen-modal-open {
+  overflow: hidden;
+}
+
 /* ═══ RESUMEN REUNIONES ══════════════════════════════════ */
 .summary-hero {
   text-align: center;
