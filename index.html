@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '21';
+      window.__APP_BUILD__ = '22';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -142,36 +142,13 @@
         <p class="section-lead">B2B y visitas marcadas en las fichas ICEX</p>
         <div id="meetings-summary-root"></div>
 
-        <section class="backup-section" id="backup-section" aria-labelledby="backup-heading">
-          <h2 class="section-heading" id="backup-heading"><span class="section-emoji">💾</span> Copias de seguridad</h2>
-          <p class="section-lead">Exporta todo lo que guardes en las fichas ICEX (textos y fotos). Guárdalo en OneDrive, email o iCloud.</p>
-
-          <div class="alert-box alert-box--warn backup-warn">
-            <span class="alert-icon">⚠️</span>
-            <p>Los datos viven <strong>solo en este dispositivo</strong>. Si borras datos del navegador, cambias de móvil o desinstalas la app, se pierde todo salvo que hayas descargado una copia.</p>
-          </div>
-
-          <p class="backup-status" id="backup-status" aria-live="polite"></p>
-          <p class="backup-last" id="backup-last-info"></p>
-
-          <button type="button" class="btn-backup btn-backup--primary" id="btn-export-backup">
-            ⬇ Descargar copia completa
+        <section class="dev-panel" id="dev-panel" hidden aria-labelledby="dev-panel-heading">
+          <h2 class="section-heading" id="dev-panel-heading"><span class="section-emoji">🛠</span> Desarrollador</h2>
+          <p class="section-lead">Migración única de fichas antiguas (IndexedDB) a SharePoint.</p>
+          <button type="button" class="btn-dev-migrate" id="btn-migrate-local">
+            Migrar fichas locales a SharePoint
           </button>
-          <button type="button" class="btn-backup btn-backup--secondary" id="btn-share-backup" hidden>
-            ↗ Compartir copia (guardar en la nube)
-          </button>
-          <button type="button" class="btn-backup btn-backup--outline" id="btn-export-text-backup">
-            ⬇ Copia solo textos (ligera)
-          </button>
-          <button type="button" class="btn-backup btn-backup--outline" id="btn-import-backup">
-            ⬆ Restaurar desde copia
-          </button>
-          <input type="file" id="backup-file-input" accept=".json,application/json" hidden />
-
-          <div class="info-box backup-tips">
-            <span class="info-box-icon">ℹ</span>
-            <p><strong>Rutina recomendada:</strong> al final de cada jornada, descarga la copia completa y súbela a OneDrive (carpeta del viaje). En <strong>iPhone</strong>, si no se descarga sola, usa «Compartir copia» o guarda desde Archivos. Haz lo mismo antes de «Actualizar aplicación».</p>
-          </div>
+          <p class="dev-migrate-status" id="dev-migrate-status" aria-live="polite"></p>
         </section>
       </section>
 
@@ -237,37 +214,53 @@
         </div>
         <button type="button" class="company-modal-close" id="company-modal-close" aria-label="Cerrar ficha">✕</button>
       </header>
-      <div class="company-modal-body">
+      <div class="company-modal-loading" id="company-modal-loading" hidden>
+        <p class="company-modal-loading-text">Cargando…</p>
+      </div>
+      <div class="company-modal-body" id="company-modal-form">
         <span class="field-label">Tipo de reunión</span>
         <div class="meeting-type-picker meeting-type-picker--modal" id="company-meeting-type-picker" role="group" aria-label="Tipo de reunión">
           <button type="button" class="meeting-type-btn" data-type="b2b">🤝 B2B</button>
           <button type="button" class="meeting-type-btn" data-type="visita">🏭 Visita</button>
         </div>
 
-        <label class="field-label" for="company-field-desc">Descripción de la empresa</label>
-        <textarea id="company-field-desc" class="field-textarea" rows="4" placeholder="Sector, productos, capacidad, interés para Lizarte…"></textarea>
-        <p class="field-meta" id="company-field-desc-by">Sin edición</p>
+        <section class="ficha-section ficha-section--mine" aria-labelledby="company-mine-heading">
+          <h4 class="ficha-section-title" id="company-mine-heading">Mis notas</h4>
+          <label class="field-label" for="company-field-desc">Descripción de la empresa</label>
+          <textarea id="company-field-desc" class="field-textarea" rows="4" placeholder="Sector, productos, capacidad, interés para Lizarte…"></textarea>
 
-        <label class="field-label" for="company-field-contacts">Personas de contacto</label>
-        <textarea id="company-field-contacts" class="field-textarea" rows="3" placeholder="Nombre, cargo, teléfono, email, idioma…"></textarea>
-        <p class="field-meta" id="company-field-contacts-by">Sin edición</p>
+          <label class="field-label" for="company-field-contacts">Personas de contacto</label>
+          <textarea id="company-field-contacts" class="field-textarea" rows="3" placeholder="Nombre, cargo, teléfono, email, idioma…"></textarea>
 
-        <label class="field-label" for="company-field-notes">Notas</label>
-        <textarea id="company-field-notes" class="field-textarea" rows="4" placeholder="Espacio libre para la reunión…"></textarea>
-        <p class="field-meta" id="company-field-notes-by">Sin edición</p>
+          <label class="field-label" for="company-field-notes">Notas</label>
+          <textarea id="company-field-notes" class="field-textarea" rows="4" placeholder="Espacio libre para la reunión…"></textarea>
+        </section>
+
+        <section class="ficha-section ficha-section--other" aria-labelledby="company-other-section-title">
+          <h4 class="ficha-section-title" id="company-other-section-title">Notas del otro usuario</h4>
+          <label class="field-label" for="company-field-other-desc">Descripción</label>
+          <textarea id="company-field-other-desc" class="field-textarea field-textarea--readonly" rows="3" readonly tabindex="-1"></textarea>
+
+          <label class="field-label" for="company-field-other-contacts">Contactos</label>
+          <textarea id="company-field-other-contacts" class="field-textarea field-textarea--readonly" rows="2" readonly tabindex="-1"></textarea>
+
+          <label class="field-label" for="company-field-other-notes">Notas</label>
+          <textarea id="company-field-other-notes" class="field-textarea field-textarea--readonly" rows="3" readonly tabindex="-1"></textarea>
+        </section>
 
         <div class="photo-section">
           <div class="photo-section-head">
             <span class="field-label">Fotos</span>
             <span class="photo-counter" id="company-photo-counter">0 / 5</span>
           </div>
-          <p class="photo-hint">Hasta 5 fotos por empresa · se guardan solo en este dispositivo</p>
+          <p class="photo-hint">Hasta 5 fotos por usuario · se guardan en SharePoint al pulsar Guardar</p>
           <div class="photo-grid" id="company-photo-grid"></div>
           <input type="file" id="company-photo-input" accept="image/*" capture="environment" hidden />
         </div>
       </div>
       <footer class="company-modal-footer">
         <span class="save-status" id="company-save-status" aria-live="polite"></span>
+        <button type="button" class="btn-company-save" id="company-btn-save">Guardar</button>
       </footer>
     </div>
   </div>
@@ -315,9 +308,8 @@
 
       function confirmRefreshWithBackup() {
         return window.confirm(
-          'RECOMENDABLE: copia de seguridad antes de actualizar\n\n'
-          + 'Ve a Resumen → «Descargar copia completa» y guarda el archivo en OneDrive o email.\n\n'
-          + '¿Ya has hecho la copia y quieres actualizar la aplicación ahora?'
+          '¿Actualizar la aplicación ahora?\n\n'
+          + 'Se descargará la última versión. Tus fichas en SharePoint no se borran.'
         );
       }
 
@@ -355,7 +347,7 @@
 
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '21';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '22';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
@@ -365,7 +357,7 @@
         s.onerror = function () { loadNext(files, i + 1); };
         document.body.appendChild(s);
       }
-      loadNext(['config.js', 'graph-sync.js', 'app.js'], 0);
+      loadNext(['config.js', 'graph-sync.js', 'ficha-sharepoint.js', 'app.js'], 0);
     })();
   </script>
 </body>

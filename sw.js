@@ -1,7 +1,7 @@
 /* Misión China 2026 — Service Worker (red primero en la app) */
 'use strict';
 
-const CACHE_VERSION = 'v21';
+const CACHE_VERSION = 'v22';
 const CACHE_NAME = 'mision-china-' + CACHE_VERSION;
 
 /** Solo recursos estáticos ligeros; la app va siempre a red primero. */
@@ -27,6 +27,7 @@ function isAppResource(pathname) {
     pathname.endsWith('/app.js') ||
     pathname.endsWith('/config.js') ||
     pathname.endsWith('/graph-sync.js') ||
+    pathname.endsWith('/ficha-sharepoint.js') ||
     pathname.endsWith('/styles.css') ||
     pathname.endsWith('/sw.js')
   );

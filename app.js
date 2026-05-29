@@ -251,7 +251,7 @@ const EVENT_AGENDA = {
 /* ──────────────────────────────────────────────
    DATA — Oficinas ICEX y empresas (fichas editables)
 ────────────────────────────────────────────── */
-const PHOTOS_PER_COMPANY = 5;
+const PHOTOS_PER_USER = 5;
 
 const ICEX_OFFICES = [
   {
@@ -344,14 +344,13 @@ function syncMeetingTypePickerButtons(pickerEl, activeType) {
 }
 
 async function loadAllIcexRecords() {
+  await loadAllRemoteFichas();
   const companies = ICEX_OFFICES.flatMap(o => o.companies);
-  const records = await Promise.all(companies.map(c => loadCompanyRecord(c.id)));
-  return companies.map((company, i) => {
+  return companies.map(company => {
     const seed = ICEX_COMPANY_MAP.get(company.id);
-    const office = seed
-      ? ICEX_OFFICES.find(o => o.id === seed.officeId)
-      : null;
-    return { company, record: records[i], office };
+    const office = seed ? ICEX_OFFICES.find(o => o.id === seed.officeId) : null;
+    const ficha = getCachedFicha(company.id);
+    return { company, ficha, office };
   });
 }
 
@@ -368,12 +367,12 @@ function aggregateMeetings(entries) {
   }));
   const officeIndex = new Map(byOffice.map((o, i) => [o.office.id, i]));
 
-  entries.forEach(({ company, record, office }) => {
-    const type = normalizeMeetingType(record.meetingType);
+  entries.forEach(({ company, ficha, office }) => {
+    const type = normalizeMeetingType(ficha.meetingType);
     const seed = ICEX_COMPANY_MAP.get(company.id);
     const officeId = seed ? seed.officeId : office && office.id;
     const bucket = officeIndex.has(officeId) ? byOffice[officeIndex.get(officeId)] : null;
-    const item = { company, record, type, office };
+    const item = { company, ficha, type, office };
 
     if (type === 'b2b') b2b += 1;
     else if (type === 'visita') visita += 1;
@@ -398,21 +397,22 @@ function aggregateMeetings(entries) {
 }
 
 /* ──────────────────────────────────────────────
-   STORAGE — fichas y fotos (IndexedDB, solo en dispositivo)
+   FICHAS ICEX — SharePoint (caché en memoria de sesión)
 ────────────────────────────────────────────── */
-const COMPANY_DB_NAME = 'mision-china-companies-v1';
-const COMPANY_DB_VERSION = 1;
-const COMPANY_STORE = 'records';
-
-let companyDbPromise = null;
-const companyRecordCache = new Map();
-const companyObjectUrls = new Map();
+let remoteFichaMap = new Map();
+let remoteFichaMapLoaded = false;
 
 let activeCompanyId = null;
 let activePhotoSlot = null;
-let companySaveTimer = null;
+let activeModalFicha = null;
 let companyModalBound = false;
 let activeUserName = '';
+
+/* IndexedDB — solo migración dev */
+const COMPANY_DB_NAME = 'mision-china-companies-v1';
+const COMPANY_DB_VERSION = 1;
+const COMPANY_STORE = 'records';
+let companyDbPromise = null;
 
 function userIdToDisplayName(userId) {
   if (userId === 'krum') return 'Krum';
@@ -434,17 +434,74 @@ function setActiveUser(userIdOrName) {
 
 window.setActiveUser = setActiveUser;
 
-function labelEditor(name) {
-  return name ? 'Última edición: ' + name : 'Sin edición';
+function connectionErrorMessage() {
+  return 'Sin conexión, reintenta cuando tengas VPN';
 }
 
-function countPhotosByUser(record) {
-  const map = new Map();
-  (record.photos || []).forEach(p => {
-    if (!p || !p.blob || !p.addedBy) return;
-    map.set(p.addedBy, (map.get(p.addedBy) || 0) + 1);
-  });
-  return map;
+function companyMetaFromSeed(companyId) {
+  const seed = ICEX_COMPANY_MAP.get(companyId);
+  if (!seed) return { companyId };
+  return {
+    companyId,
+    name: seed.name,
+    nameZh: seed.nameZh,
+    contactPerson: seed.contactPerson,
+    role: seed.role,
+    icexOffice: seed.officeLabel
+  };
+}
+
+function otherUserId(currentUser) {
+  return currentUser === 'krum' ? 'oscar' : 'krum';
+}
+
+function countUserPhotos(entry) {
+  if (!entry || !Array.isArray(entry.photos)) return 0;
+  return entry.photos.filter(p => p && p.dataBase64).length;
+}
+
+function countPhotosInFicha(ficha) {
+  const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
+  if (!ficha || !ficha.userEntries) return { mine: 0, other: 0, total: 0 };
+  const mine = countUserPhotos(ficha.userEntries[uid] || {});
+  const otherId = otherUserId(uid);
+  const other = countUserPhotos(ficha.userEntries[otherId] || {});
+  return { mine, other, total: mine + other };
+}
+
+function photoDataUrl(photo) {
+  if (!photo || !photo.dataBase64) return '';
+  return 'data:' + (photo.mime || 'image/jpeg') + ';base64,' + photo.dataBase64;
+}
+
+async function loadAllRemoteFichas(force) {
+  if (remoteFichaMapLoaded && !force) return remoteFichaMap;
+  const companies = ICEX_OFFICES.flatMap(o => o.companies);
+  const results = await Promise.all(
+    companies.map(async c => {
+      try {
+        const raw = await getRemoteFicha(c.id);
+        const ficha = normalizeRemoteFicha(raw, c.id, companyMetaFromSeed(c.id));
+        return [c.id, ficha];
+      } catch (err) {
+        console.warn('Ficha', c.id, err);
+        return [c.id, normalizeRemoteFicha(null, c.id, companyMetaFromSeed(c.id))];
+      }
+    })
+  );
+  remoteFichaMap = new Map(results);
+  remoteFichaMapLoaded = true;
+  return remoteFichaMap;
+}
+
+function getCachedFicha(companyId) {
+  if (remoteFichaMap.has(companyId)) return remoteFichaMap.get(companyId);
+  return normalizeRemoteFicha(null, companyId, companyMetaFromSeed(companyId));
+}
+
+function setCachedFicha(companyId, ficha) {
+  remoteFichaMap.set(companyId, ficha);
+  remoteFichaMapLoaded = true;
 }
 
 function openCompanyDatabase() {
@@ -467,196 +524,64 @@ function openCompanyDatabase() {
   return companyDbPromise;
 }
 
-function emptyPhotoSlots() {
-  return Array.from({ length: PHOTOS_PER_COMPANY }, () => null);
-}
-
-function defaultCompanyRecord(companyId) {
-  const seed = ICEX_COMPANY_MAP.get(companyId);
-  const contactsSeed = seed
-    ? `${seed.contactPerson} — ${seed.role}`
-    : '';
-  return {
-    companyId,
-    meetingType: '',
-    description: '',
-    descriptionBy: '',
-    contacts: contactsSeed,
-    contactsBy: '',
-    notes: '',
-    notesBy: '',
-    lastEditedBy: '',
-    photos: emptyPhotoSlots(),
-    updatedAt: Date.now()
-  };
-}
-
-function normalizeCompanyRecord(raw, companyId) {
-  const base = defaultCompanyRecord(companyId);
-  if (!raw || typeof raw !== 'object') return base;
-  const photos = emptyPhotoSlots();
+function normalizeLegacyIndexedDbRecord(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const photos = [];
   if (Array.isArray(raw.photos)) {
-    raw.photos.slice(0, PHOTOS_PER_COMPANY).forEach((p, i) => {
+    raw.photos.forEach(p => {
       if (p && p.blob instanceof Blob) {
-        photos[i] = {
+        photos.push({
           blob: p.blob,
           name: typeof p.name === 'string' ? p.name : 'foto.jpg',
           addedAt: p.addedAt || null,
           addedBy: typeof p.addedBy === 'string' ? p.addedBy : ''
-        };
+        });
       }
     });
   }
   return {
-    companyId,
-    meetingType: normalizeMeetingType(raw.meetingType),
-    description: typeof raw.description === 'string' ? raw.description : base.description,
-    descriptionBy: typeof raw.descriptionBy === 'string' ? raw.descriptionBy : base.descriptionBy,
-    contacts: typeof raw.contacts === 'string' ? raw.contacts : base.contacts,
-    contactsBy: typeof raw.contactsBy === 'string' ? raw.contactsBy : base.contactsBy,
-    notes: typeof raw.notes === 'string' ? raw.notes : base.notes,
-    notesBy: typeof raw.notesBy === 'string' ? raw.notesBy : base.notesBy,
-    lastEditedBy: typeof raw.lastEditedBy === 'string' ? raw.lastEditedBy : base.lastEditedBy,
-    photos,
-    updatedAt: raw.updatedAt || Date.now()
+    companyId: raw.companyId,
+    meetingType: raw.meetingType || '',
+    description: typeof raw.description === 'string' ? raw.description : '',
+    contacts: typeof raw.contacts === 'string' ? raw.contacts : '',
+    notes: typeof raw.notes === 'string' ? raw.notes : '',
+    photos
   };
-}
-
-async function setCompanyMeetingType(companyId, meetingType) {
-  const record = await loadCompanyRecord(companyId);
-  record.meetingType = normalizeMeetingType(meetingType);
-  if (activeUserName) record.lastEditedBy = activeUserName;
-  await saveCompanyRecord(record);
-  refreshIcexCompanyCard(companyId);
-  renderMeetingsSummary();
-  return record;
-}
-
-async function loadCompanyRecord(companyId) {
-  if (companyRecordCache.has(companyId)) {
-    return companyRecordCache.get(companyId);
-  }
-  try {
-    const db = await openCompanyDatabase();
-    const record = await new Promise((resolve, reject) => {
-      const tx = db.transaction(COMPANY_STORE, 'readonly');
-      const req = tx.objectStore(COMPANY_STORE).get(companyId);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => reject(req.error);
-    });
-    const normalized = normalizeCompanyRecord(record, companyId);
-    companyRecordCache.set(companyId, normalized);
-    return normalized;
-  } catch (err) {
-    console.warn('No se pudo cargar ficha:', err);
-    const fallback = defaultCompanyRecord(companyId);
-    companyRecordCache.set(companyId, fallback);
-    return fallback;
-  }
-}
-
-async function saveCompanyRecord(record) {
-  record.updatedAt = Date.now();
-  companyRecordCache.set(record.companyId, record);
-  try {
-    const db = await openCompanyDatabase();
-    await new Promise((resolve, reject) => {
-      const tx = db.transaction(COMPANY_STORE, 'readwrite');
-      tx.objectStore(COMPANY_STORE).put(record);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-    return true;
-  } catch (err) {
-    console.warn('No se pudo guardar ficha:', err);
-    return false;
-  }
 }
 
 async function getAllRecordsFromDatabase() {
   const db = await openCompanyDatabase();
-  return new Promise((resolve, reject) => {
+  const rows = await new Promise((resolve, reject) => {
     const tx = db.transaction(COMPANY_STORE, 'readonly');
     const req = tx.objectStore(COMPANY_STORE).getAll();
     req.onsuccess = () => resolve(req.result || []);
     req.onerror = () => reject(req.error);
   });
+  return rows.map(normalizeLegacyIndexedDbRecord).filter(Boolean);
 }
 
-function clearCompanyRecordCache() {
-  companyRecordCache.clear();
-  companyObjectUrls.forEach(url => URL.revokeObjectURL(url));
-  companyObjectUrls.clear();
-}
-
-/* ──────────────────────────────────────────────
-   BACKUP — exportar / importar fichas y fotos
-────────────────────────────────────────────── */
-const BACKUP_FORMAT = 'mision-china-backup';
-const BACKUP_VERSION = 1;
-const BACKUP_META_KEY = 'mision-china-last-backup';
-
-function formatBackupFileDate(date) {
-  const d = date || new Date();
-  const pad = n => String(n).padStart(2, '0');
-  return (
-    d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
-    + '_' + pad(d.getHours()) + '-' + pad(d.getMinutes())
-  );
-}
-
-function setBackupStatus(text, isError) {
-  const el = document.getElementById('backup-status');
-  if (!el) return;
-  el.textContent = text || '';
-  el.classList.toggle('backup-status--error', !!isError);
-}
-
-function updateBackupLastInfo(meta) {
-  const el = document.getElementById('backup-last-info');
-  if (!el) return;
-  if (!meta || !meta.at) {
-    el.textContent = 'Aún no hay copia registrada desde este dispositivo.';
-    return;
-  }
-  const when = new Date(meta.at).toLocaleString('es-ES', {
-    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-  });
-  const size = meta.sizeMb != null ? ' · ' + meta.sizeMb + ' MB' : '';
-  const photos = meta.photoCount != null ? ' · ' + meta.photoCount + ' fotos' : '';
-  el.textContent = 'Última copia: ' + when + photos + size;
-}
-
-function readBackupMeta() {
+async function setCompanyMeetingType(companyId, meetingType) {
+  const meta = companyMetaFromSeed(companyId);
+  const next = normalizeMeetingType(meetingType);
   try {
-    const raw = localStorage.getItem(BACKUP_META_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (_) {
-    return null;
+    const merged = await saveFichaAtomic(companyId, {
+      meta,
+      meetingType: next || ''
+    });
+    setCachedFicha(companyId, merged);
+    refreshIcexCompanyCard(companyId);
+    renderMeetingsSummary();
+    return merged;
+  } catch (err) {
+    console.warn(err);
+    setCompanySaveStatus(connectionErrorMessage(), true);
+    throw err;
   }
-}
-
-function writeBackupMeta(meta) {
-  try {
-    localStorage.setItem(BACKUP_META_KEY, JSON.stringify(meta));
-  } catch (_) { /* ignore */ }
-  updateBackupLastInfo(meta);
-}
-
-function isIOSDevice() {
-  return (
-    /iPhone|iPad|iPod/i.test(navigator.userAgent)
-    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-  );
-}
-
-function prefersMobileBackupDelivery() {
-  return isIOSDevice() || window.matchMedia('(pointer: coarse)').matches;
 }
 
 async function ensureReadableBlob(blob) {
   if (!(blob instanceof Blob)) {
-    throw new Error('Archivo de foto no disponible en este dispositivo');
+    throw new Error('Archivo de foto no disponible');
   }
   try {
     const buffer = await blob.arrayBuffer();
@@ -679,405 +604,7 @@ function blobToBase64(blob) {
   }));
 }
 
-function base64ToBlob(base64, mime) {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return new Blob([bytes], { type: mime || 'image/jpeg' });
-}
-
-async function serializeRecordForBackup(record, includePhotos) {
-  const photos = [];
-  for (let i = 0; i < PHOTOS_PER_COMPANY; i++) {
-    const p = record.photos[i];
-    if (includePhotos && p && p.blob) {
-      photos.push({
-        name: p.name || 'foto-' + (i + 1) + '.jpg',
-        mime: p.blob.type || 'image/jpeg',
-        addedAt: p.addedAt || null,
-        addedBy: p.addedBy || '',
-        dataBase64: await blobToBase64(p.blob)
-      });
-    } else {
-      photos.push(null);
-    }
-  }
-  return {
-    companyId: record.companyId,
-    meetingType: normalizeMeetingType(record.meetingType),
-    description: record.description || '',
-    descriptionBy: record.descriptionBy || '',
-    contacts: record.contacts || '',
-    contactsBy: record.contactsBy || '',
-    notes: record.notes || '',
-    notesBy: record.notesBy || '',
-    lastEditedBy: record.lastEditedBy || '',
-    photos,
-    updatedAt: record.updatedAt || Date.now()
-  };
-}
-
-function deserializeRecordFromBackup(entry) {
-  const photos = emptyPhotoSlots();
-  if (Array.isArray(entry.photos)) {
-    entry.photos.slice(0, PHOTOS_PER_COMPANY).forEach((p, i) => {
-      if (p && p.dataBase64) {
-        photos[i] = {
-          name: p.name || 'foto.jpg',
-          addedAt: p.addedAt || Date.now(),
-          addedBy: p.addedBy || '',
-          blob: base64ToBlob(p.dataBase64, p.mime || 'image/jpeg')
-        };
-      }
-    });
-  }
-  return normalizeCompanyRecord({
-    companyId: entry.companyId,
-    meetingType: entry.meetingType,
-    description: entry.description,
-    descriptionBy: entry.descriptionBy,
-    contacts: entry.contacts,
-    contactsBy: entry.contactsBy,
-    notes: entry.notes,
-    notesBy: entry.notesBy,
-    lastEditedBy: entry.lastEditedBy,
-    photos,
-    updatedAt: entry.updatedAt
-  }, entry.companyId);
-}
-
-function countBackupPhotos(records) {
-  let n = 0;
-  records.forEach(r => {
-    (r.photos || []).forEach(p => { if (p && p.dataBase64) n += 1; });
-  });
-  return n;
-}
-
-async function collectRecordsForBackup() {
-  const stored = await getAllRecordsFromDatabase();
-  const byId = new Map(stored.map(r => [r.companyId, r]));
-  const allIds = new Set(ICEX_OFFICES.flatMap(o => o.companies.map(c => c.id)));
-  stored.forEach(r => allIds.add(r.companyId));
-
-  const records = [];
-  for (const id of allIds) {
-    const raw = byId.get(id) || defaultCompanyRecord(id);
-    records.push(normalizeCompanyRecord(raw, id));
-  }
-  return records;
-}
-
-async function buildBackupPayload(includePhotos, onProgress) {
-  const records = await collectRecordsForBackup();
-  const serialized = [];
-  let photoIndex = 0;
-  const totalPhotos = includePhotos
-    ? records.reduce((sum, r) => sum + countFilledPhotos(r), 0)
-    : 0;
-
-  for (let i = 0; i < records.length; i++) {
-    if (onProgress) onProgress('Ficha ' + (i + 1) + ' de ' + records.length + '…');
-    const entry = await serializeRecordForBackup(records[i], includePhotos);
-    serialized.push(entry);
-    if (includePhotos) {
-      photoIndex += countFilledPhotos(records[i]);
-      if (totalPhotos > 0 && onProgress) {
-        onProgress('Fotos procesadas… (' + photoIndex + '/' + totalPhotos + ')');
-      }
-    }
-  }
-
-  return {
-    format: BACKUP_FORMAT,
-    version: BACKUP_VERSION,
-    exportedAt: new Date().toISOString(),
-    appBuild: window.__APP_BUILD__ || '20',
-    includesPhotos: !!includePhotos,
-    companyCount: serialized.length,
-    photoCount: countBackupPhotos(serialized),
-    records: serialized
-  };
-}
-
-function backupPayloadToBlob(payload) {
-  return new Blob([JSON.stringify(payload)], { type: 'application/json' });
-}
-
-function backupDeliveryStatus(method, sizeMb, photoCount) {
-  if (method === 'shared') {
-    return 'Copia lista (' + sizeMb + ' MB · ' + photoCount + ' fotos). Elige «Guardar en Archivos», OneDrive o Mail.';
-  }
-  if (method === 'opened') {
-    return 'Copia abierta en otra ventana (' + sizeMb + ' MB). Pulsa ↗ Compartir → «Guardar en Archivos».';
-  }
-  return 'Copia descargada (' + sizeMb + ' MB · ' + photoCount + ' fotos). Guárdala en OneDrive o envíatela por email.';
-}
-
-async function shareBackupFile(blob, filename) {
-  if (!navigator.share) return false;
-  const file = new File([blob], filename, { type: 'application/json' });
-  const payload = { files: [file], title: 'Copia Misión China 2026' };
-  if (navigator.canShare && !navigator.canShare(payload)) return false;
-  await navigator.share(payload);
-  return true;
-}
-
-async function openBackupOnIOS(blob, filename) {
-  const deliveryBlob = new Blob([blob], { type: 'application/octet-stream' });
-  const url = URL.createObjectURL(deliveryBlob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.target = '_blank';
-  link.rel = 'noopener';
-  link.setAttribute('download', filename);
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 120000);
-  return 'opened';
-}
-
-async function deliverBackupBlob(blob, filename, options) {
-  options = options || {};
-  const deliveryBlob = prefersMobileBackupDelivery()
-    ? new Blob([blob], { type: 'application/octet-stream' })
-    : blob;
-
-  /* iPhone: no usar share tras await (pierde el gesto y falla con NotFoundError) */
-  if (isIOSDevice()) {
-    return openBackupOnIOS(blob, filename);
-  }
-
-  if (options.preferShare && navigator.share) {
-    try {
-      const shared = await shareBackupFile(deliveryBlob, filename);
-      if (shared) return 'shared';
-    } catch (err) {
-      if (err && err.name === 'AbortError') throw err;
-    }
-  }
-
-  if (prefersMobileBackupDelivery()) {
-    try {
-      const shared = await shareBackupFile(deliveryBlob, filename);
-      if (shared) return 'shared';
-    } catch (err) {
-      if (err && err.name === 'AbortError') throw err;
-    }
-    return openBackupOnIOS(blob, filename);
-  }
-
-  const url = URL.createObjectURL(deliveryBlob);
-  try {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.rel = 'noopener';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      a.remove();
-      URL.revokeObjectURL(url);
-    }, 5000);
-    return 'downloaded';
-  } catch (err) {
-    URL.revokeObjectURL(url);
-    if (deliveryBlob.size < 12 * 1024 * 1024) {
-      const dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(deliveryBlob);
-      });
-      const opened = window.open(String(dataUrl), '_blank');
-      if (opened) return 'opened';
-    }
-    throw err;
-  }
-}
-
-async function exportBackup(includePhotos, options) {
-  options = options || {};
-  const exportBtn = document.getElementById('btn-export-backup');
-  const textBtn = document.getElementById('btn-export-text-backup');
-  const shareBtn = document.getElementById('btn-share-backup');
-  [exportBtn, textBtn, shareBtn].forEach(b => { if (b) b.disabled = true; });
-
-  try {
-    setBackupStatus('Preparando copia…');
-    const payload = await buildBackupPayload(includePhotos, setBackupStatus);
-    const blob = backupPayloadToBlob(payload);
-    const sizeMb = (blob.size / (1024 * 1024)).toFixed(2);
-    const filename = 'mision-china-backup-' + formatBackupFileDate() + (includePhotos ? '' : '-solo-textos') + '.json';
-
-    let deliveryMethod = null;
-    if (options.download !== false) {
-      deliveryMethod = await deliverBackupBlob(blob, filename, {
-        preferShare: !!options.preferShare
-      });
-    }
-
-    writeBackupMeta({
-      at: Date.now(),
-      photoCount: payload.photoCount,
-      sizeMb,
-      includesPhotos: includePhotos
-    });
-
-    if (options.download !== false && deliveryMethod) {
-      setBackupStatus(backupDeliveryStatus(deliveryMethod, sizeMb, payload.photoCount));
-    }
-    return { blob, filename, payload, sizeMb, deliveryMethod };
-  } catch (err) {
-    console.error(err);
-    if (err && err.name === 'AbortError') {
-      setBackupStatus('Copia cancelada.');
-      return null;
-    }
-    const hint = prefersMobileBackupDelivery()
-      ? ' En iPhone usa «Compartir copia» o vuelve a intentar.'
-      : '';
-    setBackupStatus('Error al crear la copia: ' + (err.message || 'desconocido') + hint, true);
-    return null;
-  } finally {
-    [exportBtn, textBtn, shareBtn].forEach(b => { if (b) b.disabled = false; });
-  }
-}
-
-async function restoreBackupPayload(payload) {
-  if (!payload || payload.format !== BACKUP_FORMAT) {
-    throw new Error('Archivo no válido para Misión China 2026');
-  }
-  if (!Array.isArray(payload.records) || payload.records.length === 0) {
-    throw new Error('La copia no contiene fichas');
-  }
-
-  clearCompanyRecordCache();
-  const db = await openCompanyDatabase();
-
-  await new Promise((resolve, reject) => {
-    const tx = db.transaction(COMPANY_STORE, 'readwrite');
-    const store = tx.objectStore(COMPANY_STORE);
-    const clearReq = store.clear();
-    clearReq.onsuccess = () => {
-      payload.records.forEach(entry => {
-        const record = deserializeRecordFromBackup(entry);
-        store.put(record);
-        companyRecordCache.set(record.companyId, record);
-      });
-    };
-    clearReq.onerror = () => reject(clearReq.error);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-
-  await renderIcexOffices();
-  await renderMeetingsSummary();
-}
-
-async function importBackupFromFile(file) {
-  const text = await file.text();
-  let payload;
-  try {
-    payload = JSON.parse(text);
-  } catch (_) {
-    throw new Error('El archivo no es JSON válido');
-  }
-
-  const photoCount = countBackupPhotos(payload.records || []);
-  const companyCount = (payload.records || []).length;
-  const when = payload.exportedAt
-    ? new Date(payload.exportedAt).toLocaleString('es-ES')
-    : 'fecha desconocida';
-
-  const ok = window.confirm(
-    'Restaurar copia del ' + when + '?\n\n'
-    + '· ' + companyCount + ' empresas\n'
-    + '· ' + photoCount + ' fotos\n\n'
-    + 'Se sustituirá TODO lo guardado en este dispositivo por esta copia.'
-  );
-  if (!ok) return;
-
-  setBackupStatus('Restaurando copia…');
-  await restoreBackupPayload(payload);
-  writeBackupMeta({
-    at: Date.now(),
-    photoCount,
-    sizeMb: (file.size / (1024 * 1024)).toFixed(2),
-    includesPhotos: !!payload.includesPhotos,
-    restored: true
-  });
-  setBackupStatus('Copia restaurada correctamente (' + photoCount + ' fotos).');
-}
-
-function initBackupControls() {
-  updateBackupLastInfo(readBackupMeta());
-
-  const exportBtn = document.getElementById('btn-export-backup');
-  const textBtn = document.getElementById('btn-export-text-backup');
-  const shareBtn = document.getElementById('btn-share-backup');
-  const importBtn = document.getElementById('btn-import-backup');
-  const fileInput = document.getElementById('backup-file-input');
-
-  if (shareBtn && navigator.share) {
-    shareBtn.hidden = false;
-  }
-  if (shareBtn) {
-    shareBtn.addEventListener('click', async () => {
-      await exportBackup(true, { preferShare: !isIOSDevice() });
-    });
-  }
-
-  if (exportBtn) {
-    exportBtn.addEventListener('click', () => exportBackup(true));
-  }
-  if (textBtn) {
-    textBtn.addEventListener('click', () => exportBackup(false));
-  }
-  if (importBtn && fileInput) {
-    importBtn.addEventListener('click', () => {
-      fileInput.value = '';
-      fileInput.click();
-    });
-    fileInput.addEventListener('change', async () => {
-      const file = fileInput.files && fileInput.files[0];
-      if (!file) return;
-      try {
-        await importBackupFromFile(file);
-      } catch (err) {
-        console.error(err);
-        setBackupStatus('Error al restaurar: ' + (err.message || 'desconocido'), true);
-      }
-      fileInput.value = '';
-    });
-  }
-}
-
-function revokeCompanyObjectUrls(companyId) {
-  const prefix = companyId + ':';
-  companyObjectUrls.forEach((url, key) => {
-    if (key.startsWith(prefix)) {
-      URL.revokeObjectURL(url);
-      companyObjectUrls.delete(key);
-    }
-  });
-}
-
-function getPhotoObjectUrl(companyId, slot, blob) {
-  const key = companyId + ':' + slot;
-  const prev = companyObjectUrls.get(key);
-  if (prev) URL.revokeObjectURL(prev);
-  const url = URL.createObjectURL(blob);
-  companyObjectUrls.set(key, url);
-  return url;
-}
-
-function countFilledPhotos(record) {
-  return (record.photos || []).filter(p => p && p.blob).length;
-}
+window.blobToBase64ForMigration = blobToBase64;
 
 function setCompanySaveStatus(text, isError) {
   const el = document.getElementById('company-save-status');
@@ -1745,10 +1272,13 @@ function renderEventAgendas() {
    RENDER — Oficinas ICEX (empresas + fichas)
 ────────────────────────────────────────────── */
 async function renderIcexOffices() {
-  const records = await Promise.all(
-    ICEX_OFFICES.flatMap(o => o.companies.map(c => loadCompanyRecord(c.id)))
-  );
-  const recordById = new Map(records.map(r => [r.companyId, r]));
+  try {
+    await loadAllRemoteFichas(true);
+  } catch (err) {
+    console.warn('Listado fichas:', err);
+  }
+
+  const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
 
   ICEX_OFFICES.forEach(office => {
     const panel = document.getElementById('event-panel-' + office.id);
@@ -1756,21 +1286,22 @@ async function renderIcexOffices() {
 
     const officeStats = { b2b: 0, visita: 0, unset: 0 };
     const cardsHtml = office.companies.map(company => {
-      const record = recordById.get(company.id) || defaultCompanyRecord(company.id);
-      const meetingType = normalizeMeetingType(record.meetingType);
+      const ficha = getCachedFicha(company.id);
+      const meetingType = normalizeMeetingType(ficha.meetingType);
       if (meetingType === 'b2b') officeStats.b2b += 1;
       else if (meetingType === 'visita') officeStats.visita += 1;
       else officeStats.unset += 1;
 
-      const photoCount = countFilledPhotos(record);
-      const photoByUser = countPhotosByUser(record);
-      const photoByUserText = Array.from(photoByUser.entries())
-        .map(([name, count]) => name + ': ' + count)
-        .join(' · ');
-      const hasNotes = !!(record.description || record.notes);
-      const preview = record.description
-        ? truncateText(record.description, 72)
-        : 'Pulsa para completar ficha y subir fotos';
+      const photos = countPhotosInFicha(ficha);
+      const mine = ficha.userEntries && ficha.userEntries[uid] ? ficha.userEntries[uid] : {};
+      const hasNotes = !!(mine.description || mine.notes);
+      const preview = mine.description
+        ? truncateText(mine.description, 72)
+        : 'Pulsa para abrir ficha en SharePoint';
+      const photoLabel = photos.total > 0
+        ? 'Krum:' + countUserPhotos(ficha.userEntries.krum || {})
+          + ' · Óscar:' + countUserPhotos(ficha.userEntries.oscar || {})
+        : '';
 
       return `
         <article class="company-card icex-company-card" data-company-id="${escapeHtml(company.id)}" role="button" tabindex="0" aria-label="Abrir ficha de ${escapeHtml(company.name)}">
@@ -1781,14 +1312,13 @@ async function renderIcexOffices() {
             </div>
             <div class="company-badges">
               ${meetingTypeBadgeHtml(meetingType)}
-              ${photoCount > 0 ? `<span class="company-badge badge-photos">📷 ${photoCount}/5</span>` : ''}
+              ${photos.total > 0 ? `<span class="company-badge badge-photos">📷 ${photos.total}</span>` : ''}
             </div>
           </div>
           ${buildMeetingTypePickerHtml(company.id, meetingType, 'meeting-type-picker--card')}
           <p class="company-contact-person">👤 ${escapeHtml(company.contactPerson)} · ${escapeHtml(company.role)}</p>
           <p class="company-card-preview ${hasNotes ? '' : 'company-card-preview--empty'}">${escapeHtml(preview)}</p>
-          <p class="company-card-meta">✍ ${escapeHtml(record.lastEditedBy || 'Sin edición')}</p>
-          <p class="company-card-meta" ${photoByUserText ? '' : 'hidden'}>📷 ${escapeHtml(photoByUserText || '')}</p>
+          <p class="company-card-meta" ${photoLabel ? '' : 'hidden'}>📷 ${escapeHtml(photoLabel)}</p>
         </article>`;
     }).join('');
 
@@ -1804,8 +1334,8 @@ async function renderIcexOffices() {
         ${officeStats.unset > 0 ? `<span class="icex-stat icex-stat--unset">${officeStats.unset} sin asignar</span>` : ''}
       </div>
       <div class="alert-box alert-box--info">
-        <span class="alert-icon">📷</span>
-        <p><strong>5 fotos por empresa</strong> · marca <strong>B2B</strong> o <strong>Visita</strong> en cada ficha · resumen en pestaña <strong>Resumen</strong>.</p>
+        <span class="alert-icon">☁️</span>
+        <p><strong>5 fotos por usuario</strong> · fichas en SharePoint · marca <strong>B2B</strong> o <strong>Visita</strong> en cada tarjeta.</p>
       </div>
       <div class="timeline-city timeline-city--compact">
         <div class="city-marker ${office.cityClass}">${office.cityMarker}</div>
@@ -1849,165 +1379,190 @@ function bindMeetingTypePickers() {
         e.stopPropagation();
         const companyId = picker.dataset.companyId;
         const type = btn.dataset.type;
-        const record = await loadCompanyRecord(companyId);
-        const next = record.meetingType === type ? '' : type;
-        await setCompanyMeetingType(companyId, next);
-        syncMeetingTypePickerButtons(picker, next);
-        if (activeCompanyId === companyId) {
-          syncMeetingTypePickerButtons(
-            document.getElementById('company-meeting-type-picker'),
-            next
-          );
-        }
+        const ficha = getCachedFicha(companyId);
+        const current = normalizeMeetingType(ficha.meetingType);
+        const next = current === type ? '' : type;
+        try {
+          await setCompanyMeetingType(companyId, next);
+          syncMeetingTypePickerButtons(picker, next);
+          if (activeCompanyId === companyId) {
+            syncMeetingTypePickerButtons(
+              document.getElementById('company-meeting-type-picker'),
+              next
+            );
+            if (activeModalFicha) activeModalFicha.meetingType = next || null;
+          }
+        } catch (_) { /* mensaje en setCompanyMeetingType */ }
       });
     });
   });
 }
 
 function refreshIcexCompanyCard(companyId) {
-  const seed = ICEX_COMPANY_MAP.get(companyId);
-  const office = ICEX_OFFICES.find(o => o.companies.some(c => c.id === companyId));
-  if (!seed || !office) return;
+  const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
+  const ficha = getCachedFicha(companyId);
+  const card = document.querySelector(`.icex-company-card[data-company-id="${companyId}"]`);
+  if (!card) return;
 
-  loadCompanyRecord(companyId).then(record => {
-    const card = document.querySelector(`.icex-company-card[data-company-id="${companyId}"]`);
-    if (!card) return;
-    const photoCount = countFilledPhotos(record);
-    const hasNotes = !!(record.description || record.notes);
-    const preview = record.description
-      ? truncateText(record.description, 72)
-      : 'Pulsa para completar ficha y subir fotos';
-    const photoByUser = countPhotosByUser(record);
-    const photoByUserText = Array.from(photoByUser.entries())
-      .map(([name, count]) => name + ': ' + count)
-      .join(' · ');
+  const photos = countPhotosInFicha(ficha);
+  const mine = ficha.userEntries && ficha.userEntries[uid] ? ficha.userEntries[uid] : {};
+  const hasNotes = !!(mine.description || mine.notes);
+  const preview = mine.description
+    ? truncateText(mine.description, 72)
+    : 'Pulsa para abrir ficha en SharePoint';
+  const photoLabel = photos.total > 0
+    ? 'Krum:' + countUserPhotos(ficha.userEntries.krum || {})
+      + ' · Óscar:' + countUserPhotos(ficha.userEntries.oscar || {})
+    : '';
 
-    const meetingType = normalizeMeetingType(record.meetingType);
-    const badges = card.querySelector('.company-badges');
-    if (badges) {
-      badges.innerHTML = `
-        ${meetingTypeBadgeHtml(meetingType)}
-        ${photoCount > 0 ? `<span class="company-badge badge-photos">📷 ${photoCount}/5</span>` : ''}`;
+  const meetingType = normalizeMeetingType(ficha.meetingType);
+  const badges = card.querySelector('.company-badges');
+  if (badges) {
+    badges.innerHTML = `
+      ${meetingTypeBadgeHtml(meetingType)}
+      ${photos.total > 0 ? `<span class="company-badge badge-photos">📷 ${photos.total}</span>` : ''}`;
+  }
+  const picker = card.querySelector('.meeting-type-picker');
+  syncMeetingTypePickerButtons(picker, meetingType);
+  const previewEl = card.querySelector('.company-card-preview');
+  if (previewEl) {
+    previewEl.textContent = preview;
+    previewEl.classList.toggle('company-card-preview--empty', !hasNotes);
+  }
+  const metaEl = card.querySelector('.company-card-meta');
+  if (metaEl) {
+    if (photoLabel) {
+      metaEl.textContent = '📷 ' + photoLabel;
+      metaEl.hidden = false;
+    } else {
+      metaEl.hidden = true;
     }
-    const picker = card.querySelector('.meeting-type-picker');
-    syncMeetingTypePickerButtons(picker, meetingType);
-    const previewEl = card.querySelector('.company-card-preview');
-    if (previewEl) {
-      previewEl.textContent = preview;
-      previewEl.classList.toggle('company-card-preview--empty', !hasNotes);
-    }
-    const metaEls = card.querySelectorAll('.company-card-meta');
-    if (metaEls[0]) metaEls[0].textContent = '✍ ' + (record.lastEditedBy || 'Sin edición');
-    if (metaEls[1]) {
-      if (photoByUserText) {
-        metaEls[1].textContent = '📷 ' + photoByUserText;
-        metaEls[1].hidden = false;
-      } else {
-        metaEls[1].hidden = true;
-      }
-    }
-  });
+  }
 }
 
-function getActiveCompanyRecordFromForm() {
-  if (!activeCompanyId) return null;
-  const cached = companyRecordCache.get(activeCompanyId);
-  const previous = cached || defaultCompanyRecord(activeCompanyId);
-  const record = cached
-    ? { ...cached, photos: cached.photos.slice() }
-    : defaultCompanyRecord(activeCompanyId);
+function setCompanyModalLoading(visible) {
+  const el = document.getElementById('company-modal-loading');
+  const body = document.getElementById('company-modal-form');
+  if (el) el.hidden = !visible;
+  if (body) body.hidden = visible;
+}
+
+function getFormStateFromModal() {
+  if (!activeCompanyId || !activeModalFicha) return null;
+  const uid = getCurrentUser();
+  const desc = document.getElementById('company-field-desc');
+  const contacts = document.getElementById('company-field-contacts');
+  const notes = document.getElementById('company-field-notes');
+  const modalPicker = document.getElementById('company-meeting-type-picker');
+  const activeBtn = modalPicker && modalPicker.querySelector('.meeting-type-btn.active');
+  const meetingType = activeBtn
+    ? normalizeMeetingType(activeBtn.dataset.type)
+    : normalizeMeetingType(activeModalFicha.meetingType);
+
+  const entry = activeModalFicha.userEntries[uid] || emptyUserEntry();
+  if (desc) entry.description = desc.value;
+  if (contacts) entry.contacts = contacts.value;
+  if (notes) entry.notes = notes.value;
+  activeModalFicha.userEntries[uid] = entry;
+
+  return {
+    meta: companyMetaFromSeed(activeCompanyId),
+    meetingType: meetingType || '',
+    myDescription: entry.description,
+    myContacts: entry.contacts,
+    myNotes: entry.notes,
+    myPhotos: entry.photos.slice()
+  };
+}
+
+function fillCompanyModalFromFicha(ficha) {
+  const uid = getCurrentUser();
+  const otherId = otherUserId(uid);
+  const mine = ficha.userEntries[uid] || emptyUserEntry();
+  const other = ficha.userEntries[otherId] || emptyUserEntry();
+  const otherName = userIdToDisplayName(otherId);
 
   const desc = document.getElementById('company-field-desc');
   const contacts = document.getElementById('company-field-contacts');
   const notes = document.getElementById('company-field-notes');
-  let changed = false;
-  if (desc) {
-    const next = desc.value;
-    if (next !== previous.description) {
-      changed = true;
-      if (activeUserName) record.descriptionBy = activeUserName;
-    }
-    record.description = next;
-  }
-  if (contacts) {
-    const next = contacts.value;
-    if (next !== previous.contacts) {
-      changed = true;
-      if (activeUserName) record.contactsBy = activeUserName;
-    }
-    record.contacts = next;
-  }
-  if (notes) {
-    const next = notes.value;
-    if (next !== previous.notes) {
-      changed = true;
-      if (activeUserName) record.notesBy = activeUserName;
-    }
-    record.notes = next;
-  }
+  const otherDesc = document.getElementById('company-field-other-desc');
+  const otherContacts = document.getElementById('company-field-other-contacts');
+  const otherNotes = document.getElementById('company-field-other-notes');
+  const otherTitle = document.getElementById('company-other-section-title');
 
-  const modalPicker = document.getElementById('company-meeting-type-picker');
-  const activeBtn = modalPicker && modalPicker.querySelector('.meeting-type-btn.active');
-  const nextMeetingType = activeBtn ? normalizeMeetingType(activeBtn.dataset.type) : normalizeMeetingType(record.meetingType);
-  if (nextMeetingType !== previous.meetingType) changed = true;
-  record.meetingType = nextMeetingType;
-  if (changed && activeUserName) record.lastEditedBy = activeUserName;
+  if (desc) desc.value = mine.description || '';
+  let contactsVal = mine.contacts || '';
+  if (!contactsVal && activeCompanyId) {
+    const seed = ICEX_COMPANY_MAP.get(activeCompanyId);
+    if (seed) contactsVal = seed.contactPerson + ' — ' + seed.role;
+  }
+  if (contacts) contacts.value = contactsVal;
+  if (notes) notes.value = mine.notes || '';
+  if (otherDesc) otherDesc.value = other.description || '';
+  if (otherContacts) otherContacts.value = other.contacts || '';
+  if (otherNotes) otherNotes.value = other.notes || '';
+  if (otherTitle) otherTitle.textContent = 'Notas de ' + otherName;
 
-  return record;
+  syncMeetingTypePickerButtons(
+    document.getElementById('company-meeting-type-picker'),
+    normalizeMeetingType(ficha.meetingType)
+  );
+  renderCompanyPhotoGrid(ficha);
 }
 
-function scheduleCompanySave() {
-  clearTimeout(companySaveTimer);
-  companySaveTimer = setTimeout(async () => {
-    const record = getActiveCompanyRecordFromForm();
-    if (!record) return;
-    setCompanySaveStatus('Guardando…');
-    const ok = await saveCompanyRecord(record);
-    setCompanySaveStatus(ok ? 'Guardado en el dispositivo' : 'Error al guardar', !ok);
-    updateCompanyEditorBadges(record);
-    refreshIcexCompanyCard(record.companyId);
-    renderMeetingsSummary();
-  }, 450);
-}
-
-function updateCompanyEditorBadges(record) {
-  if (!record) return;
-  const descBy = document.getElementById('company-field-desc-by');
-  const contactsBy = document.getElementById('company-field-contacts-by');
-  const notesBy = document.getElementById('company-field-notes-by');
-  if (descBy) descBy.textContent = labelEditor(record.descriptionBy);
-  if (contactsBy) contactsBy.textContent = labelEditor(record.contactsBy);
-  if (notesBy) notesBy.textContent = labelEditor(record.notesBy);
-}
-
-function renderCompanyPhotoGrid(record) {
+function renderCompanyPhotoGrid(ficha) {
   const grid = document.getElementById('company-photo-grid');
   const counter = document.getElementById('company-photo-counter');
-  if (!grid || !record) return;
+  if (!grid || !ficha) return;
 
-  const filled = countFilledPhotos(record);
-  if (counter) counter.textContent = filled + ' / ' + PHOTOS_PER_COMPANY;
+  const uid = getCurrentUser();
+  const otherId = otherUserId(uid);
+  const mine = (ficha.userEntries[uid] && ficha.userEntries[uid].photos) || [];
+  const other = (ficha.userEntries[otherId] && ficha.userEntries[otherId].photos) || [];
+  const mineFilled = mine.filter(p => p && p.dataBase64).length;
 
-  grid.innerHTML = record.photos.map((photo, index) => {
-    if (photo && photo.blob) {
-      const url = getPhotoObjectUrl(record.companyId, index, photo.blob);
-      return `
-        <div class="photo-slot photo-slot--filled">
-          <img src="${url}" alt="Foto ${index + 1}" class="photo-thumb" loading="lazy" />
-          ${photo.addedBy ? `<span class="photo-owner">${escapeHtml(photo.addedBy)}</span>` : ''}
-          <button type="button" class="photo-remove" data-slot="${index}" aria-label="Eliminar foto ${index + 1}">✕</button>
+  if (counter) counter.textContent = mineFilled + ' / ' + PHOTOS_PER_USER + ' (tuyas)';
+
+  let html = '';
+  for (let i = 0; i < PHOTOS_PER_USER; i++) {
+    const photo = mine[i];
+    if (photo && photo.dataBase64) {
+      html += `
+        <div class="photo-slot photo-slot--filled" data-owner="${escapeHtml(uid)}">
+          <img src="${photoDataUrl(photo)}" alt="Mi foto ${i + 1}" class="photo-thumb" loading="lazy" />
+          <span class="photo-owner">${escapeHtml(userIdToDisplayName(uid))}</span>
+          <button type="button" class="photo-remove" data-mine-index="${i}" aria-label="Eliminar foto ${i + 1}">✕</button>
         </div>`;
+    } else {
+      html += `
+        <button type="button" class="photo-slot photo-slot--add" data-mine-index="${i}" aria-label="Añadir foto ${i + 1}">
+          <span class="photo-add-icon">+</span>
+          <span class="photo-add-label">Foto ${i + 1}</span>
+        </button>`;
     }
-    return `
-      <button type="button" class="photo-slot photo-slot--add" data-slot="${index}" aria-label="Añadir foto ${index + 1}">
-        <span class="photo-add-icon">+</span>
-        <span class="photo-add-label">Foto ${index + 1}</span>
-      </button>`;
-  }).join('');
+  }
+
+  other.forEach((photo, i) => {
+    if (!photo || !photo.dataBase64) return;
+    html += `
+      <div class="photo-slot photo-slot--filled photo-slot--readonly" data-owner="${escapeHtml(otherId)}">
+        <img src="${photoDataUrl(photo)}" alt="Foto ${otherId} ${i + 1}" class="photo-thumb" loading="lazy" />
+        <span class="photo-owner">${escapeHtml(userIdToDisplayName(otherId))}</span>
+      </div>`;
+  });
+
+  grid.innerHTML = html;
 
   grid.querySelectorAll('.photo-slot--add').forEach(btn => {
     btn.addEventListener('click', () => {
-      activePhotoSlot = parseInt(btn.dataset.slot, 10);
+      const uidNow = getCurrentUser();
+      const entry = activeModalFicha.userEntries[uidNow] || emptyUserEntry();
+      const filled = (entry.photos || []).filter(p => p && p.dataBase64).length;
+      if (filled >= PHOTOS_PER_USER) {
+        setCompanySaveStatus('Máximo ' + PHOTOS_PER_USER + ' fotos por usuario', true);
+        return;
+      }
+      activePhotoSlot = parseInt(btn.dataset.mineIndex, 10);
       const input = document.getElementById('company-photo-input');
       if (input) {
         input.value = '';
@@ -2017,19 +1572,39 @@ function renderCompanyPhotoGrid(record) {
   });
 
   grid.querySelectorAll('.photo-remove').forEach(btn => {
-    btn.addEventListener('click', async event => {
+    btn.addEventListener('click', event => {
       event.stopPropagation();
-      const slot = parseInt(btn.dataset.slot, 10);
-      const rec = getActiveCompanyRecordFromForm();
-      if (!rec || !rec.photos[slot]) return;
-      rec.photos[slot] = null;
-      await saveCompanyRecord(rec);
-      revokeCompanyObjectUrls(rec.companyId);
-      renderCompanyPhotoGrid(rec);
-      refreshIcexCompanyCard(rec.companyId);
-      setCompanySaveStatus('Foto eliminada');
+      const idx = parseInt(btn.dataset.mineIndex, 10);
+      const uidNow = getCurrentUser();
+      const entry = activeModalFicha.userEntries[uidNow];
+      if (!entry || !entry.photos[idx]) return;
+      entry.photos.splice(idx, 1);
+      renderCompanyPhotoGrid(activeModalFicha);
     });
   });
+}
+
+async function saveCompanyModal() {
+  if (!activeCompanyId || !activeModalFicha) return;
+  const saveBtn = document.getElementById('company-btn-save');
+  if (saveBtn) saveBtn.disabled = true;
+  setCompanySaveStatus('Guardando…');
+
+  const formState = getFormStateFromModal();
+  try {
+    const merged = await saveFichaAtomic(activeCompanyId, formState);
+    activeModalFicha = merged;
+    setCachedFicha(activeCompanyId, merged);
+    setCompanySaveStatus('Guardado');
+    refreshIcexCompanyCard(activeCompanyId);
+    renderMeetingsSummary();
+    setTimeout(() => closeCompanyModal(false), 1000);
+  } catch (err) {
+    console.warn(err);
+    setCompanySaveStatus(connectionErrorMessage(), true);
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
+  }
 }
 
 async function openCompanyModal(companyId) {
@@ -2040,56 +1615,49 @@ async function openCompanyModal(companyId) {
   if (!modal) return;
 
   activeCompanyId = companyId;
-  const record = await loadCompanyRecord(companyId);
+  activeModalFicha = null;
+  activePhotoSlot = null;
 
   const title = document.getElementById('company-modal-title');
   const subtitle = document.getElementById('company-modal-subtitle');
-  const desc = document.getElementById('company-field-desc');
-  const contacts = document.getElementById('company-field-contacts');
-  const notes = document.getElementById('company-field-notes');
-
   if (title) title.textContent = seed.name;
   if (subtitle) {
     subtitle.textContent = (seed.nameZh ? seed.nameZh + ' · ' : '') + seed.contactPerson;
   }
-  if (desc) desc.value = record.description || '';
-  if (contacts) contacts.value = record.contacts || '';
-  if (notes) notes.value = record.notes || '';
-  updateCompanyEditorBadges(record);
 
-  syncMeetingTypePickerButtons(
-    document.getElementById('company-meeting-type-picker'),
-    normalizeMeetingType(record.meetingType)
-  );
-
-  renderCompanyPhotoGrid(record);
   setCompanySaveStatus('');
-
+  setCompanyModalLoading(true);
   modal.hidden = false;
   modal.setAttribute('aria-hidden', 'false');
   document.body.classList.add('company-modal-open');
 
   if (!companyModalBound) initCompanyModalControls();
+
+  try {
+    const raw = await getRemoteFicha(companyId);
+    activeModalFicha = normalizeRemoteFicha(raw, companyId, companyMetaFromSeed(companyId));
+    setCachedFicha(companyId, activeModalFicha);
+    fillCompanyModalFromFicha(activeModalFicha);
+  } catch (err) {
+    console.warn(err);
+    activeModalFicha = normalizeRemoteFicha(null, companyId, companyMetaFromSeed(companyId));
+    fillCompanyModalFromFicha(activeModalFicha);
+    setCompanySaveStatus(connectionErrorMessage(), true);
+  } finally {
+    setCompanyModalLoading(false);
+  }
 }
 
-function closeCompanyModal() {
+function closeCompanyModal(confirmDiscard) {
   const modal = document.getElementById('company-modal');
   if (!modal) return;
-  if (activeCompanyId) {
-    const record = getActiveCompanyRecordFromForm();
-    if (record) {
-      saveCompanyRecord(record).then(() => {
-        refreshIcexCompanyCard(activeCompanyId);
-        renderMeetingsSummary();
-      });
-    }
-    revokeCompanyObjectUrls(activeCompanyId);
-  }
   activeCompanyId = null;
   activePhotoSlot = null;
+  activeModalFicha = null;
   modal.hidden = true;
   modal.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('company-modal-open');
+  setCompanyModalLoading(false);
 }
 
 function initCompanyModalControls() {
@@ -2099,14 +1667,11 @@ function initCompanyModalControls() {
   const closeBtn = document.getElementById('company-modal-close');
   const backdrop = document.getElementById('company-modal-backdrop');
   const photoInput = document.getElementById('company-photo-input');
+  const saveBtn = document.getElementById('company-btn-save');
 
-  if (closeBtn) closeBtn.addEventListener('click', closeCompanyModal);
-  if (backdrop) backdrop.addEventListener('click', closeCompanyModal);
-
-  ['company-field-desc', 'company-field-contacts', 'company-field-notes'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('input', scheduleCompanySave);
-  });
+  if (closeBtn) closeBtn.addEventListener('click', () => closeCompanyModal());
+  if (backdrop) backdrop.addEventListener('click', () => closeCompanyModal());
+  if (saveBtn) saveBtn.addEventListener('click', () => saveCompanyModal());
 
   const modalPicker = document.getElementById('company-meeting-type-picker');
   if (modalPicker) {
@@ -2115,12 +1680,17 @@ function initCompanyModalControls() {
         e.preventDefault();
         if (!activeCompanyId) return;
         const type = btn.dataset.type;
-        const record = await loadCompanyRecord(activeCompanyId);
-        const next = record.meetingType === type ? '' : type;
-        await setCompanyMeetingType(activeCompanyId, next);
-        syncMeetingTypePickerButtons(modalPicker, next);
-        document.querySelectorAll(`.meeting-type-picker[data-company-id="${activeCompanyId}"]`)
-          .forEach(p => syncMeetingTypePickerButtons(p, next));
+        const current = normalizeMeetingType(
+          activeModalFicha ? activeModalFicha.meetingType : ''
+        );
+        const next = current === type ? '' : type;
+        try {
+          await setCompanyMeetingType(activeCompanyId, next);
+          syncMeetingTypePickerButtons(modalPicker, next);
+          document.querySelectorAll(`.meeting-type-picker[data-company-id="${activeCompanyId}"]`)
+            .forEach(p => syncMeetingTypePickerButtons(p, next));
+          if (activeModalFicha) activeModalFicha.meetingType = next || null;
+        } catch (_) { /* error mostrado */ }
       });
     });
   }
@@ -2128,27 +1698,40 @@ function initCompanyModalControls() {
   if (photoInput) {
     photoInput.addEventListener('change', async () => {
       const file = photoInput.files && photoInput.files[0];
-      if (!file || activeCompanyId == null || activePhotoSlot == null) return;
+      if (!file || activeCompanyId == null || !activeModalFicha) return;
+
+      const uidNow = getCurrentUser();
+      const entry = activeModalFicha.userEntries[uidNow] || emptyUserEntry();
+      if (!Array.isArray(entry.photos)) entry.photos = [];
+      const filled = entry.photos.filter(p => p && p.dataBase64).length;
+      if (filled >= PHOTOS_PER_USER) {
+        setCompanySaveStatus('Máximo ' + PHOTOS_PER_USER + ' fotos por usuario', true);
+        activePhotoSlot = null;
+        photoInput.value = '';
+        return;
+      }
 
       setCompanySaveStatus('Procesando foto…');
       try {
         const blob = await compressImageFile(file);
-        const record = getActiveCompanyRecordFromForm() || await loadCompanyRecord(activeCompanyId);
-        record.photos[activePhotoSlot] = {
-          blob,
+        const dataBase64 = await blobToBase64(blob);
+        const photo = {
+          dataBase64,
+          mime: 'image/jpeg',
           name: file.name || 'foto.jpg',
-          addedAt: Date.now(),
-          addedBy: activeUserName || ''
+          addedAt: Date.now()
         };
-        if (activeUserName) record.lastEditedBy = activeUserName;
-        await saveCompanyRecord(record);
-        updateCompanyEditorBadges(record);
-        renderCompanyPhotoGrid(record);
-        refreshIcexCompanyCard(activeCompanyId);
-        setCompanySaveStatus('Foto guardada');
+        if (activePhotoSlot != null && activePhotoSlot < PHOTOS_PER_USER) {
+          entry.photos[activePhotoSlot] = photo;
+        } else {
+          entry.photos.push(photo);
+        }
+        activeModalFicha.userEntries[uidNow] = entry;
+        renderCompanyPhotoGrid(activeModalFicha);
+        setCompanySaveStatus('Foto añadida (pulsa Guardar para subir)');
       } catch (err) {
         console.warn(err);
-        setCompanySaveStatus('No se pudo guardar la foto', true);
+        setCompanySaveStatus('No se pudo procesar la foto', true);
       }
       activePhotoSlot = null;
       photoInput.value = '';
@@ -2157,6 +1740,62 @@ function initCompanyModalControls() {
 
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && activeCompanyId) closeCompanyModal();
+  });
+}
+
+/* ──────────────────────────────────────────────
+   DEV — migración IndexedDB → SharePoint
+────────────────────────────────────────────── */
+let devPanelTapCount = 0;
+
+function initDevPanel() {
+  const chip = document.getElementById('graph-init-chip');
+  const panel = document.getElementById('dev-panel');
+  const migrateBtn = document.getElementById('btn-migrate-local');
+  const statusEl = document.getElementById('dev-migrate-status');
+
+  if (chip) {
+    chip.addEventListener('click', () => {
+      devPanelTapCount += 1;
+      if (devPanelTapCount >= 5 && panel) {
+        panel.hidden = false;
+        devPanelTapCount = 0;
+      }
+    });
+  }
+
+  if (!migrateBtn) return;
+
+  migrateBtn.addEventListener('click', async () => {
+    migrateBtn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Leyendo fichas locales…';
+
+    try {
+      const records = await getAllRecordsFromDatabase();
+      if (!records.length) {
+        if (statusEl) statusEl.textContent = 'No hay fichas en IndexedDB en este dispositivo.';
+        return;
+      }
+
+      await migrateAllLocalFichasToSharePoint(
+        () => Promise.resolve(records),
+        companyId => companyMetaFromSeed(companyId),
+        blobToBase64,
+        (done, total, id) => {
+          if (statusEl) statusEl.textContent = 'Migrando ' + done + ' de ' + total + '… (' + id + ')';
+        }
+      );
+
+      remoteFichaMapLoaded = false;
+      await loadAllRemoteFichas(true);
+      await renderIcexOffices();
+      if (statusEl) statusEl.textContent = 'Migración completada: ' + records.length + ' fichas subidas.';
+    } catch (err) {
+      console.error(err);
+      if (statusEl) statusEl.textContent = 'Error: ' + (err.message || String(err));
+    } finally {
+      migrateBtn.disabled = false;
+    }
   });
 }
 
@@ -2247,7 +1886,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '20');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '22');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
@@ -2284,14 +1923,12 @@ function startApp() {
   initNavAutoHide();
   initNavigation();
   initBrochureControls();
-  initBackupControls();
+  initDevPanel();
   renderFlights();
   renderLogistics();
   renderContacts();
   renderEventAgendas();
-  openCompanyDatabase()
-    .then(() => renderIcexOffices())
-    .catch(() => renderIcexOffices());
+  renderIcexOffices().catch(err => console.warn('ICEX:', err));
   initPWA();
 }
 
@@ -2313,7 +1950,7 @@ function bootApp() {
 
   const err = document.getElementById('login-error');
   if (err) {
-    err.textContent = 'No se cargó graph-sync.js. Comprueba la conexión y actualiza la app.';
+    err.textContent = 'No se cargaron los scripts de la app. Actualiza la aplicación.';
     err.hidden = false;
   }
 }

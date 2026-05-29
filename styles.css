@@ -1410,8 +1410,130 @@ body.user-selector-open {
 
 .company-modal-footer {
   flex-shrink: 0;
-  padding: 8px 18px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 18px calc(12px + var(--safe-bottom));
   border-top: 1px solid var(--card-border);
+}
+
+.company-modal-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 40px 18px;
+}
+
+.company-modal-loading[hidden] {
+  display: none !important;
+}
+
+.company-modal-loading-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.ficha-section {
+  margin-top: 16px;
+  padding-top: 4px;
+}
+
+.ficha-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-dark);
+  margin-bottom: 8px;
+}
+
+.ficha-section--other {
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: #ececf0;
+  border: 1px solid #d8d8de;
+}
+
+.ficha-section--other .field-label {
+  color: var(--text-soft);
+}
+
+.field-textarea--readonly {
+  background: #e4e4e8;
+  color: var(--text);
+  border-color: #d0d0d6;
+  cursor: default;
+}
+
+.field-textarea--readonly:focus {
+  box-shadow: none;
+  border-color: #d0d0d6;
+}
+
+.photo-slot--readonly {
+  border-style: solid;
+  opacity: 0.95;
+}
+
+.photo-slot--readonly .photo-remove {
+  display: none;
+}
+
+.btn-company-save {
+  flex-shrink: 0;
+  padding: 12px 22px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.btn-company-save:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-company-save:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.dev-panel {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 2px dashed var(--card-border);
+}
+
+.dev-panel[hidden] {
+  display: none !important;
+}
+
+.btn-dev-migrate {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--card-border);
+  background: var(--bg-elevated);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.dev-migrate-status {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-soft);
+  line-height: 1.4;
 }
 
 .field-label {
