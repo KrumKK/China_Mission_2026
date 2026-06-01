@@ -79,6 +79,12 @@ body.app-authenticated::before {
   z-index: 0;
 }
 
+@media (max-width: 640px) {
+  body.app-authenticated::before {
+    background-size: 90vw;
+  }
+}
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: #D4C4E8; border-radius: 4px; }
 
