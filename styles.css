@@ -65,16 +65,16 @@ body {
   position: relative;
 }
 
-/* Logo Lizarte — marca de agua (colocar lizarte-logo.png en la raíz) */
-body::before {
+/* Marca de agua Lizarte (85%) — solo app autenticada (no login; modales la tapan) */
+body.app-authenticated::before {
   content: '';
   position: fixed;
   inset: 0;
   background-image: url('lizarte-logo.png');
   background-repeat: no-repeat;
-  background-position: center 38%;
-  background-size: min(78vw, 380px);
-  opacity: 0.055;
+  background-position: center center;
+  background-size: min(45vw, 420px);
+  opacity: 0.85;
   pointer-events: none;
   z-index: 0;
 }
@@ -83,12 +83,95 @@ body::before {
 ::-webkit-scrollbar-thumb { background: #D4C4E8; border-radius: 4px; }
 
 .app-wrap {
+  --brand-bar-height: 50px;
+  --brand-bar-offset: calc(var(--safe-top) + var(--brand-bar-height) + 16px);
+  --top-nav-height: 72px;
+  --sticky-chrome-total: calc(var(--brand-bar-offset) + var(--top-nav-height));
   position: relative;
   z-index: 1;
   max-width: 640px;
   margin: 0 auto;
   min-height: 100%;
-  padding-top: var(--safe-top);
+}
+
+/* ═══ BARRA MARCA (post-login) ═══════════════════════════ */
+.app-brand-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--brand-bar-height);
+  padding: 8px 14px;
+  padding-top: calc(8px + var(--safe-top));
+  position: sticky;
+  top: 0;
+  z-index: 55;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid var(--card-border);
+  box-shadow: 0 1px 8px rgba(61, 53, 80, 0.06);
+}
+
+.app-brand-logo {
+  display: block;
+  height: 30px;
+  width: auto;
+  max-width: min(52vw, 200px);
+  object-fit: contain;
+  object-position: left center;
+  flex-shrink: 0;
+}
+
+.app-brand-user {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: min(58vw, 260px);
+  text-align: right;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+
+.app-brand-user-name {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--accent-dark);
+}
+
+.app-brand-user-sep {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+.app-brand-user-role {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.app-brand-user-sep[hidden],
+.app-brand-user-role[hidden] {
+  display: none !important;
+}
+
+.app-brand-user[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 420px) {
+  .app-brand-user {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    max-width: min(62vw, 200px);
+  }
+
+  .app-brand-user-sep {
+    display: none !important;
+  }
+
+  .app-brand-user-role {
+    margin-top: 2px;
+  }
 }
 
 /* ═══ TOP NAV — se oculta al bajar scroll ════════════════ */
@@ -99,7 +182,7 @@ body::before {
   overflow-x: auto;
   scrollbar-width: none;
   position: sticky;
-  top: var(--safe-top);
+  top: var(--brand-bar-offset);
   z-index: 50;
   background: rgba(245, 241, 250, 0.94);
   backdrop-filter: blur(12px);
@@ -164,10 +247,12 @@ body::before {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 8px 14px 4px;
+  margin: 0 0 14px;
+  padding-top: 10px;
+  position: relative;
+  z-index: 2;
 }
 
-.active-user-chip,
 .graph-init-chip {
   padding: 8px 12px;
   border-radius: var(--radius-md);
@@ -175,10 +260,6 @@ body::before {
   background: var(--bg-elevated);
   font-size: 12px;
   font-weight: 700;
-}
-
-.active-user-chip {
-  color: var(--accent-dark);
 }
 
 .graph-init-chip {
@@ -241,13 +322,29 @@ body.app-authenticated .app-wrap {
   padding: 22px;
 }
 
-.login-title {
-  font-size: 22px;
-  color: var(--text);
+.login-brand {
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.login-logo {
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  margin: 0 auto 20px;
+}
+
+.login-mission {
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-soft);
+  line-height: 1.35;
 }
 
 .login-subtitle {
-  margin-top: 6px;
+  margin-top: 0;
   margin-bottom: 18px;
   font-size: 13px;
   color: var(--text-soft);
@@ -325,7 +422,14 @@ body.app-authenticated .app-wrap {
 
 /* ═══ MAIN ═══════════════════════════════════════════════ */
 .app-main {
-  padding: 0 14px calc(24px + var(--safe-bottom));
+  padding: 4px 14px calc(24px + var(--safe-bottom));
+  scroll-margin-top: var(--sticky-chrome-total);
+}
+
+.view > .section-heading:first-child,
+.view > .trip-overview:first-child,
+.view.view--otras > .section-heading:first-child {
+  scroll-margin-top: calc(var(--sticky-chrome-total) + 48px);
 }
 
 /* ═══ SELECTOR DE USUARIO (apertura) ═════════════════════ */

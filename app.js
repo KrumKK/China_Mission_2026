@@ -421,16 +421,34 @@ function userIdToDisplayName(userId) {
   return userId || '';
 }
 
+function userBrandProfile(userId) {
+  const id = String(userId || '').toLowerCase();
+  if (id === 'krum') return { name: 'Krum Kovachev', role: 'Innovation Director' };
+  if (id === 'oscar') return { name: 'Óscar Huarte', role: 'CEO' };
+  return { name: userIdToDisplayName(id) || id, role: '' };
+}
+
 function setActiveUser(userIdOrName) {
   const raw = userIdOrName || (typeof window.getCurrentUser === 'function' ? window.getCurrentUser() : '');
   activeUserName = userIdToDisplayName(raw) || raw || '';
   window.__ACTIVE_USER__ = activeUserName;
 
   const chip = document.getElementById('active-user-chip');
-  if (chip && activeUserName) {
-    chip.textContent = 'Usuario: ' + activeUserName;
-    chip.hidden = false;
-  }
+  if (!chip) return;
+
+  const profile = userBrandProfile(raw);
+  const nameEl = chip.querySelector('.app-brand-user-name');
+  const sepEl = chip.querySelector('.app-brand-user-sep');
+  const roleEl = chip.querySelector('.app-brand-user-role');
+
+  if (nameEl) nameEl.textContent = profile.name;
+  if (roleEl) roleEl.textContent = profile.role;
+
+  const hasRole = !!profile.role;
+  if (sepEl) sepEl.hidden = !hasRole;
+  if (roleEl) roleEl.hidden = !hasRole;
+
+  chip.hidden = !profile.name;
 }
 
 window.setActiveUser = setActiveUser;
@@ -796,7 +814,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '25';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '26';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -2184,7 +2202,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '25');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '26');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });

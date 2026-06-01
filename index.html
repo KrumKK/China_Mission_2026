@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '25';
+      window.__APP_BUILD__ = '26';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -35,7 +35,17 @@
 
   <div id="login-screen" class="login-screen" aria-hidden="false">
     <div class="login-card">
-      <h2 class="login-title">Misión China 2026</h2>
+      <div class="login-brand">
+        <img
+          src="lizarte-logo.png"
+          alt="Lizarte"
+          class="login-logo"
+          width="335"
+          height="96"
+          decoding="async"
+        />
+        <p class="login-mission">Misión Comercial China — Junio 2026</p>
+      </div>
       <p class="login-subtitle">Acceso Lizarte · sincronización SharePoint</p>
       <label class="login-pin-label" for="login-pin">PIN (4 dígitos)</label>
       <input
@@ -59,6 +69,22 @@
   </div>
 
   <div class="app-wrap">
+
+    <header class="app-brand-bar" aria-label="Lizarte">
+      <img
+        src="lizarte-logo.png"
+        alt="Lizarte"
+        class="app-brand-logo"
+        width="335"
+        height="96"
+        decoding="async"
+      />
+      <span class="app-brand-user" id="active-user-chip" hidden>
+        <span class="app-brand-user-name"></span>
+        <span class="app-brand-user-sep" aria-hidden="true"> · </span>
+        <span class="app-brand-user-role"></span>
+      </span>
+    </header>
 
     <nav class="top-nav" aria-label="Secciones principales">
       <button type="button" class="top-nav-item active" data-view="general">
@@ -87,12 +113,11 @@
       </button>
     </nav>
 
-    <div class="app-status-bar">
-      <span class="active-user-chip" id="active-user-chip" hidden>Usuario: —</span>
-      <span class="graph-init-chip" id="graph-init-chip" title="">Graph: pendiente</span>
-    </div>
-
     <main class="app-main" id="app-main">
+
+      <div class="app-status-bar">
+        <span class="graph-init-chip" id="graph-init-chip" title="">Graph: pendiente</span>
+      </div>
 
       <section class="view active" id="view-general">
 
@@ -391,7 +416,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '25';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '26';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
