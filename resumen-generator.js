@@ -74,6 +74,21 @@ function fichaTouchedToday(ficha, ymdToday) {
   );
 }
 
+function userEntryHasContent(entry) {
+  if (!entry || typeof entry !== 'object') return false;
+  if (trimText(entry.description)) return true;
+  if (trimText(entry.contacts)) return true;
+  if (trimText(entry.notes)) return true;
+  if (countValidPhotos(entry.photos) > 0) return true;
+  return false;
+}
+
+function fichaHasContent(ficha) {
+  if (!ficha || typeof ficha !== 'object') return false;
+  const ue = ficha.userEntries || {};
+  return userEntryHasContent(ue.krum) || userEntryHasContent(ue.oscar);
+}
+
 function photoHasPayload(photo) {
   if (!photo || typeof photo !== 'object') return false;
   const raw = photo.dataBase64 || photo.data;
@@ -322,6 +337,41 @@ async function fetchFichasForResumen(ymdToday) {
   return { fichas, failedIds };
 }
 
+async function fetchFichasForTotalResumen() {
+  const ids = await listRemoteFichaIds();
+  if (!ids.length) {
+    return { fichas: [], failedIds: [] };
+  }
+
+  const settled = await Promise.allSettled(
+    ids.map(id => getRemoteFicha(id).then(ficha => ({ id, ficha })))
+  );
+
+  const fichas = [];
+  const failedIds = [];
+
+  settled.forEach((result, index) => {
+    const id = ids[index];
+    if (result.status === 'rejected') {
+      failedIds.push(id);
+      return;
+    }
+    const { ficha } = result.value;
+    if (ficha == null) return;
+    if (fichaHasContent(ficha)) {
+      fichas.push(ficha);
+    }
+  });
+
+  fichas.sort((a, b) => String(a.name || a.id || '').localeCompare(
+    String(b.name || b.id || ''),
+    'es',
+    { sensitivity: 'base' }
+  ));
+
+  return { fichas, failedIds };
+}
+
 function computeStats(fichas) {
   let b2b = 0;
   let visita = 0;
@@ -421,15 +471,18 @@ function metadataTable(ficha) {
   });
 }
 
-function summaryStatsTable(stats) {
+function summaryStatsTable(stats, mode) {
   const docx = getDocxApi();
   const cell = (txt, bold) => new docx.TableCell({
     children: [new docx.Paragraph({
       children: [textRun(txt, bold ? { bold: true } : {})]
     })]
   });
+  const totalLabel = mode === 'total'
+    ? 'Total empresas'
+    : 'Total empresas tocadas hoy';
   const data = [
-    ['Total empresas tocadas hoy', String(stats.total)],
+    [totalLabel, String(stats.total)],
     ['Reuniones B2B', String(stats.b2b)],
     ['Visitas técnicas', String(stats.visita)]
   ];
@@ -461,24 +514,40 @@ async function buildResumenDocument(fichas, stats, meta) {
   const docx = getDocxApi();
   const children = [];
   let omittedPhotosCount = 0;
+  const isTotal = meta.mode === 'total';
 
-  children.push(
-    new docx.Paragraph({
-      alignment: docx.AlignmentType.CENTER,
-      spacing: { after: 120 },
-      children: [textRun('Resumen del día', { bold: true, size: 48 })]
-    }),
-    new docx.Paragraph({
-      alignment: docx.AlignmentType.CENTER,
-      spacing: { after: 80 },
-      children: [textRun('Misión Comercial China — Junio 2026', { size: 24, color: '444444' })]
-    }),
-    new docx.Paragraph({
-      alignment: docx.AlignmentType.CENTER,
-      spacing: { after: 400 },
-      children: [textRun(meta.dateLong, { size: 24, italics: true })]
-    })
-  );
+  if (isTotal) {
+    children.push(
+      new docx.Paragraph({
+        alignment: docx.AlignmentType.CENTER,
+        spacing: { after: 120 },
+        children: [textRun('Informe completo — Misión Comercial China Junio 2026', { bold: true, size: 40 })]
+      }),
+      new docx.Paragraph({
+        alignment: docx.AlignmentType.CENTER,
+        spacing: { after: 400 },
+        children: [textRun(meta.dateLong, { size: 24, italics: true })]
+      })
+    );
+  } else {
+    children.push(
+      new docx.Paragraph({
+        alignment: docx.AlignmentType.CENTER,
+        spacing: { after: 120 },
+        children: [textRun('Resumen del día', { bold: true, size: 48 })]
+      }),
+      new docx.Paragraph({
+        alignment: docx.AlignmentType.CENTER,
+        spacing: { after: 80 },
+        children: [textRun('Misión Comercial China — Junio 2026', { size: 24, color: '444444' })]
+      }),
+      new docx.Paragraph({
+        alignment: docx.AlignmentType.CENTER,
+        spacing: { after: 400 },
+        children: [textRun(meta.dateLong, { size: 24, italics: true })]
+      })
+    );
+  }
 
   for (let index = 0; index < fichas.length; index++) {
     const ficha = fichas[index];
@@ -532,6 +601,9 @@ async function buildResumenDocument(fichas, stats, meta) {
     }
   }
 
+  const summaryHeading = isTotal ? 'Resumen final' : 'Resumen del día';
+  const photosLabel = isTotal ? 'Fotos totales: ' : 'Fotos totales subidas hoy: ';
+
   children.push(
     new docx.Paragraph({
       spacing: { before: 480, after: 200 },
@@ -540,11 +612,11 @@ async function buildResumenDocument(fichas, stats, meta) {
     new docx.Paragraph({
       heading: docx.HeadingLevel.HEADING_1,
       spacing: { after: 200 },
-      children: [textRun('Resumen del día', { bold: true, size: 32 })]
+      children: [textRun(summaryHeading, { bold: true, size: 32 })]
     }),
-    summaryStatsTable(stats),
+    summaryStatsTable(stats, meta.mode),
     new docx.Paragraph({ spacing: { before: 200, after: 80 }, children: [textRun('')] }),
-    bodyParagraph([textRun('Fotos totales subidas hoy: ' + stats.photos)]),
+    bodyParagraph([textRun(photosLabel + stats.photos)]),
     bodyParagraph([
       textRun(
         'Documento generado el ' + meta.generatedAt
@@ -649,6 +721,13 @@ function hideResumenDownloadModal() {
   pendingDownloadFilename = null;
 }
 
+function setResumenButtonsDisabled(disabled) {
+  ['btn-generar-resumen-dia', 'btn-generar-resumen-total'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = disabled;
+  });
+}
+
 async function generateDailyResumen() {
   const btn = document.getElementById('btn-generar-resumen-dia');
   if (btn && btn.disabled) return;
@@ -658,7 +737,7 @@ async function generateDailyResumen() {
     return;
   }
 
-  if (btn) btn.disabled = true;
+  setResumenButtonsDisabled(true);
   setResumenStatus('Generando resumen…');
 
   const now = new Date();
@@ -677,6 +756,7 @@ async function generateDailyResumen() {
     const currentUser = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
     setResumenStatus('Generando documento Word…');
     const doc = await buildResumenDocument(fichas, stats, {
+      mode: 'daily',
       dateLong: formatDateLongSpanish(now),
       generatedAt: formatDateTimeSpanish(now),
       generatedBy: userDisplayName(currentUser) || 'Usuario',
@@ -697,7 +777,59 @@ async function generateDailyResumen() {
       setResumenStatus('Error al generar el resumen: ' + msg, true);
     }
   } finally {
-    if (btn) btn.disabled = false;
+    setResumenButtonsDisabled(false);
+  }
+}
+
+async function generateTotalResumen() {
+  const btn = document.getElementById('btn-generar-resumen-total');
+  if (btn && btn.disabled) return;
+
+  if (!window.docx) {
+    setResumenStatus('No se cargó la librería docx. Actualiza la aplicación.', true);
+    return;
+  }
+
+  setResumenButtonsDisabled(true);
+  setResumenStatus('Generando informe total…');
+
+  const now = new Date();
+  const fileName = 'informe-total-' + formatFilenameDate(now) + '.docx';
+
+  try {
+    const { fichas, failedIds } = await fetchFichasForTotalResumen();
+
+    if (!fichas.length) {
+      setResumenStatus('No hay fichas con contenido para generar el informe');
+      return;
+    }
+
+    const stats = computeStats(fichas);
+    const currentUser = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
+    setResumenStatus('Generando documento Word…');
+    const doc = await buildResumenDocument(fichas, stats, {
+      mode: 'total',
+      dateLong: formatDateLongSpanish(now),
+      generatedAt: formatDateTimeSpanish(now),
+      generatedBy: userDisplayName(currentUser) || 'Usuario',
+      failedCount: failedIds.length
+    });
+
+    const blob = await buildDocxBlob(doc);
+    await putResumenDocx(blob, fileName);
+
+    setResumenStatus('Informe guardado en SharePoint (' + fileName + ').');
+    showResumenDownloadModal(blob, fileName);
+  } catch (err) {
+    console.error(err);
+    const msg = err && err.message ? err.message : String(err);
+    if (/subir|SharePoint|HTTP|conexión|network|fetch/i.test(msg)) {
+      setResumenStatus('No se ha podido guardar en SharePoint. Reintenta cuando tengas conexión.', true);
+    } else {
+      setResumenStatus('Error al generar el informe: ' + msg, true);
+    }
+  } finally {
+    setResumenButtonsDisabled(false);
   }
 }
 
@@ -726,13 +858,20 @@ function initResumenDownloadModal() {
 
 function initResumenGenerator() {
   initResumenDownloadModal();
-  const btn = document.getElementById('btn-generar-resumen-dia');
-  if (!btn || btn.dataset.bound === '1') return;
-  btn.dataset.bound = '1';
-  btn.addEventListener('click', () => {
-    generateDailyResumen();
-  });
+
+  const btnDia = document.getElementById('btn-generar-resumen-dia');
+  if (btnDia && btnDia.dataset.bound !== '1') {
+    btnDia.dataset.bound = '1';
+    btnDia.addEventListener('click', () => generateDailyResumen());
+  }
+
+  const btnTotal = document.getElementById('btn-generar-resumen-total');
+  if (btnTotal && btnTotal.dataset.bound !== '1') {
+    btnTotal.dataset.bound = '1';
+    btnTotal.addEventListener('click', () => generateTotalResumen());
+  }
 }
 
 window.initResumenGenerator = initResumenGenerator;
 window.generateDailyResumen = generateDailyResumen;
+window.generateTotalResumen = generateTotalResumen;

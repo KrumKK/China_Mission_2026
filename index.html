@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '29';
+      window.__APP_BUILD__ = '30';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -176,6 +176,9 @@
         <div class="resumen-dia-actions">
           <button type="button" class="btn-resumen-dia" id="btn-generar-resumen-dia">
             Generar resumen del día
+          </button>
+          <button type="button" class="btn-resumen-total" id="btn-generar-resumen-total">
+            Generar resumen total
           </button>
           <p class="resumen-dia-status" id="resumen-dia-status" aria-live="polite"></p>
         </div>
@@ -420,7 +423,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '29';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '30';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;

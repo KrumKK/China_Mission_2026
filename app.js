@@ -986,7 +986,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '29';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '30';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -2544,7 +2544,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '29');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '30');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });

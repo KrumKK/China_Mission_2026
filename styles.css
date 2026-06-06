@@ -2279,6 +2279,9 @@ body.company-modal-open {
 /* ═══ RESUMEN DEL DÍA (Word) ═════════════════════════════ */
 .resumen-dia-actions {
   margin: 16px 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .btn-resumen-dia {
@@ -2295,12 +2298,28 @@ body.company-modal-open {
   touch-action: manipulation;
 }
 
-.btn-resumen-dia:disabled {
+.btn-resumen-total {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: var(--accent-dark);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.btn-resumen-dia:disabled,
+.btn-resumen-total:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-.btn-resumen-dia:active:not(:disabled) {
+.btn-resumen-dia:active:not(:disabled),
+.btn-resumen-total:active:not(:disabled) {
   transform: translateY(1px);
 }
 
