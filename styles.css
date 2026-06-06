@@ -1735,6 +1735,38 @@ body.user-selector-open {
   line-height: 1.5;
 }
 
+.icex-empty {
+  margin: 16px 0 8px;
+  padding: 32px 20px;
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--card-border);
+  background: var(--bg-elevated);
+  text-align: center;
+}
+
+.icex-empty-icon {
+  display: block;
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 12px;
+  opacity: 0.75;
+}
+
+.icex-empty-text {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
+.icex-empty-sub {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-faint);
+  line-height: 1.4;
+}
+
 .otras-fab {
   position: fixed;
   right: calc(18px + env(safe-area-inset-right, 0));

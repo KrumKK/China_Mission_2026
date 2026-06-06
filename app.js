@@ -304,15 +304,10 @@ const ICEX_OFFICES = [
     tabLabel: 'ICEX Cantón',
     heroTag: 'Shenzhen · Cantón',
     heroTitle: 'ICEX Cantón (Shenzhen)',
-    heroDesc: 'Empresas del área de Cantón · 6 fichas con fotos y notas',
+    heroDesc: '1 ficha',
     cityMarker: '粤',
     cityClass: 'city-shenzhen',
     companies: [
-      { id: 'icex-canton-01', name: 'Shenzhen Precision Motors Co.', nameZh: '深圳精密电机', contactPerson: '林伟 Wei Lin', role: 'Director comercial' },
-      { id: 'icex-canton-02', name: 'Pearl River Composites Ltd.', nameZh: '珠江复合材料', contactPerson: '陈美玲 Meiling Chen', role: 'Gerente de exportación' },
-      { id: 'icex-canton-03', name: 'Dongguan Auto Plastics Group', nameZh: '东莞汽车塑料', contactPerson: '黄志明 Zhiming Huang', role: 'Jefe de planta' },
-      { id: 'icex-canton-04', name: 'Guangzhou EV Components', nameZh: '广州电动车零部件', contactPerson: '张晓芳 Xiaofang Zhang', role: 'Directora técnica' },
-      { id: 'icex-canton-05', name: 'Longhua Smart Manufacturing', nameZh: '龙华智能制造', contactPerson: '何俊杰 Junjie He', role: 'CEO' },
       {
         id: 'icex-canton-06',
         name: 'FinDreams BYD',
@@ -332,32 +327,20 @@ const ICEX_OFFICES = [
     tabLabel: 'ICEX Shanghai',
     heroTag: 'Shanghái',
     heroTitle: 'ICEX Shanghai',
-    heroDesc: 'Empresas del área de Shanghái · 5 fichas con fotos y notas',
+    heroDesc: 'Pendiente de confirmar empresas',
     cityMarker: '沪',
     cityClass: 'city-shanghai',
-    companies: [
-      { id: 'icex-shanghai-01', name: 'Yangtze Precision Parts Co.', nameZh: '长江精密零件', contactPerson: '王浩然 Haoran Wang', role: 'Director general' },
-      { id: 'icex-shanghai-02', name: 'Pudong Robotics & Automation', nameZh: '浦东机器人自动化', contactPerson: '李雪梅 Xueme Li', role: 'Directora de I+D' },
-      { id: 'icex-shanghai-03', name: 'Baosteel Trading Shanghai', nameZh: '宝钢贸易上海', contactPerson: '赵一阳 Yiyang Zhao', role: 'Responsable de ventas' },
-      { id: 'icex-shanghai-04', name: 'Minhang Industrial Supply', nameZh: '闵行工业供应', contactPerson: '周慧敏 Huimin Zhou', role: 'Coordinadora B2B' },
-      { id: 'icex-shanghai-05', name: 'Hongqiao Automotive Tech', nameZh: '虹桥汽车科技', contactPerson: '孙立新 Lixin Sun', role: 'Director de operaciones' }
-    ]
+    companies: []
   },
   {
     id: 'icex-pekin',
     tabLabel: 'ICEX Pekín',
     heroTag: 'Pekín',
     heroTitle: 'ICEX Pekín',
-    heroDesc: 'Empresas del área de Pekín · 5 fichas con fotos y notas',
+    heroDesc: 'Pendiente de confirmar empresas',
     cityMarker: '京',
     cityClass: 'city-beijing',
-    companies: [
-      { id: 'icex-pekin-01', name: 'Capital EPS Solutions', nameZh: '首都EPS解决方案', contactPerson: '刘建国 Jianguo Liu', role: 'Director comercial' },
-      { id: 'icex-pekin-02', name: 'Haidian Advanced Materials', nameZh: '海淀先进材料', contactPerson: '马丽娜 Lina Ma', role: 'Gerente de proyecto' },
-      { id: 'icex-pekin-03', name: 'Zhongguancun Tech Park Ltd.', nameZh: '中关村科技园', contactPerson: '杨帆 Fan Yang', role: 'Director de innovación' },
-      { id: 'icex-pekin-04', name: 'Chaoyang Metal Forming Co.', nameZh: '朝阳金属成型', contactPerson: '郭晓宇 Xiaoyu Guo', role: 'Jefe de producción' },
-      { id: 'icex-pekin-05', name: 'Daxing Electric Vehicle Parts', nameZh: '大兴电动车零部件', contactPerson: '霍金凤 Jinfeng Huo', role: 'Directora de calidad' }
-    ]
+    companies: []
   }
 ];
 
@@ -897,7 +880,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '27';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '28';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -1628,6 +1611,15 @@ function initOtrasReuniones() {
 /* ──────────────────────────────────────────────
    RENDER — Oficinas ICEX (empresas + fichas)
 ────────────────────────────────────────────── */
+function buildIcexOfficeEmptyHtml() {
+  return `
+    <div class="icex-empty">
+      <span class="icex-empty-icon" aria-hidden="true">🏗️</span>
+      <p class="icex-empty-text">Pendiente de añadir empresas reales</p>
+      <p class="icex-empty-sub">Las empresas se añadirán cuando se confirmen las reuniones</p>
+    </div>`;
+}
+
 async function renderIcexOffices() {
   try {
     await loadAllRemoteFichas(true);
@@ -1640,6 +1632,7 @@ async function renderIcexOffices() {
     if (!panel) return;
 
     const officeStats = { b2b: 0, visita: 0, unset: 0 };
+    const hasCompanies = office.companies.length > 0;
     const cardsHtml = office.companies.map(company => {
       const ficha = getCachedFicha(company.id);
       const meetingType = normalizeMeetingType(ficha.meetingType);
@@ -1649,13 +1642,8 @@ async function renderIcexOffices() {
       return buildCompanyCardHtml(ficha, company.id, company);
     }).join('');
 
-    panel.innerHTML = `
-      <div class="event-hero event-hero--icex">
-        <div class="hero-tag">${escapeHtml(office.heroTag)}</div>
-        <h3 class="event-hero-title">${escapeHtml(office.heroTitle)}</h3>
-        <p class="event-hero-desc">${escapeHtml(office.heroDesc)}</p>
-      </div>
-      <div class="icex-office-stats">
+    const statsHtml = hasCompanies
+      ? `<div class="icex-office-stats">
         <span class="icex-stat icex-stat--b2b">🤝 ${officeStats.b2b} B2B</span>
         <span class="icex-stat icex-stat--visita">🏭 ${officeStats.visita} visitas</span>
         ${officeStats.unset > 0 ? `<span class="icex-stat icex-stat--unset">${officeStats.unset} sin asignar</span>` : ''}
@@ -1663,11 +1651,24 @@ async function renderIcexOffices() {
       <div class="alert-box alert-box--info">
         <span class="alert-icon">☁️</span>
         <p><strong>5 fotos por usuario</strong> · fichas en SharePoint · marca <strong>B2B</strong> o <strong>Visita</strong> en cada tarjeta.</p>
+      </div>`
+      : '';
+
+    const listHtml = hasCompanies
+      ? `<div class="company-list icex-company-list">${cardsHtml}</div>`
+      : buildIcexOfficeEmptyHtml();
+
+    panel.innerHTML = `
+      <div class="event-hero event-hero--icex">
+        <div class="hero-tag">${escapeHtml(office.heroTag)}</div>
+        <h3 class="event-hero-title">${escapeHtml(office.heroTitle)}</h3>
+        <p class="event-hero-desc">${escapeHtml(office.heroDesc)}</p>
       </div>
+      ${statsHtml}
       <div class="timeline-city timeline-city--compact">
         <div class="city-marker ${office.cityClass}">${office.cityMarker}</div>
       </div>
-      <div class="company-list icex-company-list">${cardsHtml}</div>`;
+      ${listHtml}`;
   });
 
   bindIcexCompanyCards();
@@ -2354,7 +2355,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '27');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '28');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
