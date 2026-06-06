@@ -553,6 +553,7 @@ let activePhotoSlot = null;
 let activeModalFicha = null;
 let activeManualDraft = false;
 let companyModalBound = false;
+let modalFormSnapshot = null;
 let activeUserName = '';
 
 /* IndexedDB — solo migración dev */
@@ -601,6 +602,172 @@ window.setActiveUser = setActiveUser;
 
 function connectionErrorMessage() {
   return 'Sin conexión, reintenta cuando tengas VPN';
+}
+
+function setFichasInitChip(text, visible) {
+  const el = document.getElementById('fichas-init-chip');
+  if (!el) return;
+  if (!visible) {
+    el.hidden = true;
+    el.textContent = '';
+    return;
+  }
+  el.textContent = text;
+  el.hidden = false;
+}
+
+async function initIcexFichasInSharePoint() {
+  if (!CONFIG || !CONFIG.driveId) return;
+  if (typeof listRemoteFichaIds !== 'function' || typeof putRemoteFicha !== 'function') return;
+  if (typeof defaultRemoteFicha !== 'function') return;
+
+  setFichasInitChip('Preparando fichas…', true);
+
+  try {
+    const existingIds = await listRemoteFichaIds();
+    const existing = new Set(existingIds);
+    const toCreate = [];
+    ICEX_COMPANY_MAP.forEach((seed, companyId) => {
+      if (!existing.has(companyId)) toCreate.push(companyId);
+    });
+
+    if (!toCreate.length) return;
+
+    await Promise.allSettled(
+      toCreate.map(async companyId => {
+        const meta = companyMetaFromSeed(companyId);
+        const ficha = defaultRemoteFicha(companyId, meta);
+        applyIcexSeedContacts(ficha, companyId);
+        await putRemoteFicha(companyId, ficha);
+      })
+    );
+  } catch (_) {
+    /* reintento en próxima apertura */
+  } finally {
+    setFichasInitChip('', false);
+  }
+}
+
+function readModalField(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+function snapshotPhotosForCompare(photos) {
+  return (photos || [])
+    .filter(p => p && p.dataBase64)
+    .map(p => ({
+      name: p.name || '',
+      mime: p.mime || 'image/jpeg',
+      len: String(p.dataBase64 || '').length
+    }));
+}
+
+function buildModalSnapshotObject() {
+  if (!activeModalFicha) return null;
+  const uid = getCurrentUser();
+  const entry = activeModalFicha.userEntries[uid] || emptyUserEntry();
+  const manual = isManualFicha(activeModalFicha);
+  const snap = {
+    desc: readModalField('company-field-desc'),
+    contacts: readModalField('company-field-contacts'),
+    notes: readModalField('company-field-notes'),
+    photos: snapshotPhotosForCompare(entry.photos)
+  };
+  if (manual) {
+    snap.manual = {
+      name: readModalField('company-manual-name'),
+      nameZh: readModalField('company-manual-name-zh'),
+      contactPerson: readModalField('company-manual-contact'),
+      role: readModalField('company-manual-role')
+    };
+  }
+  return snap;
+}
+
+function captureModalFormSnapshot() {
+  const snap = buildModalSnapshotObject();
+  modalFormSnapshot = snap ? JSON.stringify(snap) : null;
+}
+
+function isModalFormDirty() {
+  if (!modalFormSnapshot || !activeModalFicha) return false;
+  const current = buildModalSnapshotObject();
+  if (!current) return false;
+  return modalFormSnapshot !== JSON.stringify(current);
+}
+
+function showCompanyUnsavedModal(isDraft) {
+  const modal = document.getElementById('company-unsaved-modal');
+  const title = document.getElementById('company-unsaved-title');
+  const text = document.getElementById('company-unsaved-text');
+  if (!modal) return;
+
+  if (title) {
+    title.textContent = isDraft ? 'Ficha sin guardar' : 'Cambios sin guardar';
+  }
+  if (text) {
+    text.textContent = isDraft
+      ? 'Esta ficha no se ha guardado y se perderá.'
+      : 'Tienes cambios sin guardar. ¿Guardar antes de cerrar?';
+  }
+
+  modal.hidden = false;
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('company-unsaved-open');
+}
+
+function hideCompanyUnsavedModal() {
+  const modal = document.getElementById('company-unsaved-modal');
+  if (modal) {
+    modal.hidden = true;
+    modal.setAttribute('aria-hidden', 'true');
+  }
+  document.body.classList.remove('company-unsaved-open');
+}
+
+function requestCloseCompanyModal() {
+  if (!activeCompanyId) return;
+
+  if (activeManualDraft) {
+    showCompanyUnsavedModal(true);
+    return;
+  }
+
+  if (!isModalFormDirty()) {
+    closeCompanyModal();
+    return;
+  }
+
+  showCompanyUnsavedModal(false);
+}
+
+function initCompanyUnsavedModal() {
+  const modal = document.getElementById('company-unsaved-modal');
+  if (!modal || modal.dataset.bound === '1') return;
+  modal.dataset.bound = '1';
+
+  const backdrop = document.getElementById('company-unsaved-backdrop');
+  const btnSave = document.getElementById('company-unsaved-save');
+  const btnDiscard = document.getElementById('company-unsaved-discard');
+  const btnCancel = document.getElementById('company-unsaved-cancel');
+
+  const cancel = () => hideCompanyUnsavedModal();
+
+  if (backdrop) backdrop.addEventListener('click', cancel);
+  if (btnCancel) btnCancel.addEventListener('click', cancel);
+  if (btnDiscard) {
+    btnDiscard.addEventListener('click', () => {
+      hideCompanyUnsavedModal();
+      closeCompanyModal();
+    });
+  }
+  if (btnSave) {
+    btnSave.addEventListener('click', () => {
+      hideCompanyUnsavedModal();
+      saveCompanyModal({ closeOnSuccess: true });
+    });
+  }
 }
 
 function companyMetaFromSeed(companyId) {
@@ -986,7 +1153,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '30';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '31';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -2101,6 +2268,7 @@ function fillCompanyModalFromFicha(ficha) {
   );
   renderCompanyPhotoGrid(ficha);
   updateManualSaveButtonState();
+  captureModalFormSnapshot();
 }
 
 function renderCompanyPhotoGrid(ficha) {
@@ -2177,14 +2345,15 @@ function renderCompanyPhotoGrid(ficha) {
   });
 }
 
-async function saveCompanyModal() {
-  if (!activeCompanyId || !activeModalFicha) return;
+async function saveCompanyModal(options) {
+  options = options || {};
+  if (!activeCompanyId || !activeModalFicha) return false;
   const saveBtn = document.getElementById('company-btn-save');
   const formState = getFormStateFromModal();
 
   if (isManualFicha(activeModalFicha) && !trimText(formState.name)) {
     setCompanySaveStatus('El nombre de la empresa es obligatorio', true);
-    return;
+    return false;
   }
 
   if (saveBtn) saveBtn.disabled = true;
@@ -2195,15 +2364,23 @@ async function saveCompanyModal() {
     activeModalFicha = merged;
     activeManualDraft = false;
     setCachedFicha(activeCompanyId, merged);
+    modalFormSnapshot = null;
     setCompanySaveStatus('Guardado');
     refreshAfterFichaChange(activeCompanyId);
     renderMeetingsSummary();
     setModalHeaderMode(true);
-    setTimeout(() => closeCompanyModal(false), 1000);
+    captureModalFormSnapshot();
+    if (options.closeOnSuccess) {
+      closeCompanyModal();
+    } else {
+      setTimeout(() => closeCompanyModal(), 1000);
+    }
+    return true;
   } catch (err) {
     console.warn(err);
     setCompanySaveStatus(connectionErrorMessage(), true);
     updateManualSaveButtonState();
+    return false;
   } finally {
     if (saveBtn && !isManualFicha(activeModalFicha)) saveBtn.disabled = false;
     else updateManualSaveButtonState();
@@ -2283,7 +2460,7 @@ async function deleteActiveManualFicha() {
   try {
     await deleteRemoteFicha(id);
     remoteFichaMap.delete(id);
-    closeCompanyModal(false);
+    closeCompanyModal();
     await renderOtrasReuniones();
   } catch (err) {
     console.warn(err);
@@ -2295,10 +2472,9 @@ function closeCompanyModal() {
   const modal = document.getElementById('company-modal');
   if (!modal) return;
 
-  if (activeManualDraft) {
-    activeManualDraft = false;
-  }
-
+  hideCompanyUnsavedModal();
+  activeManualDraft = false;
+  modalFormSnapshot = null;
   activeCompanyId = null;
   activePhotoSlot = null;
   activeModalFicha = null;
@@ -2318,8 +2494,8 @@ function initCompanyModalControls() {
   const photoInput = document.getElementById('company-photo-input');
   const saveBtn = document.getElementById('company-btn-save');
 
-  if (closeBtn) closeBtn.addEventListener('click', () => closeCompanyModal());
-  if (backdrop) backdrop.addEventListener('click', () => closeCompanyModal());
+  if (closeBtn) closeBtn.addEventListener('click', () => requestCloseCompanyModal());
+  if (backdrop) backdrop.addEventListener('click', () => requestCloseCompanyModal());
   if (saveBtn) saveBtn.addEventListener('click', () => saveCompanyModal());
 
   const deleteBtn = document.getElementById('company-btn-delete');
@@ -2397,7 +2573,12 @@ function initCompanyModalControls() {
   }
 
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && activeCompanyId) closeCompanyModal();
+    const unsavedModal = document.getElementById('company-unsaved-modal');
+    if (unsavedModal && !unsavedModal.hidden && event.key === 'Escape') {
+      hideCompanyUnsavedModal();
+      return;
+    }
+    if (event.key === 'Escape' && activeCompanyId) requestCloseCompanyModal();
   });
 }
 
@@ -2544,7 +2725,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '30');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '31');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
@@ -2583,6 +2764,7 @@ function startApp() {
   initBrochureControls();
   initDevPanel();
   initOtrasReuniones();
+  initCompanyUnsavedModal();
   if (typeof window.initResumenGenerator === 'function') {
     window.initResumenGenerator();
   }
@@ -2593,6 +2775,7 @@ function startApp() {
   renderEventAgendas();
   renderIcexOffices().catch(err => console.warn('ICEX:', err));
   initPWA();
+  initIcexFichasInSharePoint().catch(() => undefined);
 }
 
 window.startApp = startApp;

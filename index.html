@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '30';
+      window.__APP_BUILD__ = '31';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -117,6 +117,7 @@
 
       <div class="app-status-bar">
         <span class="graph-init-chip" id="graph-init-chip" title="">Graph: pendiente</span>
+        <span class="fichas-init-chip" id="fichas-init-chip" hidden aria-live="polite"></span>
       </div>
 
       <section class="view active" id="view-general">
@@ -325,6 +326,19 @@
     </div>
   </div>
 
+  <div id="company-unsaved-modal" class="company-unsaved-modal" hidden aria-hidden="true">
+    <div class="company-unsaved-backdrop" id="company-unsaved-backdrop"></div>
+    <div class="company-unsaved-card" role="dialog" aria-modal="true" aria-labelledby="company-unsaved-title">
+      <h3 class="company-unsaved-title" id="company-unsaved-title">Cambios sin guardar</h3>
+      <p class="company-unsaved-text" id="company-unsaved-text"></p>
+      <div class="company-unsaved-actions">
+        <button type="button" class="btn-company-unsaved-save" id="company-unsaved-save">Guardar</button>
+        <button type="button" class="btn-company-unsaved-discard" id="company-unsaved-discard">Descartar</button>
+        <button type="button" class="btn-company-unsaved-cancel" id="company-unsaved-cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="resumen-download-modal" class="resumen-download-modal" hidden aria-hidden="true">
     <div class="resumen-download-backdrop" id="resumen-download-backdrop"></div>
     <div class="resumen-download-card" role="dialog" aria-modal="true" aria-labelledby="resumen-download-title">
@@ -423,7 +437,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '30';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '31';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;

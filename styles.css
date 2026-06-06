@@ -284,6 +284,20 @@ body.app-authenticated::before {
   color: #b71c1c;
 }
 
+.fichas-init-chip {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--bg-elevated);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.fichas-init-chip[hidden] {
+  display: none !important;
+}
+
 /* ═══ LOGIN (PIN + usuario) ══════════════════════════════ */
 body.app-locked .app-wrap {
   visibility: hidden;
@@ -2411,6 +2425,104 @@ body.company-modal-open {
 }
 
 body.resumen-modal-open {
+  overflow: hidden;
+}
+
+/* ═══ MODAL — cambios sin guardar (ficha) ════════════════ */
+.company-unsaved-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.company-unsaved-modal[hidden] {
+  display: none !important;
+}
+
+.company-unsaved-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(45, 38, 58, 0.55);
+}
+
+.company-unsaved-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 40px rgba(61, 53, 80, 0.25);
+  padding: 22px;
+}
+
+.company-unsaved-title {
+  font-size: 18px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.company-unsaved-text {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-soft);
+  margin-bottom: 18px;
+}
+
+.company-unsaved-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-company-unsaved-save {
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.btn-company-unsaved-discard {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  color: var(--text-soft);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.btn-company-unsaved-cancel {
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-faint);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+body.company-unsaved-open {
   overflow: hidden;
 }
 
