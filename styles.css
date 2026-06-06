@@ -534,6 +534,68 @@ body.user-selector-open {
   margin-bottom: 20px;
 }
 
+.trip-hero-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.trip-hero-row .card-hero {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 14px 16px;
+}
+
+.trip-hero-row .card-hero-title {
+  font-size: 18px;
+}
+
+.trip-hero-row .card-hero-meta {
+  font-size: 12px;
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+
+.trip-hero-row .card-hero-nested {
+  padding: 10px 12px;
+  gap: 8px 10px;
+}
+
+.trip-hero-row .tz-row {
+  font-size: 12px;
+}
+
+.trip-hero-row .tz-flag {
+  font-size: 16px;
+}
+
+.trip-hero-row .tz-badge {
+  margin-left: 0;
+  flex: 1 1 100%;
+  text-align: center;
+  font-size: 10px;
+}
+
+.trip-hero-row .countdown-head {
+  margin-bottom: 2px;
+}
+
+.trip-hero-row .countdown-emoji {
+  font-size: 18px;
+}
+
+.trip-hero-row .countdown-label {
+  font-size: 13px;
+}
+
+.trip-hero-row .countdown-value {
+  font-size: 30px;
+}
+
+.trip-hero-row .countdown-sub {
+  font-size: 12px;
+}
+
 .card-hero {
   border-radius: var(--radius-xl);
   padding: 18px 20px;
@@ -3068,6 +3130,13 @@ body.brochure-fs-portal-open {
   .top-nav-label { font-size: 8px; }
   .top-nav-item--otras .top-nav-label::after { font-size: 8px; }
   .top-nav-icon { font-size: 18px; }
-  .card-hero-title { font-size: 19px; }
-  .countdown-value { font-size: 30px; }
+  .trip-hero-row {
+    flex-direction: column;
+  }
+  .trip-hero-row .card-hero {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .trip-hero-row .card-hero-title { font-size: 19px; }
+  .trip-hero-row .countdown-value { font-size: 28px; }
 }

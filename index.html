@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '31';
+      window.__APP_BUILD__ = '32';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -123,6 +123,7 @@
       <section class="view active" id="view-general">
 
         <div class="trip-overview">
+          <div class="trip-hero-row">
           <article class="card-hero card-hero--blue">
             <h1 class="card-hero-title">Misión China 2026</h1>
             <p class="card-hero-meta">20–27 Jun · Madrid → Beijing → Shenzhen · Lizarte</p>
@@ -147,6 +148,7 @@
             <p class="countdown-value" id="countdown-days">—</p>
             <p class="countdown-sub" id="countdown-sub">días para el viaje</p>
           </article>
+          </div>
 
           <button class="btn-refresh" id="btn-hard-refresh" type="button" aria-label="Descargar la última versión">
             ↻ Actualizar aplicación
@@ -437,7 +439,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '31';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '32';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
