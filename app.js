@@ -140,10 +140,116 @@ const TRIP_AGENDA = [
       {
         date: '25–26 junio',
         text: 'Visitas y reuniones a determinar'
+      },
+      {
+        date: '27 junio',
+        eventTitle: '15th International Automotive Electronics Industry Summit',
+        venue: 'Hilton Hotel, Shenzhen'
       }
     ]
   }
 ];
+
+/* ──────────────────────────────────────────────
+   DATA — Summit Automotive Electronics (Eventos · Shenzhen)
+────────────────────────────────────────────── */
+const AUTOMOTIVE_SUMMIT = {
+  title: '15th International Automotive Electronics Industry Summit 2026',
+  theme: 'AI Smart Driving Pioneers; Chip & Chain Co-Upgrades; Building a New-Quality Industrial Ecosystem for Automotive Electronics',
+  dateBadge: '27 junio 2026',
+  venueBadge: 'Hilton Hotel Shenzhen',
+  venueFull: 'Hilton Hotel, Shenzhen International Convention and Exhibition Center',
+  sections: [
+    {
+      label: 'Mañana',
+      slots: [
+        { time: '08:00-09:00', activity: 'Check-in' },
+        { time: '09:00-09:30', activity: 'Opening Remarks' },
+        { time: '09:30-09:50', activity: 'Guest Address' },
+        {
+          time: '09:50-10:00',
+          activity: 'Keynote: Empowering with AI, Upholding Integrity and Innovation, and Co-building a Global Automotive Intelligent Ecosystem',
+          speaker: 'Yang Hong, President of Shenzhen Automotive Electronics Industry Association and Chairman of Hangsheng Electronics Co., Ltd.'
+        },
+        {
+          time: '10:00-10:15',
+          activity: "Report on Development Trends of China's Intelligent and Connected Vehicles",
+          speaker: 'Ye Shengli, Chief Engineer of China Association of Automobile Manufacturers'
+        },
+        {
+          time: '10:15-10:30',
+          activity: 'Sunlord Electronics Empowers Innovation and Upgrade of Intelligent Cockpit',
+          speaker: 'Jin Zekun, Engineering & Marketing Manager'
+        },
+        { time: '10:30-10:40', activity: 'Tea Break ☕', break: true },
+        {
+          time: '10:40-11:00',
+          activity: 'Build Core Competitiveness of In-Vehicle Communication and Cockpit via Indigenous Independent R&D',
+          speaker: 'Fang Lijun, Industry Director, Strategy & Marketing Dept., Neoway Technology'
+        },
+        {
+          time: '11:00-11:20',
+          activity: 'When the Internet Meets AI – The Intelligent Revolution Driving the Automotive Industry',
+          speaker: 'Geely Automobile'
+        },
+        {
+          time: '11:20-11:40',
+          activity: 'The Evolution of Automotive Storage',
+          speaker: 'Longsys'
+        },
+        {
+          time: '11:40-12:00',
+          activity: 'Keynote: Leading the New Future of Autonomous Driving: AI and Storage Power a New Era for Intelligent Vehicles',
+          speaker: 'Silicon Motion'
+        }
+      ]
+    },
+    {
+      label: 'Almuerzo',
+      slots: [
+        { time: '12:00-14:00', activity: 'Self-service Lunch 🍽️', meal: true }
+      ]
+    },
+    {
+      label: 'Tarde',
+      slots: [
+        {
+          time: '14:00-14:20',
+          activity: 'Analysis of Intelligent Automotive Development Trends in the AI Era',
+          speaker: 'Por confirmar'
+        },
+        {
+          time: '14:20-14:40',
+          activity: 'Opportunities and Challenges in the Flash Memory Chip Market in the Era of Intelligent Connected Vehicles',
+          speaker: 'Mr. Chen Jian, Product Director, Hangzhou Hikvision Storage Technology Co., Ltd.'
+        },
+        {
+          time: '14:40-15:00',
+          activity: 'Por confirmar',
+          speaker: 'China Academy of Information and Communications Technology'
+        },
+        { time: '15:00-15:20', activity: 'Tea Break ☕', break: true },
+        {
+          time: '15:20-15:40',
+          activity: 'New Explorations in AI-Enabled Intelligent Technologies',
+          speaker: 'Por confirmar'
+        },
+        {
+          time: '15:40-16:00',
+          activity: 'Explorations amid the Era of AI-enabled Intelligent Vehicles',
+          speaker: 'Ethiopia'
+        },
+        {
+          time: '16:00-16:20',
+          activity: 'Development Opportunities of Automotive Industry in Malaysia & ASEAN',
+          speaker: "Dato' Khoo Chong Boon"
+        },
+        { time: '16:20-18:00', activity: 'Automotive Electronics Science and Technology Award Ceremony 🏆' },
+        { time: '18:30-20:30', activity: 'Networking Dinner 🍷', meal: true }
+      ]
+    }
+  ]
+};
 
 /* ──────────────────────────────────────────────
    DATA — Contactos (editar / ampliar con vuestro doc)
@@ -880,7 +986,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '28';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '29';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -1327,6 +1433,14 @@ function buildAgendaTimelineRows(slots) {
 
 function buildAgendaShenzhenCard(block) {
   const daysHtml = block.days.map(day => {
+    if (day.eventTitle) {
+      return `
+        <div class="agenda-day-block">
+          <p class="agenda-day-label">${escapeHtml(day.date)}</p>
+          <p class="agenda-day-text agenda-day-text--event">${escapeHtml(day.eventTitle)}</p>
+          ${day.venue ? `<p class="agenda-day-venue">📍 ${escapeHtml(day.venue)}</p>` : ''}
+        </div>`;
+    }
     if (day.timeline) {
       return `
         <div class="agenda-day-block">
@@ -1511,6 +1625,7 @@ function renderEventAgendas() {
         <p class="event-hero-desc">${escapeHtml(data.heroDesc)}</p>
       </div>
       ${data.programIntro ? `<div class="alert-box alert-box--info"><span class="alert-icon">📋</span><p>${escapeHtml(data.programIntro)}</p></div>` : ''}
+      ${key === 'shenzhen' ? buildSummitCardHtml() : ''}
       <div class="timeline">
         <div class="timeline-city">
           <div class="city-marker ${data.cityClass}">${data.cityMarker}</div>
@@ -1520,6 +1635,8 @@ function renderEventAgendas() {
       ${data.footerAlert ? `<div class="alert-box alert-box--warn"><span class="alert-icon">⚠️</span><p>${escapeHtml(data.footerAlert)}</p></div>` : ''}
       ${data.footerNote ? `<div class="info-box"><span class="info-box-icon">ℹ</span><p>${escapeHtml(data.footerNote)}</p></div>` : ''}`;
   });
+
+  bindSummitCollapsible();
 }
 
 
@@ -1611,6 +1728,78 @@ function initOtrasReuniones() {
 /* ──────────────────────────────────────────────
    RENDER — Oficinas ICEX (empresas + fichas)
 ────────────────────────────────────────────── */
+function buildSummitTimelineRow(slot) {
+  const rowClass = [
+    'summit-timeline-row',
+    slot.meal ? ' summit-timeline-row--meal' : '',
+    slot.break ? ' summit-timeline-row--break' : ''
+  ].join('');
+  const timeCell = slot.time
+    ? `<span class="summit-timeline-time">${escapeHtml(slot.time)}</span>`
+    : '<span class="summit-timeline-time summit-timeline-time--empty" aria-hidden="true">·</span>';
+  const speakerHtml = slot.speaker
+    ? `<span class="summit-timeline-speaker">${escapeHtml(slot.speaker)}</span>`
+    : '';
+  return `
+    <div class="${rowClass}">
+      ${timeCell}
+      <div class="summit-timeline-body">
+        <span class="summit-timeline-activity">${escapeHtml(slot.activity)}</span>
+        ${speakerHtml}
+      </div>
+    </div>`;
+}
+
+function buildSummitProgramHtml(summit) {
+  return summit.sections.map(section => `
+    <div class="summit-section">
+      <p class="summit-section-label">${escapeHtml(section.label)}</p>
+      <div class="summit-timeline">
+        ${section.slots.map(buildSummitTimelineRow).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function buildSummitCardHtml() {
+  const s = AUTOMOTIVE_SUMMIT;
+  return `
+    <article class="summit-card" id="automotive-summit-card">
+      <h4 class="summit-title">${escapeHtml(s.title)}</h4>
+      <p class="summit-theme">${escapeHtml(s.theme)}</p>
+      <div class="summit-badges">
+        <span class="summit-badge">📅 ${escapeHtml(s.dateBadge)}</span>
+        <span class="summit-badge">📍 ${escapeHtml(s.venueBadge)}</span>
+      </div>
+      <p class="summit-venue-full">${escapeHtml(s.venueFull)}</p>
+      <button type="button" class="summit-toggle" id="summit-toggle-btn" aria-expanded="false" aria-controls="summit-program-panel">
+        <span class="summit-toggle-label">Ver programa completo</span>
+        <span class="summit-toggle-icon" aria-hidden="true">▼</span>
+      </button>
+      <div class="summit-program" id="summit-program-panel" hidden>
+        ${buildSummitProgramHtml(s)}
+      </div>
+    </article>`;
+}
+
+function bindSummitCollapsible() {
+  const card = document.getElementById('automotive-summit-card');
+  const btn = document.getElementById('summit-toggle-btn');
+  const panel = document.getElementById('summit-program-panel');
+  if (!card || !btn || !panel || btn.dataset.bound === '1') return;
+  btn.dataset.bound = '1';
+
+  btn.addEventListener('click', () => {
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    const next = !expanded;
+    btn.setAttribute('aria-expanded', next ? 'true' : 'false');
+    card.classList.toggle('summit-card--expanded', next);
+    panel.hidden = !next;
+    btn.querySelector('.summit-toggle-label').textContent = next
+      ? 'Ocultar programa'
+      : 'Ver programa completo';
+  });
+}
+
 function buildIcexOfficeEmptyHtml() {
   return `
     <div class="icex-empty">
@@ -2355,7 +2544,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '28');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '29');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
