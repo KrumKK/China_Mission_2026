@@ -697,6 +697,7 @@ body.user-selector-open {
 
 /* ═══ DETAIL CARDS (borde rojo izquierdo) ════════════════ */
 .flights-list,
+.agenda-list,
 .logistics-list,
 .team-list,
 .visits-list,
@@ -708,6 +709,7 @@ body.user-selector-open {
 }
 
 .flight-card,
+.agenda-card,
 .hotel-card,
 .team-card,
 .contact-card,
@@ -720,6 +722,129 @@ body.user-selector-open {
   border-left: 4px solid var(--accent);
   padding: 16px 18px;
   box-shadow: 0 2px 12px rgba(61, 53, 80, 0.05);
+}
+
+/* ═══ AGENDA (General) ═══════════════════════════════════ */
+.agenda-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.agenda-card-header {
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #D4007F 0%, var(--accent) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.agenda-card-body {
+  padding: 14px 18px 16px;
+}
+
+.agenda-day-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.agenda-day-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.agenda-day-row:first-child {
+  padding-top: 0;
+}
+
+.agenda-day-block {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.agenda-day-block:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.agenda-day-block:first-child {
+  padding-top: 0;
+}
+
+.agenda-day-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-dark);
+  margin-bottom: 6px;
+}
+
+.agenda-day-date {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.agenda-day-text {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.agenda-forum-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.agenda-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.agenda-timeline-row {
+  display: grid;
+  grid-template-columns: 3.4rem 1fr;
+  gap: 10px 12px;
+  align-items: start;
+  padding: 7px 0;
+  border-top: 1px solid rgba(230, 220, 242, 0.85);
+}
+
+.agenda-timeline-row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.agenda-timeline-time {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-dark);
+  line-height: 1.35;
+  padding-top: 1px;
+}
+
+.agenda-timeline-time--empty {
+  visibility: hidden;
+}
+
+.agenda-timeline-activity {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.agenda-timeline-activity--meal,
+.agenda-timeline-row--meal .agenda-timeline-activity {
+  font-weight: 600;
+  color: var(--text-soft);
 }
 
 /* ═══ FLIGHT CARDS ═══════════════════════════════════════ */

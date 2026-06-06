@@ -101,6 +101,51 @@ const FLIGHTS = [
 ];
 
 /* ──────────────────────────────────────────────
+   DATA — Agenda resumida (pestaña General)
+────────────────────────────────────────────── */
+const TRIP_AGENDA = [
+  {
+    id: 'cisce',
+    title: 'Feria CISCE — Beijing',
+    items: [
+      { date: '22 junio', text: 'Agenda institucional y citas B2B' },
+      {
+        date: '23 junio',
+        text: 'Encuentro «Día de Navarra» + firma MOU con provincia de Hainan'
+      }
+    ]
+  },
+  {
+    id: 'shenzhen',
+    title: 'Misión Shenzhen',
+    days: [
+      {
+        date: '23 junio',
+        text: 'Sesión de trabajo empresas con SPI, preparatoria de las sesiones y B2Bs'
+      },
+      {
+        date: '24 junio',
+        subtitle: 'Foro Navarra-Longhua',
+        forumTitle: 'Innovación, industria y relaciones estratégicas en la Gran Bahía',
+        timeline: [
+          { time: '9:00', activity: 'Inauguración institucional (modera Longhua)' },
+          { time: '9:30', activity: 'Panel 1 — Innovación (modera Navarra)' },
+          { time: '10:30', activity: 'Panel 2 — Industria (modera Longhua)' },
+          { time: '11:30', activity: 'Panel 3 — Relaciones Estratégicas (modera Navarra)' },
+          { time: '12:00', activity: 'Palabras de clausura (modera Longhua)' },
+          { time: '', activity: 'Comida Networking', meal: true },
+          { time: '15:00', activity: 'B2B' }
+        ]
+      },
+      {
+        date: '25–26 junio',
+        text: 'Visitas y reuniones a determinar'
+      }
+    ]
+  }
+];
+
+/* ──────────────────────────────────────────────
    DATA — Contactos (editar / ampliar con vuestro doc)
 ────────────────────────────────────────────── */
 /* Fuente: Contactos_Oficinas_China_v5_Final_KKK.docx (25/05/2026) */
@@ -259,7 +304,7 @@ const ICEX_OFFICES = [
     tabLabel: 'ICEX Cantón',
     heroTag: 'Shenzhen · Cantón',
     heroTitle: 'ICEX Cantón (Shenzhen)',
-    heroDesc: 'Empresas del área de Cantón · 5 fichas con fotos y notas',
+    heroDesc: 'Empresas del área de Cantón · 6 fichas con fotos y notas',
     cityMarker: '粤',
     cityClass: 'city-shenzhen',
     companies: [
@@ -267,7 +312,19 @@ const ICEX_OFFICES = [
       { id: 'icex-canton-02', name: 'Pearl River Composites Ltd.', nameZh: '珠江复合材料', contactPerson: '陈美玲 Meiling Chen', role: 'Gerente de exportación' },
       { id: 'icex-canton-03', name: 'Dongguan Auto Plastics Group', nameZh: '东莞汽车塑料', contactPerson: '黄志明 Zhiming Huang', role: 'Jefe de planta' },
       { id: 'icex-canton-04', name: 'Guangzhou EV Components', nameZh: '广州电动车零部件', contactPerson: '张晓芳 Xiaofang Zhang', role: 'Directora técnica' },
-      { id: 'icex-canton-05', name: 'Longhua Smart Manufacturing', nameZh: '龙华智能制造', contactPerson: '何俊杰 Junjie He', role: 'CEO' }
+      { id: 'icex-canton-05', name: 'Longhua Smart Manufacturing', nameZh: '龙华智能制造', contactPerson: '何俊杰 Junjie He', role: 'CEO' },
+      {
+        id: 'icex-canton-06',
+        name: 'FinDreams BYD',
+        nameZh: '弗迪 (比亚迪)',
+        contactPerson: 'Peng HE',
+        role: 'Gerente Depto. Chasis 6 / Director General de Producto',
+        krumContactsSeed: [
+          'Peng HE — Gerente del Departamento de Chasis 6 y Director General de Producto del Departamento de Chasis 6',
+          'Xiaofei ZHANG — Gerente de línea de productos CEPS y experto en EPS',
+          'Yuanfei WANG — Director del proyecto en el extranjero y su equipo'
+        ].join('\n')
+      }
     ]
   },
   {
@@ -470,6 +527,17 @@ function companyMetaFromSeed(companyId) {
   };
 }
 
+function applyIcexSeedContacts(ficha, companyId) {
+  if (!ficha || !companyId) return ficha;
+  const seed = ICEX_COMPANY_MAP.get(companyId);
+  if (!seed || !seed.krumContactsSeed) return ficha;
+  const krum = ficha.userEntries && ficha.userEntries.krum;
+  if (krum && !trimText(krum.contacts)) {
+    krum.contacts = seed.krumContactsSeed;
+  }
+  return ficha;
+}
+
 function isManualFichaId(companyId) {
   return String(companyId || '').indexOf('otras-') === 0;
 }
@@ -588,11 +656,15 @@ async function loadAllRemoteFichas(force) {
 }
 
 function getCachedFicha(companyId) {
-  if (remoteFichaMap.has(companyId)) return remoteFichaMap.get(companyId);
-  if (isManualFichaId(companyId)) {
-    return normalizeRemoteFicha(null, companyId, metaFromFicha(null, companyId));
+  let ficha;
+  if (remoteFichaMap.has(companyId)) {
+    ficha = remoteFichaMap.get(companyId);
+  } else if (isManualFichaId(companyId)) {
+    ficha = normalizeRemoteFicha(null, companyId, metaFromFicha(null, companyId));
+  } else {
+    ficha = normalizeRemoteFicha(null, companyId, companyMetaFromSeed(companyId));
   }
-  return normalizeRemoteFicha(null, companyId, companyMetaFromSeed(companyId));
+  return applyIcexSeedContacts(ficha, companyId);
 }
 
 function getManualFichasFromCache() {
@@ -814,7 +886,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '26';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '27';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -1227,6 +1299,70 @@ function renderLogistics() {
   }).join('');
 }
 
+
+/* ──────────────────────────────────────────────
+   RENDER — Agenda (General)
+────────────────────────────────────────────── */
+function buildAgendaCisceCard(block) {
+  const rows = block.items.map(item => `
+    <div class="agenda-day-row">
+      <span class="agenda-day-date">${escapeHtml(item.date)}</span>
+      <p class="agenda-day-text">${escapeHtml(item.text)}</p>
+    </div>`).join('');
+
+  return `
+    <article class="agenda-card" data-id="${escapeHtml(block.id)}">
+      <header class="agenda-card-header">${escapeHtml(block.title)}</header>
+      <div class="agenda-card-body">${rows}</div>
+    </article>`;
+}
+
+function buildAgendaTimelineRows(slots) {
+  return slots.map(slot => {
+    const timeCell = slot.time
+      ? `<span class="agenda-timeline-time">${escapeHtml(slot.time)}</span>`
+      : '<span class="agenda-timeline-time agenda-timeline-time--empty" aria-hidden="true">·</span>';
+    const activityClass = slot.meal ? ' agenda-timeline-activity--meal' : '';
+    return `
+      <div class="agenda-timeline-row${slot.meal ? ' agenda-timeline-row--meal' : ''}">
+        ${timeCell}
+        <span class="agenda-timeline-activity${activityClass}">${escapeHtml(slot.activity)}</span>
+      </div>`;
+  }).join('');
+}
+
+function buildAgendaShenzhenCard(block) {
+  const daysHtml = block.days.map(day => {
+    if (day.timeline) {
+      return `
+        <div class="agenda-day-block">
+          <p class="agenda-day-label">${escapeHtml(day.date)}${day.subtitle ? ' — ' + escapeHtml(day.subtitle) : ''}</p>
+          ${day.forumTitle ? `<p class="agenda-forum-title">${escapeHtml(day.forumTitle)}</p>` : ''}
+          <div class="agenda-timeline">${buildAgendaTimelineRows(day.timeline)}</div>
+        </div>`;
+    }
+    return `
+      <div class="agenda-day-block">
+        <p class="agenda-day-label">${escapeHtml(day.date)}</p>
+        <p class="agenda-day-text">${escapeHtml(day.text)}</p>
+      </div>`;
+  }).join('');
+
+  return `
+    <article class="agenda-card" data-id="${escapeHtml(block.id)}">
+      <header class="agenda-card-header">${escapeHtml(block.title)}</header>
+      <div class="agenda-card-body">${daysHtml}</div>
+    </article>`;
+}
+
+function renderAgenda() {
+  const root = document.getElementById('agenda-root');
+  if (!root) return;
+  root.innerHTML = TRIP_AGENDA.map(block => {
+    if (block.items) return buildAgendaCisceCard(block);
+    return buildAgendaShenzhenCard(block);
+  }).join('');
+}
 
 /* ──────────────────────────────────────────────
    RENDER — Vuelos
@@ -1746,7 +1882,13 @@ function fillCompanyModalFromFicha(ficha) {
   let contactsVal = mine.contacts || '';
   if (!contactsVal && activeCompanyId && !manual) {
     const seed = ICEX_COMPANY_MAP.get(activeCompanyId);
-    if (seed) contactsVal = seed.contactPerson + ' — ' + seed.role;
+    if (seed) {
+      if (uid === 'krum' && seed.krumContactsSeed) {
+        contactsVal = seed.krumContactsSeed;
+      } else {
+        contactsVal = seed.contactPerson + ' — ' + seed.role;
+      }
+    }
   }
   if (contacts) contacts.value = contactsVal;
   if (notes) notes.value = mine.notes || '';
@@ -1917,11 +2059,13 @@ async function openCompanyModal(companyId, options) {
   try {
     const raw = await getRemoteFicha(companyId);
     activeModalFicha = normalizeRemoteFicha(raw, companyId, metaFromFicha(raw, companyId));
+    applyIcexSeedContacts(activeModalFicha, companyId);
     setCachedFicha(companyId, activeModalFicha);
     fillCompanyModalFromFicha(activeModalFicha);
   } catch (err) {
     console.warn(err);
     activeModalFicha = normalizeRemoteFicha(null, companyId, metaFromFicha(null, companyId));
+    applyIcexSeedContacts(activeModalFicha, companyId);
     fillCompanyModalFromFicha(activeModalFicha);
     setCompanySaveStatus(connectionErrorMessage(), true);
   } finally {
@@ -2202,7 +2346,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '26');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '27');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
@@ -2244,6 +2388,7 @@ function startApp() {
   if (typeof window.initResumenGenerator === 'function') {
     window.initResumenGenerator();
   }
+  renderAgenda();
   renderFlights();
   renderLogistics();
   renderContacts();
