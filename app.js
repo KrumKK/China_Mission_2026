@@ -527,14 +527,25 @@ function companyMetaFromSeed(companyId) {
   };
 }
 
+function icexSeedContactsText(seed) {
+  if (!seed) return '';
+  if (seed.krumContactsSeed) return seed.krumContactsSeed;
+  if (seed.contactPerson) return seed.contactPerson + ' — ' + seed.role;
+  return '';
+}
+
 function applyIcexSeedContacts(ficha, companyId) {
   if (!ficha || !companyId) return ficha;
   const seed = ICEX_COMPANY_MAP.get(companyId);
-  if (!seed || !seed.krumContactsSeed) return ficha;
-  const krum = ficha.userEntries && ficha.userEntries.krum;
-  if (krum && !trimText(krum.contacts)) {
-    krum.contacts = seed.krumContactsSeed;
-  }
+  const seedText = icexSeedContactsText(seed);
+  if (!seedText) return ficha;
+
+  ['krum', 'oscar'].forEach(userId => {
+    const entry = ficha.userEntries && ficha.userEntries[userId];
+    if (entry && !trimText(entry.contacts)) {
+      entry.contacts = seedText;
+    }
+  });
   return ficha;
 }
 
@@ -1880,20 +1891,17 @@ function fillCompanyModalFromFicha(ficha) {
 
   if (desc) desc.value = mine.description || '';
   let contactsVal = mine.contacts || '';
-  if (!contactsVal && activeCompanyId && !manual) {
-    const seed = ICEX_COMPANY_MAP.get(activeCompanyId);
-    if (seed) {
-      if (uid === 'krum' && seed.krumContactsSeed) {
-        contactsVal = seed.krumContactsSeed;
-      } else {
-        contactsVal = seed.contactPerson + ' — ' + seed.role;
-      }
-    }
+  if (!trimText(contactsVal) && activeCompanyId && !manual) {
+    contactsVal = icexSeedContactsText(ICEX_COMPANY_MAP.get(activeCompanyId));
   }
   if (contacts) contacts.value = contactsVal;
   if (notes) notes.value = mine.notes || '';
   if (otherDesc) otherDesc.value = other.description || '';
-  if (otherContacts) otherContacts.value = other.contacts || '';
+  let otherContactsVal = other.contacts || '';
+  if (!trimText(otherContactsVal) && activeCompanyId && !manual) {
+    otherContactsVal = icexSeedContactsText(ICEX_COMPANY_MAP.get(activeCompanyId));
+  }
+  if (otherContacts) otherContacts.value = otherContactsVal;
   if (otherNotes) otherNotes.value = other.notes || '';
   if (otherTitle) otherTitle.textContent = 'Notas de ' + otherName;
 
