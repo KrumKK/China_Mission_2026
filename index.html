@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '34';
+      window.__APP_BUILD__ = '35';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -107,9 +107,9 @@
         <span class="top-nav-icon">👥</span>
         <span class="top-nav-label">Contactos</span>
       </button>
-      <button type="button" class="top-nav-item" data-view="brochure">
-        <span class="top-nav-icon">📄</span>
-        <span class="top-nav-label">Brochure</span>
+      <button type="button" class="top-nav-item" data-view="presentaciones">
+        <span class="top-nav-icon">📁</span>
+        <span class="top-nav-label">Presentaciones</span>
       </button>
     </nav>
 
@@ -229,28 +229,198 @@
         <div class="event-panel" id="event-panel-icex-pekin" data-event="icex-pekin"></div>
       </section>
 
-      <section class="view view--brochure" id="view-brochure">
-        <div class="brochure-header">
-          <h2 class="section-heading"><span class="section-emoji">📄</span> Brochure Liz-China</h2>
-          <p class="section-lead">Folleto bilingüe · desliza en horizontal o gira el móvil</p>
-          <button type="button" class="btn-brochure-fullscreen" id="btn-brochure-fullscreen" aria-label="Ver a pantalla completa">
-            ⛶ Pantalla completa
-          </button>
-          <button type="button" class="btn-brochure-open-tab" id="btn-brochure-open-tab" aria-label="Abrir folleto en otra pestaña">
-            ↗ Abrir folleto en pantalla nueva
-          </button>
-        </div>
-        <div class="brochure-viewport" id="brochure-viewport">
-          <div id="brochure-frame-home" class="brochure-frame-home">
-            <iframe
-              id="brochure-frame"
-              class="brochure-frame"
-              title="Brochure Lizarte China"
-              loading="lazy"
-              referrerpolicy="no-referrer"
-            ></iframe>
+      <section class="view view--presentaciones" id="view-presentaciones">
+
+        <div class="presentaciones-panel presentaciones-panel--menu active" id="presentaciones-menu">
+          <h2 class="section-heading"><span class="section-emoji">📁</span> Presentaciones</h2>
+          <p class="section-lead">Material corporativo y decks por línea de negocio</p>
+          <div class="presentaciones-menu" id="presentaciones-menu-list">
+            <button type="button" class="presentacion-card" data-presentaciones-go="brochure">
+              <span class="presentacion-card-title">Brochure</span>
+              <span class="presentacion-card-sub">Catálogo corporativo Lizarte</span>
+            </button>
+            <button type="button" class="presentacion-card" data-presentaciones-go="oem">
+              <span class="presentacion-card-title">OEM · TIER1</span>
+              <span class="presentacion-card-sub">Presentación para fabricantes y Tier 1</span>
+            </button>
+            <button type="button" class="presentacion-card" data-presentaciones-go="reman">
+              <span class="presentacion-card-title">Reman</span>
+              <span class="presentacion-card-sub">Joint Venture — Refabricación EPS para China</span>
+            </button>
+            <button type="button" class="presentacion-card" data-presentaciones-go="diversificacion">
+              <span class="presentacion-card-title">Diversificación</span>
+              <span class="presentacion-card-sub">Exoesqueletos · AMR/AGV · Cobots</span>
+            </button>
           </div>
         </div>
+
+        <div class="presentaciones-panel" id="presentaciones-panel-brochure" hidden>
+          <button type="button" class="presentaciones-back" data-presentaciones-back="menu">← Volver a Presentaciones</button>
+          <div class="brochure-header">
+            <h2 class="section-heading"><span class="section-emoji">📄</span> Brochure Liz-China</h2>
+            <p class="section-lead">Folleto bilingüe · desliza en horizontal o gira el móvil</p>
+            <button type="button" class="btn-brochure-fullscreen" id="btn-brochure-fullscreen" aria-label="Ver a pantalla completa">
+              ⛶ Pantalla completa
+            </button>
+            <button type="button" class="btn-brochure-open-tab" id="btn-brochure-open-tab" aria-label="Abrir folleto en otra pestaña">
+              ↗ Abrir folleto en pantalla nueva
+            </button>
+          </div>
+          <div class="brochure-viewport" id="brochure-viewport">
+            <div id="brochure-frame-home" class="brochure-frame-home">
+              <iframe
+                id="brochure-frame"
+                class="brochure-frame"
+                title="Brochure Lizarte China"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+
+        <div class="presentaciones-panel" id="presentaciones-panel-oem" hidden>
+          <button type="button" class="presentaciones-back" data-presentaciones-back="menu">← Volver a Presentaciones</button>
+          <div class="deck-viewer" id="deck-viewer-oem" data-deck-id="oem">
+            <header class="deck-header">
+              <h3 class="deck-title">OEM · TIER1</h3>
+              <p class="deck-subtitle">Presentación para fabricantes y Tier 1</p>
+              <div class="deck-toolbar">
+                <button type="button" class="btn-deck-fullscreen" data-deck-fs="oem" hidden disabled aria-label="Pantalla completa">⛶ Pantalla completa</button>
+                <a class="btn-deck-download" data-deck-dl="oem" hidden download>↓ Descargar</a>
+              </div>
+            </header>
+            <div class="deck-viewport" id="deck-viewport-oem">
+              <div class="deck-placeholder">
+                <span class="deck-placeholder-icon" aria-hidden="true">🏗️</span>
+                <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
+              </div>
+              <iframe class="deck-pdf-frame" title="OEM · TIER1" hidden></iframe>
+              <div class="deck-carousel" hidden>
+                <div class="deck-carousel-track"></div>
+                <div class="deck-carousel-indicator" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="presentaciones-panel" id="presentaciones-panel-reman" hidden>
+          <button type="button" class="presentaciones-back" data-presentaciones-back="menu">← Volver a Presentaciones</button>
+          <div class="deck-viewer" id="deck-viewer-reman" data-deck-id="reman">
+            <header class="deck-header">
+              <h3 class="deck-title">Reman</h3>
+              <p class="deck-subtitle">Joint Venture — Refabricación EPS para China</p>
+              <div class="deck-toolbar">
+                <button type="button" class="btn-deck-fullscreen" data-deck-fs="reman" hidden disabled aria-label="Pantalla completa">⛶ Pantalla completa</button>
+                <a class="btn-deck-download" data-deck-dl="reman" hidden download>↓ Descargar</a>
+              </div>
+            </header>
+            <div class="deck-viewport" id="deck-viewport-reman">
+              <div class="deck-placeholder">
+                <span class="deck-placeholder-icon" aria-hidden="true">🏗️</span>
+                <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
+              </div>
+              <iframe class="deck-pdf-frame" title="Reman" hidden></iframe>
+              <div class="deck-carousel" hidden>
+                <div class="deck-carousel-track"></div>
+                <div class="deck-carousel-indicator" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="presentaciones-panel" id="presentaciones-panel-diversificacion" hidden>
+          <button type="button" class="presentaciones-back" data-presentaciones-back="menu">← Volver a Presentaciones</button>
+          <h3 class="presentaciones-subheading">Diversificación</h3>
+          <p class="section-lead">Selecciona una línea de presentación</p>
+          <div class="presentaciones-menu presentaciones-menu--sub">
+            <button type="button" class="presentacion-card" data-presentaciones-go="exoesqueletos">
+              <span class="presentacion-card-title">Exoesqueletos</span>
+              <span class="presentacion-card-sub">Soluciones de asistencia y rehabilitación</span>
+            </button>
+            <button type="button" class="presentacion-card" data-presentaciones-go="amr">
+              <span class="presentacion-card-title">AMR / AGV</span>
+              <span class="presentacion-card-sub">Robots móviles autónomos</span>
+            </button>
+            <button type="button" class="presentacion-card" data-presentaciones-go="cobots">
+              <span class="presentacion-card-title">Cobots / Brazos robóticos</span>
+              <span class="presentacion-card-sub">Colaboración humano-robot</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="presentaciones-panel" id="presentaciones-panel-exoesqueletos" hidden>
+          <button type="button" class="presentaciones-back" data-presentaciones-back="diversificacion">← Volver a Diversificación</button>
+          <div class="deck-viewer" id="deck-viewer-exoesqueletos" data-deck-id="exoesqueletos">
+            <header class="deck-header">
+              <h3 class="deck-title">Exoesqueletos</h3>
+              <div class="deck-toolbar">
+                <button type="button" class="btn-deck-fullscreen" data-deck-fs="exoesqueletos" hidden disabled aria-label="Pantalla completa">⛶ Pantalla completa</button>
+                <a class="btn-deck-download" data-deck-dl="exoesqueletos" hidden download>↓ Descargar</a>
+              </div>
+            </header>
+            <div class="deck-viewport" id="deck-viewport-exoesqueletos">
+              <div class="deck-placeholder">
+                <span class="deck-placeholder-icon" aria-hidden="true">🏗️</span>
+                <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
+              </div>
+              <iframe class="deck-pdf-frame" title="Exoesqueletos" hidden></iframe>
+              <div class="deck-carousel" hidden>
+                <div class="deck-carousel-track"></div>
+                <div class="deck-carousel-indicator" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="presentaciones-panel" id="presentaciones-panel-amr" hidden>
+          <button type="button" class="presentaciones-back" data-presentaciones-back="diversificacion">← Volver a Diversificación</button>
+          <div class="deck-viewer" id="deck-viewer-amr" data-deck-id="amr">
+            <header class="deck-header">
+              <h3 class="deck-title">AMR / AGV</h3>
+              <div class="deck-toolbar">
+                <button type="button" class="btn-deck-fullscreen" data-deck-fs="amr" hidden disabled aria-label="Pantalla completa">⛶ Pantalla completa</button>
+                <a class="btn-deck-download" data-deck-dl="amr" hidden download>↓ Descargar</a>
+              </div>
+            </header>
+            <div class="deck-viewport" id="deck-viewport-amr">
+              <div class="deck-placeholder">
+                <span class="deck-placeholder-icon" aria-hidden="true">🏗️</span>
+                <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
+              </div>
+              <iframe class="deck-pdf-frame" title="AMR / AGV" hidden></iframe>
+              <div class="deck-carousel" hidden>
+                <div class="deck-carousel-track"></div>
+                <div class="deck-carousel-indicator" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="presentaciones-panel" id="presentaciones-panel-cobots" hidden>
+          <button type="button" class="presentaciones-back" data-presentaciones-back="diversificacion">← Volver a Diversificación</button>
+          <div class="deck-viewer" id="deck-viewer-cobots" data-deck-id="cobots">
+            <header class="deck-header">
+              <h3 class="deck-title">Cobots / Brazos robóticos</h3>
+              <div class="deck-toolbar">
+                <button type="button" class="btn-deck-fullscreen" data-deck-fs="cobots" hidden disabled aria-label="Pantalla completa">⛶ Pantalla completa</button>
+                <a class="btn-deck-download" data-deck-dl="cobots" hidden download>↓ Descargar</a>
+              </div>
+            </header>
+            <div class="deck-viewport" id="deck-viewport-cobots">
+              <div class="deck-placeholder">
+                <span class="deck-placeholder-icon" aria-hidden="true">🏗️</span>
+                <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
+              </div>
+              <iframe class="deck-pdf-frame" title="Cobots / Brazos robóticos" hidden></iframe>
+              <div class="deck-carousel" hidden>
+                <div class="deck-carousel-track"></div>
+                <div class="deck-carousel-indicator" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </section>
 
     </main>
@@ -439,7 +609,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '34';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '35';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
