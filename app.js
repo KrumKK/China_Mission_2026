@@ -30,7 +30,7 @@ const TRIP_LOGISTICS = [
     id: 'shenzhen',
     cityEs: 'Shenzhen · Longhua',
     cityZh: '深圳 · 龙华',
-    dateRange: '23–27 jun 2026 · 4 noches',
+    dateRange: '23–28 jun 2026 · 5 noches',
     hotel: {
       nameEs: 'Grand Madison LongHua Yujing Shenzhen',
       nameZh: '深圳格兰云天龙华观澜酒店',
@@ -1153,7 +1153,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '32';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '33';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -2725,7 +2725,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '32');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '33');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
