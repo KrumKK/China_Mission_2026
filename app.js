@@ -151,6 +151,62 @@ const TRIP_AGENDA = [
 ];
 
 /* ──────────────────────────────────────────────
+   DATA — Delegaciones (Agenda · General)
+────────────────────────────────────────────── */
+const TRIP_DELEGATIONS = {
+  cisce: {
+    institutional: [
+      { org: 'GN.', person: 'Mikel Irujo', role: 'Consejero de Industria y de Transición Ecológica y Digital' },
+      { org: 'GN.', person: 'Iñigo Arruti', role: 'Director General de Fomento Empresarial e Infraestructuras' },
+      { org: 'GN.', person: 'Miren Ausín', role: 'Directora del Servicio de Proyección Internacional' },
+      { org: 'GN.', person: 'Mila García', role: 'Representante comercial, Servicio de Proyección Internacional' },
+      { org: 'GN.', person: 'Alex González', role: 'Becario, Servicio de Proyección Internacional en Shanghái' },
+      { org: 'GN.', person: 'Victoria Iracheta', role: 'Becaria, Servicio de Proyección Internacional en Pekín' },
+      { org: 'SODENA.', person: 'Unai Irigoyen', role: 'Técnico de Proyectos de Captación de Inversiones' },
+      { org: 'SODENA.', person: 'Miguel de la Ossa', role: 'Técnico' }
+    ],
+    companies: [
+      { org: 'CENER.', person: 'Eduardo Aznar', role: 'Director de Desarrollo de Negocio' },
+      { org: 'CEIN.', person: 'Uxue Itoiz', role: 'Directora Gerente' },
+      { org: 'CEIN.', person: 'Víctor Fernández', role: 'Responsable de Comunicación' },
+      { org: 'NHC.', person: 'Laura Corcuera', role: 'Directora Gerente' },
+      { org: 'ATANA.', person: 'Cristina García', role: 'Gerente' },
+      { org: 'iCONS.', person: 'Íñigo Porres', role: 'Gerente' },
+      { org: 'CLAVNA.', person: 'Arturo Cisneros', role: 'Director Gerente' },
+      { org: 'LIZARTE.', person: 'Óscar Huarte', role: 'Consejero Delegado / CEO', highlight: true },
+      { org: 'LIZARTE.', person: 'Krum Kovachev', role: 'Director de Innovación', highlight: true },
+      { org: 'GURPEA.', person: 'Pablo Ayestarán', role: 'Director de Ventas' },
+      { org: 'GURPEA.', person: 'Pedro Odériz', role: 'Director Gerente' }
+    ]
+  },
+  shenzhen: {
+    institutional: [
+      { org: 'GN.', person: 'Mikel Irujo', role: 'Consejero de Industria y de Transición Ecológica y Digital' },
+      { org: 'GN.', person: 'Iñigo Arruti', role: 'Director General de Fomento Empresarial e Infraestructuras' },
+      { org: 'GN.', person: 'Miren Ausín', role: 'Directora del Servicio de Proyección Internacional' },
+      { org: 'GN.', person: 'Mila García', role: 'Representante comercial del Servicio de Proyección Internacional' },
+      { org: 'GN.', person: 'Laura Tella', role: 'Comunicación, Servicio de Proyección Internacional' },
+      { org: 'GN.', person: 'Estela Cerdán', role: 'Técnica del Servicio de Proyección Internacional' }
+    ],
+    companies: [
+      { org: 'CEIN.', person: 'Uxue Itoiz', role: 'Directora Gerente' },
+      { org: 'CEIN.', person: 'Víctor Fernández', role: 'Responsable de Comunicación' },
+      { org: 'CENER.', person: 'Eduardo Aznar', role: 'Director de Desarrollo de Negocio' },
+      { org: 'LIZARTE', highlight: true },
+      { org: 'GURPEA SYSTEMS, S.L.U.' },
+      { org: 'LUARTECHNOLOGY S.L' },
+      { org: 'INNOUP FARMA' },
+      { org: 'NAIR CENTER' },
+      { org: 'NR ELECTRÓNICA' },
+      { org: 'POLO IRIS NASERTIC' },
+      { org: 'DAS-NANO TECH SL' },
+      { org: 'ARANDOVO' },
+      { org: 'HR MOTOR' }
+    ]
+  }
+};
+
+/* ──────────────────────────────────────────────
    DATA — Summit Automotive Electronics (Eventos · Shenzhen)
 ────────────────────────────────────────────── */
 const AUTOMOTIVE_SUMMIT = {
@@ -1153,7 +1209,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '33';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '34';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -1570,6 +1626,91 @@ function renderLogistics() {
 /* ──────────────────────────────────────────────
    RENDER — Agenda (General)
 ────────────────────────────────────────────── */
+function countDelegationEntries(delegation) {
+  if (!delegation) return 0;
+  return (delegation.institutional || []).length + (delegation.companies || []).length;
+}
+
+function isLizarteDelegationEntry(entry) {
+  if (!entry) return false;
+  if (entry.highlight) return true;
+  const org = String(entry.org || '').toUpperCase();
+  return org.indexOf('LIZARTE') === 0;
+}
+
+function buildDelegationRowHtml(entry) {
+  const lizarteClass = isLizarteDelegationEntry(entry) ? ' agenda-delegation-item--lizarte' : '';
+  if (!entry.person) {
+    return `<li class="agenda-delegation-item${lizarteClass}"><span class="delegation-org">${escapeHtml(entry.org)}</span></li>`;
+  }
+  return `<li class="agenda-delegation-item${lizarteClass}">
+    <span class="delegation-org">${escapeHtml(entry.org)}</span>
+    <span class="delegation-person">${escapeHtml(entry.person)}</span>
+    <span class="delegation-role"> — ${escapeHtml(entry.role)}</span>
+  </li>`;
+}
+
+function buildDelegationSectionHtml(label, entries) {
+  if (!entries || !entries.length) return '';
+  const rows = entries.map(buildDelegationRowHtml).join('');
+  return `
+    <div class="agenda-delegation-section">
+      <h4 class="agenda-delegation-heading">${escapeHtml(label)}</h4>
+      <ul class="agenda-delegation-list">${rows}</ul>
+    </div>`;
+}
+
+function buildDelegationBlockHtml(blockId) {
+  const delegation = TRIP_DELEGATIONS[blockId];
+  if (!delegation) return '';
+
+  const count = countDelegationEntries(delegation);
+  const panelId = 'delegation-panel-' + blockId;
+
+  return `
+    <div class="agenda-delegation" data-delegation-id="${escapeHtml(blockId)}">
+      <button type="button" class="agenda-delegation-toggle" aria-expanded="false" aria-controls="${escapeHtml(panelId)}">
+        <span class="agenda-delegation-toggle-label">Ver delegación (${count} personas) ▼</span>
+      </button>
+      <div class="agenda-delegation-panel" id="${escapeHtml(panelId)}" hidden>
+        ${buildDelegationSectionHtml('Institucional', delegation.institutional)}
+        ${buildDelegationSectionHtml('Empresas', delegation.companies)}
+      </div>
+    </div>`;
+}
+
+function wrapAgendaCardWithDelegation(cardHtml, blockId) {
+  const delegationHtml = buildDelegationBlockHtml(blockId);
+  if (!delegationHtml) return cardHtml;
+  return `<div class="agenda-card-group">${cardHtml}${delegationHtml}</div>`;
+}
+
+function bindAgendaDelegations() {
+  document.querySelectorAll('.agenda-delegation-toggle').forEach(btn => {
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+
+    btn.addEventListener('click', () => {
+      const wrap = btn.closest('.agenda-delegation');
+      const panel = wrap ? wrap.querySelector('.agenda-delegation-panel') : null;
+      const label = btn.querySelector('.agenda-delegation-toggle-label');
+      if (!panel || !label) return;
+
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      const next = !expanded;
+      btn.setAttribute('aria-expanded', next ? 'true' : 'false');
+      panel.hidden = !next;
+      wrap.classList.toggle('agenda-delegation--expanded', next);
+
+      const countMatch = label.textContent.match(/\((\d+)\s+personas\)/);
+      const count = countMatch ? countMatch[1] : '';
+      label.textContent = next
+        ? 'Ocultar delegación ▲'
+        : `Ver delegación (${count} personas) ▼`;
+    });
+  });
+}
+
 function buildAgendaCisceCard(block) {
   const rows = block.items.map(item => `
     <div class="agenda-day-row">
@@ -1577,11 +1718,11 @@ function buildAgendaCisceCard(block) {
       <p class="agenda-day-text">${escapeHtml(item.text)}</p>
     </div>`).join('');
 
-  return `
+  return wrapAgendaCardWithDelegation(`
     <article class="agenda-card" data-id="${escapeHtml(block.id)}">
       <header class="agenda-card-header">${escapeHtml(block.title)}</header>
       <div class="agenda-card-body">${rows}</div>
-    </article>`;
+    </article>`, block.id);
 }
 
 function buildAgendaTimelineRows(slots) {
@@ -1623,11 +1764,11 @@ function buildAgendaShenzhenCard(block) {
       </div>`;
   }).join('');
 
-  return `
+  return wrapAgendaCardWithDelegation(`
     <article class="agenda-card" data-id="${escapeHtml(block.id)}">
       <header class="agenda-card-header">${escapeHtml(block.title)}</header>
       <div class="agenda-card-body">${daysHtml}</div>
-    </article>`;
+    </article>`, block.id);
 }
 
 function renderAgenda() {
@@ -1637,6 +1778,7 @@ function renderAgenda() {
     if (block.items) return buildAgendaCisceCard(block);
     return buildAgendaShenzhenCard(block);
   }).join('');
+  bindAgendaDelegations();
 }
 
 /* ──────────────────────────────────────────────
@@ -2725,7 +2867,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '33');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '34');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });

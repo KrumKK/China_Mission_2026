@@ -934,6 +934,105 @@ body.user-selector-open {
   font-weight: 600;
 }
 
+.agenda-card-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.agenda-card-group .agenda-card {
+  margin-bottom: 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.agenda-delegation {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  box-shadow: 0 2px 12px rgba(61, 53, 80, 0.05);
+  overflow: hidden;
+}
+
+.agenda-delegation-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-top: 1px solid var(--card-border);
+  background: var(--bg-elevated);
+  color: var(--accent-dark);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 0.15s;
+}
+
+.agenda-delegation-toggle:active {
+  opacity: 0.92;
+}
+
+.agenda-delegation--expanded .agenda-delegation-toggle {
+  background: var(--accent-light);
+}
+
+.agenda-delegation-panel {
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--card-border);
+}
+
+.agenda-delegation-panel[hidden] {
+  display: none !important;
+}
+
+.agenda-delegation-section + .agenda-delegation-section {
+  margin-top: 12px;
+}
+
+.agenda-delegation-heading {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-soft);
+  margin: 12px 0 6px;
+}
+
+.agenda-delegation-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agenda-delegation-item {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.agenda-delegation-item--lizarte {
+  background: rgba(212, 0, 127, 0.08);
+  border-left: 3px solid var(--accent);
+  padding-left: 10px;
+}
+
+.delegation-org {
+  font-weight: 700;
+}
+
+.delegation-person,
+.delegation-role {
+  font-weight: 400;
+}
+
 /* ═══ SUMMIT CARD (ICEX Cantón) ══════════════════════════ */
 .summit-card {
   background: var(--card);
