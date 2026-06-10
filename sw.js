@@ -1,7 +1,7 @@
 /* Misión China 2026 — Service Worker (red primero en la app) */
 'use strict';
 
-const CACHE_VERSION = 'v35';
+const CACHE_VERSION = 'v36';
 const CACHE_NAME = 'mision-china-' + CACHE_VERSION;
 
 /** Solo recursos estáticos ligeros; la app va siempre a red primero. */
@@ -9,7 +9,10 @@ const OFFLINE_ASSETS = [
   './icon.svg',
   './manifest.webmanifest',
   './lizarte-logo.png',
-  './brochure-liz-china.html'
+  './brochure-liz-china.html',
+  './vcard-qr-krum.png',
+  './vcard-qr-oscar.png',
+  './wechat-qr-krum.png'
 ];
 
 function isSameOrigin(url) {

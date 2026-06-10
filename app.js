@@ -338,6 +338,32 @@ const CONTACTS = [
 ];
 
 /* ──────────────────────────────────────────────
+   DATA — Tarjetas QR Lizarte (Contactos)
+────────────────────────────────────────────── */
+const QR_CONTACT_CARDS = [
+  {
+    id: 'krum',
+    name: 'Krum Kovachev',
+    role: 'Innovation Director · 3rd Gen Family Business',
+    vcardQr: 'vcard-qr-krum.png',
+    wechatQr: 'wechat-qr-krum.png',
+    phone: '+34606629317',
+    phoneDisplay: '+34 606629317',
+    email: 'krum@lizarte.com'
+  },
+  {
+    id: 'oscar',
+    name: 'Óscar Huarte',
+    role: 'CEO · 2nd Gen Family Business',
+    vcardQr: 'vcard-qr-oscar.png',
+    wechatQr: null,
+    phone: '+34677424250',
+    phoneDisplay: '+34 677424250',
+    email: 'oscar@lizarte.com'
+  }
+];
+
+/* ──────────────────────────────────────────────
    DATA — Agendas por evento (timeline)
 ────────────────────────────────────────────── */
 const EVENT_AGENDA = {
@@ -1318,7 +1344,7 @@ function loadDeckPresentation(deckId, options) {
   const els = getDeckViewerElements(deckId);
   if (!els) return;
 
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '35';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '36';
   const url = options.url ? options.url + (options.url.indexOf('?') >= 0 ? '&' : '?') + 'v=' + encodeURIComponent(bust) : '';
 
   if (els.placeholder) els.placeholder.hidden = true;
@@ -1358,7 +1384,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '35';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '36';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -1992,7 +2018,130 @@ function buildFlightCard(f) {
 /* ──────────────────────────────────────────────
    RENDER — Contactos
 ────────────────────────────────────────────── */
+function qrAssetUrl(filename) {
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '36';
+  return filename + '?v=' + encodeURIComponent(bust);
+}
+
+function getOrderedQrContactCards() {
+  const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
+  return QR_CONTACT_CARDS.slice().sort((a, b) => {
+    if (a.id === uid) return -1;
+    if (b.id === uid) return 1;
+    return 0;
+  });
+}
+
+function buildQrContactCard(person) {
+  const vcardSrc = qrAssetUrl(person.vcardQr);
+  const wechatBtn = person.wechatQr
+    ? `<button type="button" class="btn-qr-wechat" data-qr-wechat="${escapeHtml(person.wechatQr)}" data-qr-title="WeChat — ${escapeHtml(person.name)}">Ver WeChat QR</button>`
+    : '';
+
+  return `
+    <article class="qr-contact-card" data-qr-person="${escapeHtml(person.id)}">
+      <header class="qr-contact-header">
+        <h4 class="qr-contact-name">${escapeHtml(person.name)}</h4>
+        <p class="qr-contact-role">${escapeHtml(person.role)}</p>
+      </header>
+      <div class="qr-contact-qr-wrap">
+        <img
+          class="qr-contact-img"
+          src="${escapeHtml(vcardSrc)}"
+          alt="QR vCard de ${escapeHtml(person.name)}"
+          width="320"
+          height="320"
+          loading="lazy"
+        />
+        <button
+          type="button"
+          class="btn-qr-fullscreen"
+          data-qr-fs="${escapeHtml(person.vcardQr)}"
+          data-qr-title="vCard — ${escapeHtml(person.name)}"
+          aria-label="Ver QR vCard a pantalla completa"
+        >⛶ Pantalla completa</button>
+      </div>
+      ${wechatBtn}
+      <div class="qr-contact-links">
+        <a class="qr-contact-link" href="tel:${escapeHtml(person.phone)}">📞 ${escapeHtml(person.phoneDisplay)}</a>
+        <a class="qr-contact-link" href="mailto:${escapeHtml(person.email)}">✉ ${escapeHtml(person.email)}</a>
+      </div>
+    </article>`;
+}
+
+function renderQrContactCards() {
+  const root = document.getElementById('qr-cards-root');
+  if (!root) return;
+  root.innerHTML = getOrderedQrContactCards().map(buildQrContactCard).join('');
+}
+
+function showQrFullscreenModal(src, title) {
+  const modal = document.getElementById('qr-fullscreen-modal');
+  const img = document.getElementById('qr-fullscreen-img');
+  const titleEl = document.getElementById('qr-fullscreen-title');
+  if (!modal || !img) return;
+
+  img.src = qrAssetUrl(src);
+  img.alt = title || 'Código QR';
+  if (titleEl) titleEl.textContent = title || 'QR';
+
+  modal.hidden = false;
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('qr-fullscreen-open');
+}
+
+function hideQrFullscreenModal() {
+  const modal = document.getElementById('qr-fullscreen-modal');
+  const img = document.getElementById('qr-fullscreen-img');
+  if (modal) {
+    modal.hidden = true;
+    modal.setAttribute('aria-hidden', 'true');
+  }
+  if (img) img.src = '';
+  document.body.classList.remove('qr-fullscreen-open');
+}
+
+function initQrContactControls() {
+  const root = document.getElementById('qr-cards-root');
+  if (!root || root.dataset.bound === '1') return;
+  root.dataset.bound = '1';
+
+  root.addEventListener('click', event => {
+    const fsBtn = event.target.closest('[data-qr-fs]');
+    if (fsBtn) {
+      event.preventDefault();
+      showQrFullscreenModal(fsBtn.dataset.qrFs, fsBtn.dataset.qrTitle);
+      return;
+    }
+
+    const wechatBtn = event.target.closest('[data-qr-wechat]');
+    if (wechatBtn) {
+      event.preventDefault();
+      showQrFullscreenModal(wechatBtn.dataset.qrWechat, wechatBtn.dataset.qrTitle);
+    }
+  });
+
+  const modal = document.getElementById('qr-fullscreen-modal');
+  if (!modal || modal.dataset.bound === '1') return;
+  modal.dataset.bound = '1';
+
+  const backdrop = document.getElementById('qr-fullscreen-backdrop');
+  const closeBtn = document.getElementById('qr-fullscreen-close');
+  const close = () => hideQrFullscreenModal();
+
+  if (backdrop) backdrop.addEventListener('click', close);
+  if (closeBtn) closeBtn.addEventListener('click', close);
+
+  document.addEventListener('keydown', event => {
+    const m = document.getElementById('qr-fullscreen-modal');
+    if (m && !m.hidden && event.key === 'Escape') hideQrFullscreenModal();
+  });
+}
+
 function renderContacts() {
+  renderQrContactCards();
+  initQrContactControls();
+
   const container = document.getElementById('contacts-list');
   if (!container) return;
 
@@ -3019,7 +3168,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '35');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '36');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });

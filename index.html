@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '35';
+      window.__APP_BUILD__ = '36';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -207,6 +207,11 @@
       <section class="view" id="view-contactos">
         <h2 class="section-heading"><span class="section-emoji">👥</span> Contactos</h2>
         <p class="section-lead">Listado v5 · 25 mayo 2026 · ICEX, CCPIT, Navarra, consultora</p>
+
+        <h3 class="qr-section-heading">Tarjetas de contacto QR</h3>
+        <p class="qr-section-lead">Muestra el QR en reunión para guardar contacto o añadir en WeChat</p>
+        <div id="qr-cards-root" class="qr-cards-list"></div>
+
         <div id="contacts-list"></div>
       </section>
 
@@ -511,6 +516,19 @@
     </div>
   </div>
 
+  <div id="qr-fullscreen-modal" class="qr-fullscreen-modal" hidden aria-hidden="true">
+    <div class="qr-fullscreen-backdrop" id="qr-fullscreen-backdrop"></div>
+    <div class="qr-fullscreen-sheet" role="dialog" aria-modal="true" aria-labelledby="qr-fullscreen-title">
+      <header class="qr-fullscreen-header">
+        <h3 class="qr-fullscreen-title" id="qr-fullscreen-title">QR</h3>
+        <button type="button" class="qr-fullscreen-close" id="qr-fullscreen-close" aria-label="Cerrar">✕</button>
+      </header>
+      <div class="qr-fullscreen-body">
+        <img class="qr-fullscreen-img" id="qr-fullscreen-img" src="" alt="" />
+      </div>
+    </div>
+  </div>
+
   <div id="resumen-download-modal" class="resumen-download-modal" hidden aria-hidden="true">
     <div class="resumen-download-backdrop" id="resumen-download-backdrop"></div>
     <div class="resumen-download-card" role="dialog" aria-modal="true" aria-labelledby="resumen-download-title">
@@ -609,7 +627,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '35';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '36';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;

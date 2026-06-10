@@ -1601,6 +1601,210 @@ body.user-selector-open {
 .contact-tag--pending { background: var(--alert-red); color: var(--accent-dark); border: 1px solid var(--alert-red-border); }
 .contact-tag--open    { background: var(--bg-elevated); color: var(--text-faint); }
 
+/* ═══ QR CONTACT CARDS (Contactos) ═══════════════════════ */
+.qr-section-heading {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 20px 0 4px;
+}
+
+.qr-section-lead {
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.qr-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.qr-contact-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: 18px 16px 16px;
+  box-shadow: 0 2px 12px rgba(61, 53, 80, 0.05);
+}
+
+.qr-contact-header {
+  margin-bottom: 14px;
+}
+
+.qr-contact-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.qr-contact-role {
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.4;
+}
+
+.qr-contact-qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.qr-contact-img {
+  display: block;
+  width: min(100%, 320px);
+  min-width: 280px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #fff;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+.btn-qr-fullscreen,
+.btn-qr-wechat {
+  width: 100%;
+  max-width: 320px;
+  padding: 11px 14px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.btn-qr-fullscreen {
+  border: 2px solid var(--accent);
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+
+.btn-qr-wechat {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto 12px;
+  border: 2px solid var(--card-border);
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+.qr-contact-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.qr-contact-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.qr-contact-link:active {
+  opacity: 0.85;
+}
+
+/* Modal QR pantalla completa */
+.qr-fullscreen-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 15000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.qr-fullscreen-modal[hidden] {
+  display: none !important;
+}
+
+.qr-fullscreen-backdrop {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+}
+
+.qr-fullscreen-sheet {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-height: 100dvh;
+  background: #fff;
+}
+
+.qr-fullscreen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.qr-fullscreen-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.qr-fullscreen-close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.qr-fullscreen-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.qr-fullscreen-img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(95vw, 480px);
+  max-height: min(85dvh, 480px);
+  object-fit: contain;
+  background: #fff;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+body.qr-fullscreen-open {
+  overflow: hidden;
+}
+
 /* ═══ TIMELINE / EVENTOS ═════════════════════════════════ */
 .event-hero {
   background: var(--card);
