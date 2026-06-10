@@ -1,7 +1,7 @@
 /* Misión China 2026 — Service Worker (red primero en la app) */
 'use strict';
 
-const CACHE_VERSION = 'v38';
+const CACHE_VERSION = 'v39';
 const CACHE_NAME = 'mision-china-' + CACHE_VERSION;
 
 /** Solo recursos estáticos ligeros; la app va siempre a red primero. */
@@ -13,7 +13,7 @@ const OFFLINE_ASSETS = [
   './vcard-qr-krum.png',
   './vcard-qr-oscar.png',
   './wechat-qr-krum.png',
-  './presentaciones/oem-tier1/slides.json'
+  './Presentaciones/oem-tier1/slides.json'
 ];
 
 function isSameOrigin(url) {
@@ -65,7 +65,7 @@ self.addEventListener('message', event => {
 });
 
 function isPresentationAsset(pathname) {
-  return pathname.indexOf('/presentaciones/') !== -1;
+  return pathname.indexOf('/Presentaciones/') !== -1;
 }
 
 self.addEventListener('fetch', event => {

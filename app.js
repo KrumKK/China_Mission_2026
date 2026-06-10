@@ -1242,11 +1242,11 @@ function getPresentacionesPanelId(screen) {
    PRESENTACIONES — visor carrusel (diapositivas)
 ────────────────────────────────────────────── */
 const DECK_PRESENTATIONS = {
-  oem: { folder: 'presentaciones/oem-tier1' },
-  reman: { folder: 'presentaciones/reman' },
-  exoesqueletos: { folder: 'presentaciones/diversificacion/exoesqueletos' },
-  amr: { folder: 'presentaciones/diversificacion/amr' },
-  cobots: { folder: 'presentaciones/diversificacion/cobots' }
+  oem: { folder: 'Presentaciones/oem-tier1' },
+  reman: { folder: 'Presentaciones/reman' },
+  exoesqueletos: { folder: 'Presentaciones/diversificacion/exoesqueletos' },
+  amr: { folder: 'Presentaciones/diversificacion/amr' },
+  cobots: { folder: 'Presentaciones/diversificacion/cobots' }
 };
 
 function showPresentacionesScreen(screen) {
@@ -1318,7 +1318,7 @@ let activeDeckFsId = null;
 let deckFsToggleLock = false;
 
 function deckCacheBust() {
-  return window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
+  return window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '39';
 }
 
 function getDeckViewerElements(deckId) {
@@ -1686,7 +1686,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '39';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -2321,7 +2321,7 @@ function buildFlightCard(f) {
    RENDER — Contactos
 ────────────────────────────────────────────── */
 function qrAssetUrl(filename) {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '39';
   return filename + '?v=' + encodeURIComponent(bust);
 }
 
@@ -3470,7 +3470,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '38');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '39');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
