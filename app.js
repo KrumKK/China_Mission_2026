@@ -1238,6 +1238,17 @@ function getPresentacionesPanelId(screen) {
   return 'presentaciones-panel-' + screen;
 }
 
+/* ──────────────────────────────────────────────
+   PRESENTACIONES — visor carrusel (diapositivas)
+────────────────────────────────────────────── */
+const DECK_PRESENTATIONS = {
+  oem: { folder: 'presentaciones/oem-tier1' },
+  reman: { folder: 'presentaciones/reman' },
+  exoesqueletos: { folder: 'presentaciones/diversificacion/exoesqueletos' },
+  amr: { folder: 'presentaciones/diversificacion/amr' },
+  cobots: { folder: 'presentaciones/diversificacion/cobots' }
+};
+
 function showPresentacionesScreen(screen) {
   presentacionesScreen = screen || 'menu';
 
@@ -1255,7 +1266,12 @@ function showPresentacionesScreen(screen) {
     tryLockLandscape();
   } else {
     exitBrochureFullscreen(document.getElementById('brochure-viewport'));
+    exitDeckFullscreen();
     if (presentacionesScreen === 'menu') tryUnlockOrientation();
+  }
+
+  if (DECK_PRESENTATIONS[presentacionesScreen]) {
+    initSlideDeck(presentacionesScreen).catch(err => console.warn('Slide deck:', err));
   }
 }
 
@@ -1297,6 +1313,14 @@ function initPresentaciones() {
   showPresentacionesScreen('menu');
 }
 
+const slideDeckState = new Map();
+let activeDeckFsId = null;
+let deckFsToggleLock = false;
+
+function deckCacheBust() {
+  return window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
+}
+
 function getDeckViewerElements(deckId) {
   const viewer = document.getElementById('deck-viewer-' + deckId);
   if (!viewer) return null;
@@ -1305,47 +1329,333 @@ function getDeckViewerElements(deckId) {
     viewport: viewer.querySelector('.deck-viewport'),
     placeholder: viewer.querySelector('.deck-placeholder'),
     pdfFrame: viewer.querySelector('.deck-pdf-frame'),
-    carousel: viewer.querySelector('.deck-carousel'),
+    carousel: viewer.querySelector('.deck-slide-carousel'),
+    slideImg: viewer.querySelector('.deck-slide-img'),
+    indicator: viewer.querySelector('.deck-carousel-indicator'),
     fsBtn: viewer.querySelector('[data-deck-fs="' + deckId + '"]'),
     dlLink: viewer.querySelector('[data-deck-dl="' + deckId + '"]')
   };
+}
+
+function setDeckViewportSlideMode(els, active) {
+  if (!els) return;
+  if (els.viewport) els.viewport.classList.toggle('deck-viewport--has-slides', !!active);
+  if (els.placeholder) els.placeholder.hidden = !active ? false : true;
+  if (els.pdfFrame) els.pdfFrame.hidden = true;
+  if (els.carousel) els.carousel.hidden = !active;
+}
+
+function slideDeckAssetUrl(folder, filename) {
+  return folder + '/' + encodeURI(filename).replace(/#/g, '%23') + '?v=' + encodeURIComponent(deckCacheBust());
+}
+
+function sortSlideFilenames(files) {
+  return files.slice().sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+}
+
+async function fetchSlideManifest(folder) {
+  const url = folder + '/slides.json?v=' + encodeURIComponent(deckCacheBust());
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) {
+    console.warn('[SlideDeck] slides.json no disponible:', url, res.status);
+    return [];
+  }
+  const data = await res.json();
+  const slides = Array.isArray(data.slides) ? data.slides : [];
+  const images = sortSlideFilenames(slides.filter(name => /\.(jpe?g|png|webp)$/i.test(name)));
+  console.log('[SlideDeck] manifest', folder, images.length, 'diapositivas');
+  return images;
+}
+
+function updateDeckSlideIndicator(deckId) {
+  const state = slideDeckState.get(deckId);
+  const els = getDeckViewerElements(deckId);
+  if (!state || !els || !els.indicator) return;
+  els.indicator.textContent = (state.current + 1) + ' / ' + state.slides.length;
+}
+
+function preloadDeckSlide(deckId, index) {
+  const state = slideDeckState.get(deckId);
+  if (!state || index < 0 || index >= state.slides.length) return;
+  const name = state.slides[index];
+  if (state.preloaded.has(name)) return;
+  const img = new Image();
+  img.decoding = 'async';
+  img.src = slideDeckAssetUrl(state.folder, name);
+  state.preloaded.set(name, img);
+}
+
+function preloadAdjacentDeckSlides(deckId) {
+  const state = slideDeckState.get(deckId);
+  if (!state) return;
+  preloadDeckSlide(deckId, state.current - 1);
+  preloadDeckSlide(deckId, state.current + 1);
+}
+
+function goToDeckSlide(deckId, index) {
+  const state = slideDeckState.get(deckId);
+  const els = getDeckViewerElements(deckId);
+  if (!state || !els || !els.slideImg || !state.slides.length) return;
+
+  const next = Math.max(0, Math.min(index, state.slides.length - 1));
+  state.current = next;
+
+  const filename = state.slides[next];
+  const src = slideDeckAssetUrl(state.folder, filename);
+  els.slideImg.src = src;
+  els.slideImg.alt = 'Diapositiva ' + (next + 1) + ' de ' + state.slides.length;
+
+  if (els.dlLink) {
+    els.dlLink.href = src;
+    els.dlLink.download = filename;
+    els.dlLink.hidden = false;
+  }
+
+  updateDeckSlideIndicator(deckId);
+  preloadAdjacentDeckSlides(deckId);
+
+  const prevBtn = els.viewer.querySelector('[data-deck-nav="prev"]');
+  const nextBtn = els.viewer.querySelector('[data-deck-nav="next"]');
+  if (prevBtn) prevBtn.disabled = next <= 0;
+  if (nextBtn) nextBtn.disabled = next >= state.slides.length - 1;
+}
+
+function stepDeckSlide(deckId, delta) {
+  const state = slideDeckState.get(deckId);
+  if (!state) return;
+  goToDeckSlide(deckId, state.current + delta);
+}
+
+function bindSlideDeckSwipe(deckId) {
+  const els = getDeckViewerElements(deckId);
+  if (!els || !els.carousel) return;
+  const stage = els.carousel.querySelector('[data-deck-swipe]');
+  if (!stage || stage.dataset.bound === '1') return;
+  stage.dataset.bound = '1';
+
+  let startX = 0;
+  let startY = 0;
+
+  stage.addEventListener('touchstart', event => {
+    if (!event.changedTouches || !event.changedTouches.length) return;
+    startX = event.changedTouches[0].screenX;
+    startY = event.changedTouches[0].screenY;
+  }, { passive: true });
+
+  stage.addEventListener('touchend', event => {
+    if (!event.changedTouches || !event.changedTouches.length) return;
+    const dx = event.changedTouches[0].screenX - startX;
+    const dy = event.changedTouches[0].screenY - startY;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+    if (dx < 0) stepDeckSlide(deckId, 1);
+    else stepDeckSlide(deckId, -1);
+  }, { passive: true });
+}
+
+function bindSlideDeckControls(deckId) {
+  const els = getDeckViewerElements(deckId);
+  if (!els || !els.viewer || els.viewer.dataset.deckBound === '1') return;
+  els.viewer.dataset.deckBound = '1';
+
+  els.viewer.addEventListener('click', event => {
+    const nav = event.target.closest('[data-deck-nav]');
+    if (!nav) return;
+    event.preventDefault();
+    if (nav.dataset.deckNav === 'prev') stepDeckSlide(deckId, -1);
+    else if (nav.dataset.deckNav === 'next') stepDeckSlide(deckId, 1);
+  });
+
+  bindSlideDeckSwipe(deckId);
+}
+
+async function initSlideDeck(deckId) {
+  console.log('[SlideDeck] initSlideDeck llamado:', deckId);
+  const config = DECK_PRESENTATIONS[deckId];
+  const els = getDeckViewerElements(deckId);
+  if (!config || !els) {
+    console.warn('[SlideDeck] sin config o DOM:', deckId, { config: !!config, els: !!els });
+    return;
+  }
+
+  const existing = slideDeckState.get(deckId);
+  if (existing && existing.ready) {
+    goToDeckSlide(deckId, existing.current);
+    return;
+  }
+
+  const slides = await fetchSlideManifest(config.folder);
+  if (!slides.length) {
+    console.warn('[SlideDeck] sin diapositivas para', deckId, 'en', config.folder);
+    return;
+  }
+
+  slideDeckState.set(deckId, {
+    folder: config.folder,
+    slides,
+    current: 0,
+    preloaded: new Map(),
+    ready: true
+  });
+
+  setDeckViewportSlideMode(els, true);
+
+  if (els.fsBtn) {
+    els.fsBtn.hidden = false;
+    els.fsBtn.disabled = false;
+  }
+
+  bindSlideDeckControls(deckId);
+  goToDeckSlide(deckId, 0);
+  console.log('[SlideDeck] carrusel activo:', deckId, slides.length, 'diapositivas');
+}
+
+function isDeckFullscreenActive(deckId) {
+  const els = getDeckViewerElements(deckId);
+  if (!els || !els.viewport) return false;
+  return (
+    activeDeckFsId === deckId
+    || els.viewport.classList.contains('deck-viewport--expanded')
+    || getFullscreenElement() === els.viewport
+  );
+}
+
+function updateDeckFullscreenButton(btn, active) {
+  if (!btn) return;
+  btn.textContent = active ? '✕ Salir pantalla completa' : '⛶ Pantalla completa';
+  btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+}
+
+function enterDeckExpanded(deckId) {
+  const els = getDeckViewerElements(deckId);
+  if (!els || !els.viewport) return;
+  els.viewport.classList.add('deck-viewport--expanded', 'deck-viewport--presentation');
+  document.body.classList.add('deck-fullscreen-active');
+  activeDeckFsId = deckId;
+  tryLockLandscape();
+}
+
+function exitDeckExpanded(deckId) {
+  const els = getDeckViewerElements(deckId);
+  if (els && els.viewport) {
+    els.viewport.classList.remove('deck-viewport--expanded', 'deck-viewport--presentation');
+  }
+  if (activeDeckFsId === deckId) activeDeckFsId = null;
+  if (!document.querySelector('.deck-viewport--expanded')) {
+    document.body.classList.remove('deck-fullscreen-active');
+    tryUnlockOrientation();
+  }
+}
+
+async function exitDeckFullscreen(deckId) {
+  if (deckId) {
+    const els = getDeckViewerElements(deckId);
+    if (els && els.viewport && getFullscreenElement() === els.viewport) {
+      await exitNativeFullscreen();
+    }
+    exitDeckExpanded(deckId);
+    updateDeckFullscreenButton(els && els.fsBtn, false);
+    return;
+  }
+
+  document.querySelectorAll('.deck-viewport--expanded').forEach(vp => {
+    vp.classList.remove('deck-viewport--expanded', 'deck-viewport--presentation');
+  });
+  if (getFullscreenElement()) await exitNativeFullscreen();
+  activeDeckFsId = null;
+  document.body.classList.remove('deck-fullscreen-active');
+  tryUnlockOrientation();
+  document.querySelectorAll('[data-deck-fs]').forEach(btn => updateDeckFullscreenButton(btn, false));
+}
+
+async function toggleDeckFullscreen(deckId) {
+  if (deckFsToggleLock) return;
+  deckFsToggleLock = true;
+  setTimeout(() => { deckFsToggleLock = false; }, 450);
+
+  const els = getDeckViewerElements(deckId);
+  if (!els || !els.viewport || !els.fsBtn || els.fsBtn.disabled) return;
+
+  if (isDeckFullscreenActive(deckId)) {
+    await exitDeckFullscreen(deckId);
+    return;
+  }
+
+  if (prefersBrochurePortal()) {
+    enterDeckExpanded(deckId);
+    updateDeckFullscreenButton(els.fsBtn, true);
+    return;
+  }
+
+  const nativeOk = await requestNativeFullscreen(els.viewport);
+  if (nativeOk) {
+    activeDeckFsId = deckId;
+    updateDeckFullscreenButton(els.fsBtn, true);
+    tryLockLandscape();
+    return;
+  }
+
+  enterDeckExpanded(deckId);
+  updateDeckFullscreenButton(els.fsBtn, true);
 }
 
 function initDeckViewers() {
   document.querySelectorAll('[data-deck-fs]').forEach(btn => {
     if (btn.dataset.bound === '1') return;
     btn.dataset.bound = '1';
-    btn.addEventListener('click', async event => {
+    btn.addEventListener('click', event => {
       event.preventDefault();
-      const deckId = btn.dataset.deckFs;
-      const els = getDeckViewerElements(deckId);
-      if (!els || !els.viewport || btn.disabled) return;
-
-      const nativeOk = await requestNativeFullscreen(els.viewport);
-      if (!nativeOk) {
-        els.viewport.classList.toggle('deck-viewport--expanded');
-        document.body.classList.toggle('deck-fullscreen-active', els.viewport.classList.contains('deck-viewport--expanded'));
-      }
+      toggleDeckFullscreen(btn.dataset.deckFs);
     });
   });
 
-  document.addEventListener('fullscreenchange', () => {
+  const onFullscreenChange = () => {
     if (getFullscreenElement()) return;
     document.querySelectorAll('.deck-viewport--expanded').forEach(vp => {
-      vp.classList.remove('deck-viewport--expanded');
+      vp.classList.remove('deck-viewport--expanded', 'deck-viewport--presentation');
     });
+    activeDeckFsId = null;
     document.body.classList.remove('deck-fullscreen-active');
+    document.querySelectorAll('[data-deck-fs]').forEach(btn => updateDeckFullscreenButton(btn, false));
+  };
+
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && activeDeckFsId) {
+      exitDeckFullscreen(activeDeckFsId);
+      return;
+    }
+    if (!activeDeckFsId) return;
+    if (event.key === 'ArrowRight') stepDeckSlide(activeDeckFsId, 1);
+    if (event.key === 'ArrowLeft') stepDeckSlide(activeDeckFsId, -1);
   });
 }
 
-/* Cargar presentación real (PDF o imágenes) — uso futuro */
+/* Cargar presentación por carpeta (reutilizable) */
 function loadDeckPresentation(deckId, options) {
   options = options || {};
+  if (options.type === 'images' && options.slides && options.slides.length) {
+    const config = DECK_PRESENTATIONS[deckId] || { folder: options.folder || '' };
+    slideDeckState.set(deckId, {
+      folder: config.folder,
+      slides: sortSlideFilenames(options.slides),
+      current: 0,
+      preloaded: new Map(),
+      ready: true
+    });
+    const els = getDeckViewerElements(deckId);
+    setDeckViewportSlideMode(els, true);
+    if (els && els.fsBtn) { els.fsBtn.hidden = false; els.fsBtn.disabled = false; }
+    bindSlideDeckControls(deckId);
+    goToDeckSlide(deckId, 0);
+    return;
+  }
+
   const els = getDeckViewerElements(deckId);
   if (!els) return;
 
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '36';
-  const url = options.url ? options.url + (options.url.indexOf('?') >= 0 ? '&' : '?') + 'v=' + encodeURIComponent(bust) : '';
+  const url = options.url ? options.url + (options.url.indexOf('?') >= 0 ? '&' : '?') + 'v=' + encodeURIComponent(deckCacheBust()) : '';
 
   if (els.placeholder) els.placeholder.hidden = true;
 
@@ -1353,17 +1663,6 @@ function loadDeckPresentation(deckId, options) {
     els.pdfFrame.hidden = false;
     els.pdfFrame.src = url;
     if (els.carousel) els.carousel.hidden = true;
-  } else if (options.type === 'images' && options.slides && options.slides.length && els.carousel) {
-    const track = els.carousel.querySelector('.deck-carousel-track');
-    const indicator = els.carousel.querySelector('.deck-carousel-indicator');
-    if (track) {
-      track.innerHTML = options.slides.map((src, i) =>
-        `<figure class="deck-slide" data-slide="${i}"><img src="${String(src).replace(/"/g, '&quot;')}" alt="Diapositiva ${i + 1}" loading="lazy" /></figure>`
-      ).join('');
-    }
-    els.carousel.hidden = false;
-    if (els.pdfFrame) els.pdfFrame.hidden = true;
-    if (indicator) indicator.textContent = '1 / ' + options.slides.length;
   }
 
   if (url && els.dlLink) {
@@ -1376,6 +1675,9 @@ function loadDeckPresentation(deckId, options) {
   }
 }
 
+window.loadDeckPresentation = loadDeckPresentation;
+window.initSlideDeck = initSlideDeck;
+
 
 /* ──────────────────────────────────────────────
    BROCHURE — folleto en iframe (scroll horizontal)
@@ -1384,7 +1686,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '36';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -2019,7 +2321,7 @@ function buildFlightCard(f) {
    RENDER — Contactos
 ────────────────────────────────────────────── */
 function qrAssetUrl(filename) {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '36';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
   return filename + '?v=' + encodeURIComponent(bust);
 }
 
@@ -3168,7 +3470,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '36');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '38');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });

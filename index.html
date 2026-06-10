@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '36';
+      window.__APP_BUILD__ = '38';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -301,9 +301,17 @@
                 <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
               </div>
               <iframe class="deck-pdf-frame" title="OEM · TIER1" hidden></iframe>
-              <div class="deck-carousel" hidden>
-                <div class="deck-carousel-track"></div>
-                <div class="deck-carousel-indicator" aria-live="polite"></div>
+              <div class="deck-slide-carousel" hidden>
+                <div class="deck-slide-carousel-inner">
+                  <button type="button" class="deck-nav deck-nav--prev" data-deck-nav="prev" aria-label="Diapositiva anterior">‹</button>
+                  <div class="deck-slide-stage" data-deck-swipe>
+                    <div class="deck-slide-zoom-wrap">
+                      <img class="deck-slide-img" alt="" decoding="async" />
+                    </div>
+                  </div>
+                  <button type="button" class="deck-nav deck-nav--next" data-deck-nav="next" aria-label="Diapositiva siguiente">›</button>
+                </div>
+                <p class="deck-carousel-indicator" aria-live="polite"></p>
               </div>
             </div>
           </div>
@@ -326,9 +334,17 @@
                 <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
               </div>
               <iframe class="deck-pdf-frame" title="Reman" hidden></iframe>
-              <div class="deck-carousel" hidden>
-                <div class="deck-carousel-track"></div>
-                <div class="deck-carousel-indicator" aria-live="polite"></div>
+              <div class="deck-slide-carousel" hidden>
+                <div class="deck-slide-carousel-inner">
+                  <button type="button" class="deck-nav deck-nav--prev" data-deck-nav="prev" aria-label="Diapositiva anterior">‹</button>
+                  <div class="deck-slide-stage" data-deck-swipe>
+                    <div class="deck-slide-zoom-wrap">
+                      <img class="deck-slide-img" alt="" decoding="async" />
+                    </div>
+                  </div>
+                  <button type="button" class="deck-nav deck-nav--next" data-deck-nav="next" aria-label="Diapositiva siguiente">›</button>
+                </div>
+                <p class="deck-carousel-indicator" aria-live="polite"></p>
               </div>
             </div>
           </div>
@@ -370,9 +386,17 @@
                 <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
               </div>
               <iframe class="deck-pdf-frame" title="Exoesqueletos" hidden></iframe>
-              <div class="deck-carousel" hidden>
-                <div class="deck-carousel-track"></div>
-                <div class="deck-carousel-indicator" aria-live="polite"></div>
+              <div class="deck-slide-carousel" hidden>
+                <div class="deck-slide-carousel-inner">
+                  <button type="button" class="deck-nav deck-nav--prev" data-deck-nav="prev" aria-label="Diapositiva anterior">‹</button>
+                  <div class="deck-slide-stage" data-deck-swipe>
+                    <div class="deck-slide-zoom-wrap">
+                      <img class="deck-slide-img" alt="" decoding="async" />
+                    </div>
+                  </div>
+                  <button type="button" class="deck-nav deck-nav--next" data-deck-nav="next" aria-label="Diapositiva siguiente">›</button>
+                </div>
+                <p class="deck-carousel-indicator" aria-live="polite"></p>
               </div>
             </div>
           </div>
@@ -394,9 +418,17 @@
                 <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
               </div>
               <iframe class="deck-pdf-frame" title="AMR / AGV" hidden></iframe>
-              <div class="deck-carousel" hidden>
-                <div class="deck-carousel-track"></div>
-                <div class="deck-carousel-indicator" aria-live="polite"></div>
+              <div class="deck-slide-carousel" hidden>
+                <div class="deck-slide-carousel-inner">
+                  <button type="button" class="deck-nav deck-nav--prev" data-deck-nav="prev" aria-label="Diapositiva anterior">‹</button>
+                  <div class="deck-slide-stage" data-deck-swipe>
+                    <div class="deck-slide-zoom-wrap">
+                      <img class="deck-slide-img" alt="" decoding="async" />
+                    </div>
+                  </div>
+                  <button type="button" class="deck-nav deck-nav--next" data-deck-nav="next" aria-label="Diapositiva siguiente">›</button>
+                </div>
+                <p class="deck-carousel-indicator" aria-live="polite"></p>
               </div>
             </div>
           </div>
@@ -418,9 +450,17 @@
                 <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
               </div>
               <iframe class="deck-pdf-frame" title="Cobots / Brazos robóticos" hidden></iframe>
-              <div class="deck-carousel" hidden>
-                <div class="deck-carousel-track"></div>
-                <div class="deck-carousel-indicator" aria-live="polite"></div>
+              <div class="deck-slide-carousel" hidden>
+                <div class="deck-slide-carousel-inner">
+                  <button type="button" class="deck-nav deck-nav--prev" data-deck-nav="prev" aria-label="Diapositiva anterior">‹</button>
+                  <div class="deck-slide-stage" data-deck-swipe>
+                    <div class="deck-slide-zoom-wrap">
+                      <img class="deck-slide-img" alt="" decoding="async" />
+                    </div>
+                  </div>
+                  <button type="button" class="deck-nav deck-nav--next" data-deck-nav="next" aria-label="Diapositiva siguiente">›</button>
+                </div>
+                <p class="deck-carousel-indicator" aria-live="polite"></p>
               </div>
             </div>
           </div>
@@ -627,7 +667,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '36';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
