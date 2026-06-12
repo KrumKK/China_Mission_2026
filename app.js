@@ -111,7 +111,11 @@ const TRIP_AGENDA = [
       { date: '22 junio', text: 'Agenda institucional y citas B2B' },
       {
         date: '23 junio',
-        text: 'Encuentro «Día de Navarra» + firma MOU con provincia de Hainan'
+        lines: [
+          'Encuentro «Día de Navarra» (11:00-12:00, Sala E201)',
+          { text: '«Navarra: your innovative, agile and efficient partner in Europe»', italic: true },
+          '+ firma MOU con provincia de Hainan'
+        ]
       }
     ]
   },
@@ -302,6 +306,60 @@ const AUTOMOTIVE_SUMMIT = {
         },
         { time: '16:20-18:00', activity: 'Automotive Electronics Science and Technology Award Ceremony 🏆' },
         { time: '18:30-20:30', activity: 'Networking Dinner 🍷', meal: true }
+      ]
+    }
+  ]
+};
+
+const NAVARRA_DAY_EVENT = {
+  subtitle: 'Día de Navarra',
+  title: 'Navarra: your innovative, agile and efficient partner in Europe',
+  dateBadge: '23 junio 2026',
+  venueBadge: 'Sala E201, CISCE Beijing',
+  langBadge: 'Inglés',
+  capacityBadge: '~50 personas',
+  sections: [
+    {
+      label: 'Programa',
+      slots: [
+        {
+          time: '11:00 - 11:05',
+          activity: 'Apertura de la actividad',
+          speaker: 'Wang Yongjiao (INA WANG), Vicepresidenta de ACIIEC',
+          details: 'Bienvenida a invitados chinos y españoles, presentación de la delegación de Navarra.'
+        },
+        {
+          time: '11:05 - 11:15',
+          activity: 'Navarra y su estrategia industrial',
+          speaker: 'Mikel Irujo, Consejero de Industria, Transición Ecológica y Digitalización, Comunidad Foral de Navarra',
+          talkTitle: 'Navarra: your innovative, agile and efficient partner in Europe',
+          details: 'Estrategia de promoción internacional, sectores estratégicos, inversiones de empresas chinas.'
+        },
+        {
+          time: '11:15 - 11:25',
+          activity: 'Entorno de inversión y servicios para implantación de proyectos en Navarra',
+          speaker: 'Iñigo Arruti, Director General de Promoción Empresarial e Infraestructuras, Comunidad Foral de Navarra',
+          talkTitle: 'Desde la intención de inversión hasta la implantación del proyecto: el sistema de servicios integral de Navarra',
+          details: 'Recursos de suelo, parques industriales, tramitación, garantías energéticas, RRHH, coordinación gubernamental, servicios de inversión y financiación.'
+        },
+        {
+          time: '11:25 - 11:30',
+          activity: 'Ecosistema de innovación de Navarra',
+          speaker: 'Uxue Itoiz (CEIN)',
+          talkTitle: 'A determinar por CEIN'
+        },
+        {
+          time: '11:30 - 11:55',
+          activity: 'Sectores estratégicos de Navarra',
+          speaker: 'CENER, NHC, iCONS, CLAVNA, ATANA',
+          talkTitle: 'Oportunidades de colaboración con los sectores estratégicos de Navarra'
+        },
+        {
+          time: '11:55 - 12:00',
+          activity: 'Intercambio interactivo e invitación a la cooperación',
+          speaker: 'Moderadora: Wang Yongjiao',
+          details: 'Turno de preguntas de empresas chinas, publicación de demandas de cooperación, invitación a visitas de inspección en Navarra.'
+        }
       ]
     }
   ]
@@ -2307,12 +2365,30 @@ function bindAgendaDelegations() {
   });
 }
 
-function buildAgendaCisceCard(block) {
-  const rows = block.items.map(item => `
+function buildAgendaCisceRow(item) {
+  if (item.lines) {
+    const body = item.lines.map(line => {
+      if (typeof line === 'string') {
+        return `<p class="agenda-day-text">${escapeHtml(line)}</p>`;
+      }
+      const cls = line.italic ? ' agenda-day-text--italic' : '';
+      return `<p class="agenda-day-text${cls}">${escapeHtml(line.text)}</p>`;
+    }).join('');
+    return `
+    <div class="agenda-day-row">
+      <span class="agenda-day-date">${escapeHtml(item.date)}</span>
+      <div class="agenda-day-lines">${body}</div>
+    </div>`;
+  }
+  return `
     <div class="agenda-day-row">
       <span class="agenda-day-date">${escapeHtml(item.date)}</span>
       <p class="agenda-day-text">${escapeHtml(item.text)}</p>
-    </div>`).join('');
+    </div>`;
+}
+
+function buildAgendaCisceCard(block) {
+  const rows = block.items.map(buildAgendaCisceRow).join('');
 
   return wrapAgendaCardWithDelegation(`
     <article class="agenda-card" data-id="${escapeHtml(block.id)}">
@@ -2654,6 +2730,7 @@ function renderEventAgendas() {
       </div>
       ${data.programIntro ? `<div class="alert-box alert-box--info"><span class="alert-icon">📋</span><p>${escapeHtml(data.programIntro)}</p></div>` : ''}
       ${key === 'shenzhen' ? buildSummitCardHtml() : ''}
+      ${key === 'cisce' ? buildNavarraDayCardHtml() : ''}
       <div class="timeline">
         <div class="timeline-city">
           <div class="city-marker ${data.cityClass}">${data.cityMarker}</div>
@@ -2768,12 +2845,20 @@ function buildSummitTimelineRow(slot) {
   const speakerHtml = slot.speaker
     ? `<span class="summit-timeline-speaker">${escapeHtml(slot.speaker)}</span>`
     : '';
+  const talkHtml = slot.talkTitle
+    ? `<span class="summit-timeline-talk">«${escapeHtml(slot.talkTitle)}»</span>`
+    : '';
+  const detailsHtml = slot.details
+    ? `<span class="summit-timeline-details">${escapeHtml(slot.details)}</span>`
+    : '';
   return `
     <div class="${rowClass}">
       ${timeCell}
       <div class="summit-timeline-body">
         <span class="summit-timeline-activity">${escapeHtml(slot.activity)}</span>
+        ${talkHtml}
         ${speakerHtml}
+        ${detailsHtml}
       </div>
     </div>`;
 }
@@ -2809,10 +2894,32 @@ function buildSummitCardHtml() {
     </article>`;
 }
 
-function bindSummitCollapsible() {
-  const card = document.getElementById('automotive-summit-card');
-  const btn = document.getElementById('summit-toggle-btn');
-  const panel = document.getElementById('summit-program-panel');
+function buildNavarraDayCardHtml() {
+  const e = NAVARRA_DAY_EVENT;
+  return `
+    <article class="summit-card" id="navarra-day-card">
+      <p class="summit-theme summit-theme--label">${escapeHtml(e.subtitle)}</p>
+      <h4 class="summit-title">${escapeHtml(e.title)}</h4>
+      <div class="summit-badges">
+        <span class="summit-badge">📅 ${escapeHtml(e.dateBadge)}</span>
+        <span class="summit-badge">📍 ${escapeHtml(e.venueBadge)}</span>
+        <span class="summit-badge">🌐 ${escapeHtml(e.langBadge)}</span>
+        <span class="summit-badge">👥 ${escapeHtml(e.capacityBadge)}</span>
+      </div>
+      <button type="button" class="summit-toggle" id="navarra-day-toggle-btn" aria-expanded="false" aria-controls="navarra-day-program-panel">
+        <span class="summit-toggle-label">Ver programa completo</span>
+        <span class="summit-toggle-icon" aria-hidden="true">▼</span>
+      </button>
+      <div class="summit-program" id="navarra-day-program-panel" hidden>
+        ${buildSummitProgramHtml(e)}
+      </div>
+    </article>`;
+}
+
+function bindProgramCollapsible(cardId, btnId, panelId) {
+  const card = document.getElementById(cardId);
+  const btn = document.getElementById(btnId);
+  const panel = document.getElementById(panelId);
   if (!card || !btn || !panel || btn.dataset.bound === '1') return;
   btn.dataset.bound = '1';
 
@@ -2826,6 +2933,11 @@ function bindSummitCollapsible() {
       ? 'Ocultar programa'
       : 'Ver programa completo';
   });
+}
+
+function bindSummitCollapsible() {
+  bindProgramCollapsible('automotive-summit-card', 'summit-toggle-btn', 'summit-program-panel');
+  bindProgramCollapsible('navarra-day-card', 'navarra-day-toggle-btn', 'navarra-day-program-panel');
 }
 
 function buildIcexOfficeEmptyHtml() {

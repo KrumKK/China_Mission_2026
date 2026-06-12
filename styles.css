@@ -869,6 +869,16 @@ body.user-selector-open {
   color: var(--text);
 }
 
+.agenda-day-text--italic {
+  font-style: italic;
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.agenda-day-lines .agenda-day-text + .agenda-day-text {
+  margin-top: 4px;
+}
+
 .agenda-forum-title {
   font-size: 13px;
   font-weight: 600;
@@ -1060,6 +1070,16 @@ body.user-selector-open {
   margin-bottom: 12px;
 }
 
+.summit-theme--label {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--accent-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
 .summit-badges {
   display: flex;
   flex-wrap: wrap;
@@ -1204,6 +1224,21 @@ body.user-selector-open {
   font-size: 12px;
   line-height: 1.35;
   color: var(--text-faint);
+}
+
+.summit-timeline-talk {
+  display: block;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-soft);
+  line-height: 1.4;
+}
+
+.summit-timeline-details {
+  display: block;
+  font-size: 11px;
+  color: var(--text-faint);
+  line-height: 1.45;
 }
 
 .summit-timeline-row--meal .summit-timeline-activity,
