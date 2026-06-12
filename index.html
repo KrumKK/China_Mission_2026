@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '39';
+      window.__APP_BUILD__ = '38';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -240,6 +240,10 @@
           <h2 class="section-heading"><span class="section-emoji">📁</span> Presentaciones</h2>
           <p class="section-lead">Material corporativo y decks por línea de negocio</p>
           <div class="presentaciones-menu" id="presentaciones-menu-list">
+            <button type="button" class="presentacion-card" data-presentaciones-go="video">
+              <span class="presentacion-card-title">Vídeo corporativo</span>
+              <span class="presentacion-card-sub">Lizarte — vídeo institucional en mandarín (2:19)</span>
+            </button>
             <button type="button" class="presentacion-card" data-presentaciones-go="brochure">
               <span class="presentacion-card-title">Brochure</span>
               <span class="presentacion-card-sub">Catálogo corporativo Lizarte</span>
@@ -256,6 +260,26 @@
               <span class="presentacion-card-title">Diversificación</span>
               <span class="presentacion-card-sub">Exoesqueletos · AMR/AGV · Cobots</span>
             </button>
+          </div>
+        </div>
+
+        <div class="presentaciones-panel" id="presentaciones-panel-video" hidden>
+          <button type="button" class="presentaciones-back" data-presentaciones-back="menu">← Volver a Presentaciones</button>
+          <header class="corporate-video-header">
+            <h3 class="deck-title">Vídeo corporativo</h3>
+            <p class="deck-subtitle">Lizarte — vídeo institucional en mandarín (2:19)</p>
+            <p class="corporate-video-cache-status" id="corporate-video-cache-status" hidden aria-live="polite">Descargando vídeo para uso offline…</p>
+            <button type="button" class="btn-deck-fullscreen" id="btn-corporate-video-fullscreen" aria-label="Pantalla completa">⛶ Pantalla completa</button>
+          </header>
+          <div class="corporate-video-viewport" id="corporate-video-viewport">
+            <video
+              id="corporate-video"
+              class="corporate-video-player"
+              controls
+              playsinline
+              preload="metadata"
+              title="Vídeo corporativo Lizarte"
+            ></video>
           </div>
         </div>
 
@@ -667,7 +691,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '39';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;

@@ -1249,6 +1249,148 @@ const DECK_PRESENTATIONS = {
   cobots: { folder: 'Presentaciones/diversificacion/cobots' }
 };
 
+const CORPORATE_VIDEO_FILE = 'Presentaciones/lizarte-corporate.mp4';
+
+function getMediaCacheName() {
+  return 'mision-china-v' + (window.__APP_BUILD__ || '38');
+}
+
+function getCorporateVideoUrl() {
+  return CORPORATE_VIDEO_FILE + '?v=' + encodeURIComponent(deckCacheBust());
+}
+
+let corporateVideoCaching = false;
+
+function pauseCorporateVideo() {
+  const video = document.getElementById('corporate-video');
+  if (video && !video.paused) video.pause();
+}
+
+async function ensureCorporateVideoCached() {
+  const video = document.getElementById('corporate-video');
+  const status = document.getElementById('corporate-video-cache-status');
+  if (!video) return;
+
+  const videoUrl = getCorporateVideoUrl();
+  if (video.dataset.src !== videoUrl) {
+    video.src = videoUrl;
+    video.dataset.src = videoUrl;
+    video.load();
+  }
+
+  if (!('caches' in window)) return;
+
+  try {
+    const cache = await caches.open(getMediaCacheName());
+    const cached = await cache.match(videoUrl);
+    if (cached) {
+      if (status) status.hidden = true;
+      return;
+    }
+
+    if (corporateVideoCaching) return;
+    corporateVideoCaching = true;
+
+    if (status) status.hidden = false;
+
+    const res = await fetch(videoUrl);
+    if (res.ok) await cache.put(videoUrl, res.clone());
+  } catch (err) {
+    console.warn('Corporate video cache:', err);
+  } finally {
+    corporateVideoCaching = false;
+    if (status) status.hidden = true;
+  }
+}
+
+function initCorporateVideoViewer() {
+  ensureCorporateVideoCached().catch(err => console.warn('Corporate video:', err));
+}
+
+function isCorporateVideoFullscreenActive() {
+  const viewport = document.getElementById('corporate-video-viewport');
+  const video = document.getElementById('corporate-video');
+  if (!viewport) return false;
+  const fs = getFullscreenElement();
+  return (
+    viewport.classList.contains('corporate-video-viewport--expanded')
+    || fs === viewport
+    || fs === video
+  );
+}
+
+function updateCorporateVideoFullscreenButton(active) {
+  const btn = document.getElementById('btn-corporate-video-fullscreen');
+  if (!btn) return;
+  btn.textContent = active ? '✕ Salir pantalla completa' : '⛶ Pantalla completa';
+  btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+}
+
+async function exitCorporateVideoFullscreen() {
+  const viewport = document.getElementById('corporate-video-viewport');
+  const video = document.getElementById('corporate-video');
+  if (viewport && getFullscreenElement() === viewport) await exitNativeFullscreen();
+  if (video && getFullscreenElement() === video) await exitNativeFullscreen();
+  if (viewport) viewport.classList.remove('corporate-video-viewport--expanded');
+  document.body.classList.remove('corporate-video-fullscreen-active');
+  updateCorporateVideoFullscreenButton(false);
+  tryUnlockOrientation();
+}
+
+async function toggleCorporateVideoFullscreen() {
+  const viewport = document.getElementById('corporate-video-viewport');
+  const video = document.getElementById('corporate-video');
+  if (!viewport || !video) return;
+
+  if (isCorporateVideoFullscreenActive()) {
+    await exitCorporateVideoFullscreen();
+    return;
+  }
+
+  if (prefersBrochurePortal()) {
+    viewport.classList.add('corporate-video-viewport--expanded');
+    document.body.classList.add('corporate-video-fullscreen-active');
+    updateCorporateVideoFullscreenButton(true);
+    tryLockLandscape();
+    return;
+  }
+
+  const nativeOk = await requestNativeFullscreen(viewport);
+  if (nativeOk) {
+    updateCorporateVideoFullscreenButton(true);
+    tryLockLandscape();
+    return;
+  }
+
+  viewport.classList.add('corporate-video-viewport--expanded');
+  document.body.classList.add('corporate-video-fullscreen-active');
+  updateCorporateVideoFullscreenButton(true);
+  tryLockLandscape();
+}
+
+function initCorporateVideoControls() {
+  const btn = document.getElementById('btn-corporate-video-fullscreen');
+  const viewport = document.getElementById('corporate-video-viewport');
+  if (!btn || !viewport || btn.dataset.bound === '1') return;
+  btn.dataset.bound = '1';
+
+  btn.addEventListener('click', event => {
+    event.preventDefault();
+    toggleCorporateVideoFullscreen();
+  });
+
+  const onFullscreenChange = () => {
+    if (!isCorporateVideoFullscreenActive()) {
+      if (viewport) viewport.classList.remove('corporate-video-viewport--expanded');
+      document.body.classList.remove('corporate-video-fullscreen-active');
+      updateCorporateVideoFullscreenButton(false);
+    }
+  };
+
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+}
+
 function showPresentacionesScreen(screen) {
   presentacionesScreen = screen || 'menu';
 
@@ -1267,7 +1409,13 @@ function showPresentacionesScreen(screen) {
   } else {
     exitBrochureFullscreen(document.getElementById('brochure-viewport'));
     exitDeckFullscreen();
+    exitCorporateVideoFullscreen();
+    pauseCorporateVideo();
     if (presentacionesScreen === 'menu') tryUnlockOrientation();
+  }
+
+  if (presentacionesScreen === 'video') {
+    initCorporateVideoViewer();
   }
 
   if (DECK_PRESENTATIONS[presentacionesScreen]) {
@@ -1310,6 +1458,7 @@ function initPresentaciones() {
   });
 
   initDeckViewers();
+  initCorporateVideoControls();
   showPresentacionesScreen('menu');
 }
 
@@ -1318,7 +1467,7 @@ let activeDeckFsId = null;
 let deckFsToggleLock = false;
 
 function deckCacheBust() {
-  return window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '39';
+  return window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
 }
 
 function getDeckViewerElements(deckId) {
@@ -1686,7 +1835,7 @@ let brochureFrameLoaded = false;
 let brochureToggleLock = false;
 
 function getBrochureUrl() {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '39';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
   return 'brochure-liz-china.html?v=' + encodeURIComponent(bust);
 }
 
@@ -2321,7 +2470,7 @@ function buildFlightCard(f) {
    RENDER — Contactos
 ────────────────────────────────────────────── */
 function qrAssetUrl(filename) {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '39';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
   return filename + '?v=' + encodeURIComponent(bust);
 }
 
@@ -3470,7 +3619,7 @@ function initPWA() {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
 
   window.addEventListener('load', () => {
-    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '39');
+    const swUrl = 'sw.js?v=' + encodeURIComponent(window.__APP_BUILD__ || '38');
     navigator.serviceWorker.register(swUrl).catch(err => {
       console.warn('No se pudo registrar el Service Worker:', err);
     });
