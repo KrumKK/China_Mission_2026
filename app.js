@@ -1334,7 +1334,6 @@ async function exitCorporateVideoFullscreen() {
   if (viewport) viewport.classList.remove('corporate-video-viewport--expanded');
   document.body.classList.remove('corporate-video-fullscreen-active');
   updateCorporateVideoFullscreenButton(false);
-  tryUnlockOrientation();
 }
 
 async function toggleCorporateVideoFullscreen() {
@@ -1347,25 +1346,16 @@ async function toggleCorporateVideoFullscreen() {
     return;
   }
 
-  if (prefersBrochurePortal()) {
-    viewport.classList.add('corporate-video-viewport--expanded');
-    document.body.classList.add('corporate-video-fullscreen-active');
-    updateCorporateVideoFullscreenButton(true);
-    tryLockLandscape();
-    return;
-  }
-
-  const nativeOk = await requestNativeFullscreen(viewport);
+  const nativeOk = await requestNativeFullscreen(video)
+    || await requestNativeFullscreen(viewport);
   if (nativeOk) {
     updateCorporateVideoFullscreenButton(true);
-    tryLockLandscape();
     return;
   }
 
   viewport.classList.add('corporate-video-viewport--expanded');
   document.body.classList.add('corporate-video-fullscreen-active');
   updateCorporateVideoFullscreenButton(true);
-  tryLockLandscape();
 }
 
 function initCorporateVideoControls() {
@@ -1405,13 +1395,11 @@ function showPresentacionesScreen(screen) {
 
   if (isBrochure) {
     initBrochureFrame();
-    tryLockLandscape();
   } else {
     exitBrochureFullscreen(document.getElementById('brochure-viewport'));
     exitDeckFullscreen();
     exitCorporateVideoFullscreen();
     pauseCorporateVideo();
-    if (presentacionesScreen === 'menu') tryUnlockOrientation();
   }
 
   if (presentacionesScreen === 'video') {
@@ -1680,7 +1668,6 @@ function enterDeckExpanded(deckId) {
   els.viewport.classList.add('deck-viewport--expanded', 'deck-viewport--presentation');
   document.body.classList.add('deck-fullscreen-active');
   activeDeckFsId = deckId;
-  tryLockLandscape();
 }
 
 function exitDeckExpanded(deckId) {
@@ -1691,7 +1678,6 @@ function exitDeckExpanded(deckId) {
   if (activeDeckFsId === deckId) activeDeckFsId = null;
   if (!document.querySelector('.deck-viewport--expanded')) {
     document.body.classList.remove('deck-fullscreen-active');
-    tryUnlockOrientation();
   }
 }
 
@@ -1712,7 +1698,6 @@ async function exitDeckFullscreen(deckId) {
   if (getFullscreenElement()) await exitNativeFullscreen();
   activeDeckFsId = null;
   document.body.classList.remove('deck-fullscreen-active');
-  tryUnlockOrientation();
   document.querySelectorAll('[data-deck-fs]').forEach(btn => updateDeckFullscreenButton(btn, false));
 }
 
@@ -1729,17 +1714,10 @@ async function toggleDeckFullscreen(deckId) {
     return;
   }
 
-  if (prefersBrochurePortal()) {
-    enterDeckExpanded(deckId);
-    updateDeckFullscreenButton(els.fsBtn, true);
-    return;
-  }
-
   const nativeOk = await requestNativeFullscreen(els.viewport);
   if (nativeOk) {
     activeDeckFsId = deckId;
     updateDeckFullscreenButton(els.fsBtn, true);
-    tryLockLandscape();
     return;
   }
 
@@ -1875,16 +1853,6 @@ function isBrochurePortalOpen() {
   return !!(portal && !portal.hidden);
 }
 
-function tryLockLandscape() {
-  if (!screen.orientation || !screen.orientation.lock) return;
-  screen.orientation.lock('landscape').catch(() => { /* no soportado */ });
-}
-
-function tryUnlockOrientation() {
-  if (!screen.orientation || !screen.orientation.unlock) return;
-  try { screen.orientation.unlock(); } catch (_) { /* ignore */ }
-}
-
 function getFullscreenElement() {
   return (
     document.fullscreenElement
@@ -1914,7 +1882,6 @@ function enterBrochurePortal() {
   portal.hidden = false;
   portal.setAttribute('aria-hidden', 'false');
   document.body.classList.add('brochure-fs-portal-open');
-  tryLockLandscape();
 }
 
 function exitBrochurePortal() {
@@ -1938,28 +1905,33 @@ function updateBrochureFullscreenButton(btn, active) {
 function enterBrochureExpanded(viewport) {
   viewport.classList.add('brochure-viewport--expanded');
   document.body.classList.add('brochure-fullscreen-active');
-  tryLockLandscape();
 }
 
 function exitBrochureExpanded(viewport) {
   viewport.classList.remove('brochure-viewport--expanded');
   document.body.classList.remove('brochure-fullscreen-active');
-  tryUnlockOrientation();
 }
 
 async function requestNativeFullscreen(el) {
-  const request = (
-    el.requestFullscreen
-    || el.webkitRequestFullscreen
-    || el.msRequestFullscreen
-  );
-  if (!request) return false;
-  try {
-    await request.call(el);
-    return getFullscreenElement() === el;
-  } catch (_) {
-    return false;
+  if (!el) return false;
+
+  const attempts = [
+    () => el.requestFullscreen && el.requestFullscreen(),
+    () => el.webkitRequestFullscreen && el.webkitRequestFullscreen(),
+    () => el.msRequestFullscreen && el.msRequestFullscreen()
+  ];
+
+  for (let i = 0; i < attempts.length; i++) {
+    try {
+      await attempts[i]();
+      const fs = getFullscreenElement();
+      if (fs === el) return true;
+    } catch (_) {
+      /* probar siguiente API */
+    }
   }
+
+  return getFullscreenElement() === el;
 }
 
 async function exitNativeFullscreen() {
@@ -1977,13 +1949,11 @@ async function exitNativeFullscreen() {
 async function exitBrochureFullscreen(viewport) {
   if (isBrochurePortalOpen()) {
     exitBrochurePortal();
-    tryUnlockOrientation();
   }
   if (viewport && getFullscreenElement() === viewport) {
     await exitNativeFullscreen();
   }
   if (viewport) exitBrochureExpanded(viewport);
-  else tryUnlockOrientation();
   updateBrochureFullscreenButton(
     document.getElementById('btn-brochure-fullscreen'),
     false
@@ -2013,16 +1983,15 @@ async function toggleBrochureFullscreen() {
 
   initBrochureFrame();
 
-  if (prefersBrochurePortal()) {
-    enterBrochurePortal();
+  const nativeOk = await requestNativeFullscreen(viewport);
+  if (nativeOk) {
     updateBrochureFullscreenButton(btn, true);
     return;
   }
 
-  const nativeOk = await requestNativeFullscreen(viewport);
-  if (nativeOk) {
+  if (prefersBrochurePortal()) {
+    enterBrochurePortal();
     updateBrochureFullscreenButton(btn, true);
-    tryLockLandscape();
     return;
   }
 
@@ -2169,11 +2138,9 @@ function initNavigation() {
     if (target === 'presentaciones') {
       if (presentacionesScreen === 'brochure') {
         initBrochureFrame();
-        tryLockLandscape();
       }
     } else {
       exitBrochureFullscreen(document.getElementById('brochure-viewport'));
-      tryUnlockOrientation();
       resetPresentacionesToMenu();
     }
 
