@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '43';
+      window.__APP_BUILD__ = '44';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -154,6 +154,7 @@
             </div>
             <p class="countdown-value" id="countdown-days">—</p>
             <p class="countdown-sub" id="countdown-sub">días para el viaje</p>
+            <p class="countdown-hours" id="countdown-hours" hidden></p>
           </article>
           </div>
 

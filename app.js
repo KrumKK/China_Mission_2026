@@ -1273,6 +1273,7 @@ function initCountdown() {
   const target = new Date(2026, 5, 20, 12, 0, 0);
   const daysEl = document.getElementById('countdown-days');
   const subEl = document.getElementById('countdown-sub');
+  const hoursEl = document.getElementById('countdown-hours');
   if (!daysEl) return;
 
   function update() {
@@ -1281,14 +1282,22 @@ function initCountdown() {
     if (diff <= 0) {
       daysEl.textContent = '¡Ya!';
       if (subEl) subEl.textContent = 'Salida Madrid · 20 jun 12:00';
+      if (hoursEl) hoursEl.hidden = true;
       return;
     }
-    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    const dayMs = 1000 * 60 * 60 * 24;
+    const hourMs = 1000 * 60 * 60;
+    const days = Math.ceil(diff / dayMs);
+    const hours = Math.floor(diff / hourMs);
     daysEl.textContent = String(days);
     if (subEl) {
       subEl.textContent = days === 1
         ? 'día hasta salida (20 jun, 12:00)'
         : 'días hasta salida (20 jun, 12:00)';
+    }
+    if (hoursEl) {
+      hoursEl.textContent = hours === 1 ? '1 hora' : hours + ' horas';
+      hoursEl.hidden = false;
     }
   }
 
