@@ -1,7 +1,7 @@
 /* Misión China 2026 — Service Worker (red primero en la app) */
 'use strict';
 
-const CACHE_VERSION = 'v41';
+const CACHE_VERSION = 'v42';
 const CACHE_NAME = 'mision-china-' + CACHE_VERSION;
 
 /** Solo recursos estáticos ligeros; la app va siempre a red primero. */
@@ -66,7 +66,12 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('message', event => {
-  if (!event.data || event.data.type !== 'CLEAR_CACHES') return;
+  if (!event.data) return;
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
+  if (event.data.type !== 'CLEAR_CACHES') return;
   event.waitUntil(
     caches.keys().then(keys => Promise.all(keys.map(key => caches.delete(key))))
   );

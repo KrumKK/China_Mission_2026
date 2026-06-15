@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '40';
+      window.__APP_BUILD__ = '42';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -64,6 +64,13 @@
         <button type="button" class="login-user-btn" data-user="oscar">Soy Óscar</button>
       </div>
       <p id="login-sync-status" class="login-sync-status" aria-live="polite">Introduce el PIN y elige usuario</p>
+      <div class="login-update-block">
+        <button type="button" class="login-update-btn" id="login-update-app-btn">
+          🔄 Actualizar app
+        </button>
+        <p class="login-sw-version" id="login-sw-version" aria-live="polite">Caché SW —</p>
+      </div>
+      <p id="login-toast" class="login-toast" hidden role="status" aria-live="polite"></p>
       <p class="login-hint">Prueba en producción: <strong>krumkk.github.io/China_Mission_2026</strong> (localhost puede fallar por CORS).</p>
     </div>
   </div>

@@ -3701,6 +3701,164 @@ async function renderMeetingsSummary() {
 
 
 /* ──────────────────────────────────────────────
+   LOGIN — actualización forzada del service worker
+────────────────────────────────────────────── */
+const SW_CACHE_PREFIX = 'mision-china-';
+let loginToastTimer = null;
+
+function showLoginToast(message) {
+  const toast = document.getElementById('login-toast');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.hidden = false;
+  clearTimeout(loginToastTimer);
+  loginToastTimer = setTimeout(() => {
+    toast.hidden = true;
+  }, 2000);
+}
+
+async function resolveSwCacheVersionLabel() {
+  const el = document.getElementById('login-sw-version');
+  if (!el) return;
+
+  let label = '—';
+  try {
+    if (window.caches) {
+      const keys = await caches.keys();
+      const match = keys.filter(key => key.indexOf(SW_CACHE_PREFIX) === 0).sort().pop();
+      if (match) {
+        el.textContent = 'Caché SW ' + match.slice(SW_CACHE_PREFIX.length);
+        return;
+      }
+    }
+    const bust = window.__APP_BUILD__ || '42';
+    const res = await fetch('sw.js?v=' + encodeURIComponent(bust), { cache: 'no-store' });
+    if (!res.ok) throw new Error('fetch failed');
+    const text = await res.text();
+    const match = text.match(/CACHE_VERSION\s*=\s*['"]([^'"]+)['"]/);
+    if (match) label = match[1];
+  } catch (_) {}
+
+  el.textContent = 'Caché SW ' + label;
+}
+
+function listenForSwControllerReload() {
+  if (!navigator.serviceWorker) return;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  }, { once: true });
+}
+
+function activateWaitingServiceWorker(reg) {
+  if (!reg || !reg.waiting) return false;
+  reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+  return true;
+}
+
+function watchInstallingWorker(reg) {
+  if (!reg) return;
+  reg.addEventListener('updatefound', () => {
+    const worker = reg.installing;
+    if (!worker) return;
+    worker.addEventListener('statechange', () => {
+      if (worker.state !== 'installed') return;
+      if (navigator.serviceWorker.controller) {
+        activateWaitingServiceWorker(reg);
+      }
+    });
+  });
+}
+
+function waitForInstallingWorker(reg) {
+  const worker = reg && reg.installing;
+  if (!worker) return Promise.resolve();
+
+  if (worker.state === 'installed' || worker.state === 'activated') {
+    return Promise.resolve();
+  }
+
+  return new Promise(resolve => {
+    worker.addEventListener('statechange', () => {
+      if (worker.state === 'installed' || worker.state === 'activated') {
+        resolve();
+      }
+    });
+  });
+}
+
+async function forceLoginAppUpdate() {
+  const btn = document.getElementById('login-update-app-btn');
+  if (btn && btn.disabled) return;
+
+  if (!navigator.serviceWorker) {
+    showLoginToast('Sin conexión. Inténtalo más tarde.');
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+  }
+
+  let pendingReload = false;
+
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) {
+      showLoginToast('App actualizada ✓');
+      return;
+    }
+
+    listenForSwControllerReload();
+
+    if (activateWaitingServiceWorker(reg)) {
+      pendingReload = true;
+      return;
+    }
+
+    await reg.update();
+
+    if (activateWaitingServiceWorker(reg)) {
+      pendingReload = true;
+      return;
+    }
+
+    await waitForInstallingWorker(reg);
+
+    if (activateWaitingServiceWorker(reg)) {
+      pendingReload = true;
+      return;
+    }
+
+    showLoginToast('App actualizada ✓');
+    await resolveSwCacheVersionLabel();
+  } catch (_) {
+    showLoginToast('Sin conexión. Inténtalo más tarde.');
+  } finally {
+    if (btn && !pendingReload) {
+      btn.disabled = false;
+      btn.removeAttribute('aria-busy');
+    }
+  }
+}
+
+function initLoginAppUpdate() {
+  const btn = document.getElementById('login-update-app-btn');
+  if (!btn || btn.dataset.bound === '1') return;
+  btn.dataset.bound = '1';
+  btn.addEventListener('click', () => {
+    forceLoginAppUpdate();
+  });
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration()
+      .then(reg => { if (reg) watchInstallingWorker(reg); })
+      .catch(() => undefined);
+  }
+  resolveSwCacheVersionLabel();
+}
+
+
+/* ──────────────────────────────────────────────
    PWA — registro del service worker
    (la actualización forzada está en index.html, inline)
 ────────────────────────────────────────────── */
@@ -3776,6 +3934,10 @@ function bootApp() {
 
   if (typeof window.initLoginScreen === 'function') {
     window.initLoginScreen();
+  }
+  initLoginAppUpdate();
+
+  if (typeof window.initLoginScreen === 'function') {
     return;
   }
 
