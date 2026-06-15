@@ -747,26 +747,6 @@ body.user-selector-open {
   opacity: 0.8;
 }
 
-.btn-refresh {
-  width: 100%;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--card-border);
-  background: var(--bg-elevated);
-  color: var(--text-soft);
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.btn-refresh:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
 /* ═══ VIEWS ══════════════════════════════════════════════ */
 .view {
   display: none;

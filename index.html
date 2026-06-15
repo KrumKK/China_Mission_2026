@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '42';
+      window.__APP_BUILD__ = '43';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -157,9 +157,6 @@
           </article>
           </div>
 
-          <button class="btn-refresh" id="btn-hard-refresh" type="button" aria-label="Descargar la última versión">
-            ↻ Actualizar aplicación
-          </button>
         </div>
 
         <h2 class="section-heading"><span class="section-emoji">📅</span> Agenda</h2>
@@ -626,76 +623,6 @@
     </div>
     <div id="brochure-fs-host" class="brochure-fs-host"></div>
   </div>
-
-  <script>
-    (function () {
-      'use strict';
-      var BTN_ID = 'btn-hard-refresh';
-
-      function notifyWorkerClear() {
-        if (!navigator.serviceWorker || !navigator.serviceWorker.controller) return Promise.resolve();
-        try { navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHES' }); } catch (_) {}
-        return new Promise(function (r) { setTimeout(r, 150); });
-      }
-
-      function deleteAllCaches() {
-        if (!window.caches) return Promise.resolve();
-        return caches.keys().then(function (keys) {
-          return Promise.all(keys.map(function (k) { return caches.delete(k); }));
-        });
-      }
-
-      function unregisterAllWorkers() {
-        if (!navigator.serviceWorker) return Promise.resolve();
-        return navigator.serviceWorker.getRegistrations().then(function (regs) {
-          return Promise.all(regs.map(function (r) { return r.unregister(); }));
-        });
-      }
-
-      function reloadFresh() {
-        var url = new URL(window.location.href);
-        url.searchParams.set('v', String(Date.now()));
-        window.location.replace(url.toString());
-      }
-
-      function confirmRefreshWithBackup() {
-        return window.confirm(
-          '¿Actualizar la aplicación ahora?\n\n'
-          + 'Se descargará la última versión. Tus fichas en SharePoint no se borran.'
-        );
-      }
-
-      function handleRefresh(event) {
-        if (event) { event.preventDefault(); event.stopImmediatePropagation(); }
-        var btn = document.getElementById(BTN_ID);
-        if (!btn || btn.getAttribute('data-busy') === '1') return;
-        if (!confirmRefreshWithBackup()) return;
-
-        btn.setAttribute('data-busy', '1');
-        btn.disabled = true;
-        btn.textContent = 'Actualizando…';
-        notifyWorkerClear()
-          .then(deleteAllCaches)
-          .then(unregisterAllWorkers)
-          .then(function () {
-            try { localStorage.clear(); sessionStorage.clear(); } catch (_) {}
-          })
-          .catch(function () {})
-          .then(reloadFresh);
-      }
-
-      function bindRefreshButton() {
-        var btn = document.getElementById(BTN_ID);
-        if (btn) btn.addEventListener('click', handleRefresh, false);
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', bindRefreshButton);
-      } else {
-        bindRefreshButton();
-      }
-    })();
-  </script>
 
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>

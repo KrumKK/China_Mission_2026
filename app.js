@@ -3860,7 +3860,6 @@ function initLoginAppUpdate() {
 
 /* ──────────────────────────────────────────────
    PWA — registro del service worker
-   (la actualización forzada está en index.html, inline)
 ────────────────────────────────────────────── */
 function initPWA() {
   if (!('serviceWorker' in navigator)) return;
