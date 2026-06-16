@@ -63,7 +63,9 @@ function normalizeRemoteFicha(raw, companyId, meta) {
     role: raw.role || base.role,
     icexOffice: raw.icexOffice != null ? raw.icexOffice : base.icexOffice,
     meetingType: raw.meetingType != null ? normalizeMeetingTypeValue(raw.meetingType) : null,
-    isManual: raw.isManual === true || String(companyId).indexOf('otras-') === 0,
+    isManual: raw.isManual === true
+      || String(companyId).indexOf('otras-') === 0
+      || /^cisce-(div|jv)-/.test(String(companyId)),
     userEntries: {
       krum: emptyUserEntry(),
       oscar: emptyUserEntry()

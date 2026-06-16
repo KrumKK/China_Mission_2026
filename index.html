@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '44';
+      window.__APP_BUILD__ = '45';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -230,6 +230,7 @@
           <button type="button" class="event-tab" data-event="icex-canton">🏙 ICEX Cantón</button>
           <button type="button" class="event-tab" data-event="icex-shanghai">🌆 ICEX Shanghai</button>
           <button type="button" class="event-tab" data-event="icex-pekin">🏯 ICEX Pekín</button>
+          <button type="button" class="event-tab" data-event="cisce-feria">🏛 CISCE Feria</button>
         </nav>
 
         <div class="event-panel active" id="event-panel-cisce" data-event="cisce"></div>
@@ -237,6 +238,7 @@
         <div class="event-panel" id="event-panel-icex-canton" data-event="icex-canton"></div>
         <div class="event-panel" id="event-panel-icex-shanghai" data-event="icex-shanghai"></div>
         <div class="event-panel" id="event-panel-icex-pekin" data-event="icex-pekin"></div>
+        <div class="event-panel" id="event-panel-cisce-feria" data-event="cisce-feria"></div>
       </section>
 
       <section class="view view--presentaciones" id="view-presentaciones">

@@ -606,6 +606,11 @@ ICEX_OFFICES.forEach(office => {
   office.companies.forEach(c => ICEX_COMPANY_MAP.set(c.id, { ...c, officeId: office.id, officeLabel: office.heroTitle }));
 });
 
+const CISCE_FERIA_SECTIONS = [
+  { id: 'div', prefix: 'cisce-div-', label: 'Diversificación', emoji: '📦' },
+  { id: 'jv', prefix: 'cisce-jv-', label: 'Joint Venture', emoji: '🤝' }
+];
+
 const VALID_MEETING_TYPES = ['b2b', 'visita'];
 
 function normalizeMeetingType(value) {
@@ -818,14 +823,14 @@ function buildModalSnapshotObject() {
   if (!activeModalFicha) return null;
   const uid = getCurrentUser();
   const entry = activeModalFicha.userEntries[uid] || emptyUserEntry();
-  const manual = isManualFicha(activeModalFicha);
+  const editable = isEditableFicha(activeModalFicha);
   const snap = {
     desc: readModalField('company-field-desc'),
     contacts: readModalField('company-field-contacts'),
     notes: readModalField('company-field-notes'),
     photos: snapshotPhotosForCompare(entry.photos)
   };
-  if (manual) {
+  if (editable) {
     snap.manual = {
       name: readModalField('company-manual-name'),
       nameZh: readModalField('company-manual-name-zh'),
@@ -960,6 +965,37 @@ function isManualFichaId(companyId) {
   return String(companyId || '').indexOf('otras-') === 0;
 }
 
+function isCisceFichaId(companyId) {
+  const id = String(companyId || '');
+  return id.indexOf('cisce-div-') === 0 || id.indexOf('cisce-jv-') === 0;
+}
+
+function getCisceFichaSection(companyId) {
+  const id = String(companyId || '');
+  if (id.indexOf('cisce-div-') === 0) return 'div';
+  if (id.indexOf('cisce-jv-') === 0) return 'jv';
+  return '';
+}
+
+function isCisceFicha(ficha) {
+  if (!ficha) return false;
+  return isCisceFichaId(ficha.id) || ficha.cisceSection === 'div' || ficha.cisceSection === 'jv';
+}
+
+function isEditableFichaId(companyId) {
+  return isManualFichaId(companyId) || isCisceFichaId(companyId);
+}
+
+function isEditableFicha(ficha) {
+  if (!ficha) return false;
+  if (isCisceFicha(ficha)) return true;
+  return isManualFicha(ficha);
+}
+
+function isLizarteCompanyName(name) {
+  return String(name || '').toUpperCase().indexOf('LIZARTE') !== -1;
+}
+
 function isIcexCompanyId(companyId) {
   return ICEX_COMPANY_MAP.has(companyId);
 }
@@ -970,6 +1006,18 @@ function isManualFicha(ficha) {
 }
 
 function metaFromFicha(ficha, companyId) {
+  if (isCisceFicha(ficha) || isCisceFichaId(companyId)) {
+    return {
+      companyId,
+      name: (ficha && ficha.name) || '',
+      nameZh: (ficha && ficha.nameZh) || '',
+      contactPerson: (ficha && ficha.contactPerson) || '',
+      role: (ficha && ficha.role) || '',
+      icexOffice: 'CISCE Feria',
+      isManual: true,
+      cisceSection: getCisceFichaSection(companyId || (ficha && ficha.id))
+    };
+  }
   if (isManualFicha(ficha) || isManualFichaId(companyId)) {
     return {
       companyId,
@@ -1002,7 +1050,31 @@ function createManualFichaDraft() {
   };
 }
 
+function createCisceFichaDraft(sectionId) {
+  const section = CISCE_FERIA_SECTIONS.find(item => item.id === sectionId) || CISCE_FERIA_SECTIONS[0];
+  const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : 'user';
+  return {
+    id: section.prefix + uid + '-' + Date.now(),
+    isManual: true,
+    cisceSection: section.id,
+    name: '',
+    nameZh: '',
+    contactPerson: '',
+    role: '',
+    icexOffice: 'CISCE Feria',
+    meetingType: null,
+    userEntries: {
+      krum: emptyUserEntry(),
+      oscar: emptyUserEntry()
+    }
+  };
+}
+
 function refreshAfterFichaChange(companyId) {
+  if (isCisceFichaId(companyId) || isCisceFicha(getCachedFicha(companyId))) {
+    renderCisceFeria().catch(err => console.warn('CISCE Feria:', err));
+    return;
+  }
   if (isManualFichaId(companyId) || isManualFicha(getCachedFicha(companyId))) {
     renderOtrasReuniones().catch(err => console.warn('Otras:', err));
   } else {
@@ -1052,7 +1124,7 @@ async function loadAllRemoteFichas(force) {
 
   try {
     const allIds = await listRemoteFichaIds();
-    const manualIds = allIds.filter(id => isManualFichaId(id));
+    const manualIds = allIds.filter(id => isManualFichaId(id) || isCisceFichaId(id));
     const manualResults = await Promise.allSettled(
       manualIds.map(async id => {
         const raw = await getRemoteFicha(id);
@@ -1077,7 +1149,7 @@ function getCachedFicha(companyId) {
   let ficha;
   if (remoteFichaMap.has(companyId)) {
     ficha = remoteFichaMap.get(companyId);
-  } else if (isManualFichaId(companyId)) {
+  } else if (isManualFichaId(companyId) || isCisceFichaId(companyId)) {
     ficha = normalizeRemoteFicha(null, companyId, metaFromFicha(null, companyId));
   } else {
     ficha = normalizeRemoteFicha(null, companyId, companyMetaFromSeed(companyId));
@@ -1088,9 +1160,26 @@ function getCachedFicha(companyId) {
 function getManualFichasFromCache() {
   const list = [];
   remoteFichaMap.forEach((ficha, id) => {
+    if (isCisceFichaId(id)) return;
     if (isManualFicha(ficha) || isManualFichaId(id)) {
       list.push(ficha);
     }
+  });
+  list.sort((a, b) => String(a.name || a.id || '').localeCompare(
+    String(b.name || b.id || ''),
+    'es',
+    { sensitivity: 'base' }
+  ));
+  return list;
+}
+
+function getCisceFichasFromCache(sectionId) {
+  const list = [];
+  remoteFichaMap.forEach((ficha, id) => {
+    if (!isCisceFichaId(id)) return;
+    const section = getCisceFichaSection(id);
+    if (sectionId && section !== sectionId) return;
+    list.push(ficha);
   });
   list.sort((a, b) => String(a.name || a.id || '').localeCompare(
     String(b.name || b.id || ''),
@@ -2187,6 +2276,9 @@ function initNavigation() {
     document.querySelectorAll('.event-panel').forEach(panel => {
       panel.classList.toggle('active', panel.dataset.event === eventId);
     });
+    if (eventId === 'cisce-feria') {
+      renderCisceFeria().catch(err => console.warn('CISCE Feria:', err));
+    }
   }
 
   function activateViewByName(target) {
@@ -2786,9 +2878,10 @@ function buildCompanyCardHtml(ficha, companyId, seedCompany) {
       + ' · Óscar:' + countUserPhotos(ficha.userEntries.oscar || {})
     : '';
   const contactLine = [contactPerson, role].filter(Boolean).join(' · ');
+  const lizarteClass = isLizarteCompanyName(displayName) ? ' company-card--lizarte' : '';
 
   return `
-    <article class="company-card icex-company-card" data-company-id="${escapeHtml(companyId)}" role="button" tabindex="0" aria-label="Abrir ficha de ${escapeHtml(displayName)}">
+    <article class="company-card icex-company-card${lizarteClass}" data-company-id="${escapeHtml(companyId)}" role="button" tabindex="0" aria-label="Abrir ficha de ${escapeHtml(displayName)}">
       <div class="company-card-header">
         <div>
           <span class="company-name">${escapeHtml(displayName)}</span>
@@ -2848,6 +2941,114 @@ function initOtrasReuniones() {
     fab.dataset.bound = '1';
     fab.addEventListener('click', () => openNewManualFicha());
   }
+}
+
+function buildCisceFeriaSectionHtml(section) {
+  const fichas = getCisceFichasFromCache(section.id);
+  const count = fichas.length;
+  const panelId = 'cisce-feria-panel-' + section.id;
+  const countLabel = count === 1 ? '1 empresa' : count + ' empresas';
+
+  const listHtml = count
+    ? `<div class="company-list cisce-feria-company-list">${fichas.map(f => buildCompanyCardHtml(f, f.id)).join('')}</div>`
+    : `<div class="cisce-feria-empty"><p class="cisce-feria-empty-text">Sin empresas aún. Pulsa <strong>+</strong> para añadir la primera.</p></div>`;
+
+  return `
+    <div class="cisce-feria-section" data-cisce-section="${escapeHtml(section.id)}">
+      <button type="button" class="cisce-feria-toggle" aria-expanded="false" aria-controls="${escapeHtml(panelId)}">
+        <span class="cisce-feria-toggle-label">${section.emoji} ${escapeHtml(section.label)} (${countLabel}) ▼</span>
+      </button>
+      <div class="cisce-feria-panel" id="${escapeHtml(panelId)}" hidden>
+        ${listHtml}
+        <button type="button" class="cisce-feria-add-btn" data-cisce-section="${escapeHtml(section.id)}">+ Añadir empresa</button>
+      </div>
+    </div>`;
+}
+
+function bindCisceFeriaSections() {
+  document.querySelectorAll('.cisce-feria-toggle').forEach(btn => {
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      const wrap = btn.closest('.cisce-feria-section');
+      const panel = wrap ? wrap.querySelector('.cisce-feria-panel') : null;
+      const label = btn.querySelector('.cisce-feria-toggle-label');
+      if (!panel || !label) return;
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      const next = !expanded;
+      btn.setAttribute('aria-expanded', next ? 'true' : 'false');
+      wrap.classList.toggle('cisce-feria-section--expanded', next);
+      panel.hidden = !next;
+      const base = label.textContent.replace(/\s*[▼▲]\s*$/, '');
+      label.textContent = base + (next ? ' ▲' : ' ▼');
+    });
+  });
+
+  document.querySelectorAll('.cisce-feria-add-btn').forEach(btn => {
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      openNewCisceFicha(btn.dataset.cisceSection || 'div');
+    });
+  });
+}
+
+function openNewCisceFicha(sectionId) {
+  const ficha = createCisceFichaDraft(sectionId);
+  openCompanyModal(ficha.id, { draft: true, ficha });
+}
+
+async function renderCisceFeria() {
+  const panel = document.getElementById('event-panel-cisce-feria');
+  if (!panel) return;
+
+  try {
+    await loadAllRemoteFichas(false);
+  } catch (err) {
+    console.warn('Carga fichas CISCE Feria:', err);
+  }
+
+  const sectionsHtml = CISCE_FERIA_SECTIONS.map(buildCisceFeriaSectionHtml).join('');
+
+  panel.innerHTML = `
+    <div class="event-hero event-hero--icex">
+      <div class="hero-tag">CISCE · Beijing</div>
+      <h3 class="event-hero-title">CISCE Feria</h3>
+      <p class="event-hero-desc">Empresas de la feria · Diversificación y Joint Venture</p>
+    </div>
+    <div class="alert-box alert-box--info">
+      <span class="alert-icon">☁️</span>
+      <p>Fichas en SharePoint · marca <strong>B2B</strong> o <strong>Visita</strong> · prefijos <strong>cisce-div-</strong> y <strong>cisce-jv-</strong>.</p>
+    </div>
+    <div class="cisce-feria-root">${sectionsHtml}</div>
+    <div class="cisce-feria-global-add">
+      <label class="cisce-feria-global-label" for="cisce-feria-add-section">Sub-sección</label>
+      <div class="cisce-feria-global-row">
+        <select id="cisce-feria-add-section" class="cisce-feria-select" aria-label="Elegir sub-sección">
+          ${CISCE_FERIA_SECTIONS.map(section => `
+            <option value="${escapeHtml(section.id)}">${section.emoji} ${escapeHtml(section.label)}</option>`).join('')}
+        </select>
+        <button type="button" class="cisce-feria-global-btn" id="btn-cisce-feria-add">+ Añadir empresa</button>
+      </div>
+    </div>`;
+
+  bindCisceFeriaSections();
+  bindIcexCompanyCards();
+  bindMeetingTypePickers();
+
+  const globalAdd = document.getElementById('btn-cisce-feria-add');
+  if (globalAdd && globalAdd.dataset.bound !== '1') {
+    globalAdd.dataset.bound = '1';
+    globalAdd.addEventListener('click', () => {
+      const select = document.getElementById('cisce-feria-add-section');
+      const sectionId = select ? select.value : 'div';
+      openNewCisceFicha(sectionId);
+    });
+  }
+}
+
+function initCisceFeria() {
+  /* render bajo demanda al activar la pestaña */
 }
 
 /* ──────────────────────────────────────────────
@@ -3079,23 +3280,23 @@ function bindMeetingTypePickers() {
   });
 }
 
-function setModalHeaderMode(isManual) {
+function setModalHeaderMode(isEditable) {
   const title = document.getElementById('company-modal-title');
   const subtitle = document.getElementById('company-modal-subtitle');
   const fields = document.getElementById('company-modal-manual-fields');
   const deleteBtn = document.getElementById('company-btn-delete');
-  const showDelete = isManual && !activeManualDraft;
+  const showDelete = isEditable && !activeManualDraft;
 
-  if (title) title.hidden = isManual;
-  if (subtitle) subtitle.hidden = isManual;
-  if (fields) fields.hidden = !isManual;
+  if (title) title.hidden = isEditable;
+  if (subtitle) subtitle.hidden = isEditable;
+  if (fields) fields.hidden = !isEditable;
   if (deleteBtn) deleteBtn.hidden = !showDelete;
 }
 
 function updateManualSaveButtonState() {
   const saveBtn = document.getElementById('company-btn-save');
   if (!saveBtn) return;
-  if (!activeModalFicha || !isManualFicha(activeModalFicha)) {
+  if (!activeModalFicha || !isEditableFicha(activeModalFicha)) {
     saveBtn.disabled = false;
     return;
   }
@@ -3105,6 +3306,10 @@ function updateManualSaveButtonState() {
 }
 
 function refreshIcexCompanyCard(companyId) {
+  if (isCisceFichaId(companyId) || isCisceFicha(getCachedFicha(companyId))) {
+    renderCisceFeria().catch(() => undefined);
+    return;
+  }
   if (isManualFichaId(companyId) || isManualFicha(getCachedFicha(companyId))) {
     renderOtrasReuniones().catch(() => undefined);
     return;
@@ -3185,7 +3390,7 @@ function getFormStateFromModal() {
     myPhotos: entry.photos.slice()
   };
 
-  if (isManualFicha(activeModalFicha)) {
+  if (isEditableFicha(activeModalFicha)) {
     const nameInput = document.getElementById('company-manual-name');
     const nameZhInput = document.getElementById('company-manual-name-zh');
     const contactInput = document.getElementById('company-manual-contact');
@@ -3195,15 +3400,16 @@ function getFormStateFromModal() {
     formState.contactPerson = contactInput ? trimText(contactInput.value) : '';
     formState.role = roleInput ? trimText(roleInput.value) : '';
     formState.isManual = true;
-    formState.icexOffice = '';
+    formState.icexOffice = isCisceFicha(activeModalFicha) ? 'CISCE Feria' : '';
     formState.meta = {
       companyId: activeCompanyId,
       name: formState.name,
       nameZh: formState.nameZh,
       contactPerson: formState.contactPerson,
       role: formState.role,
-      icexOffice: '',
-      isManual: true
+      icexOffice: formState.icexOffice,
+      isManual: true,
+      cisceSection: getCisceFichaSection(activeCompanyId)
     };
   }
 
@@ -3216,15 +3422,15 @@ function fillCompanyModalFromFicha(ficha) {
   const mine = ficha.userEntries[uid] || emptyUserEntry();
   const other = ficha.userEntries[otherId] || emptyUserEntry();
   const otherName = userIdToDisplayName(otherId);
-  const manual = isManualFicha(ficha);
+  const editable = isEditableFicha(ficha);
 
-  setModalHeaderMode(manual);
+  setModalHeaderMode(editable);
 
   const nameInput = document.getElementById('company-manual-name');
   const nameZhInput = document.getElementById('company-manual-name-zh');
   const contactInput = document.getElementById('company-manual-contact');
   const roleInput = document.getElementById('company-manual-role');
-  if (manual) {
+  if (editable) {
     if (nameInput) nameInput.value = ficha.name || '';
     if (nameZhInput) nameZhInput.value = ficha.nameZh || '';
     if (contactInput) contactInput.value = ficha.contactPerson || '';
@@ -3241,14 +3447,14 @@ function fillCompanyModalFromFicha(ficha) {
 
   if (desc) desc.value = mine.description || '';
   let contactsVal = mine.contacts || '';
-  if (!trimText(contactsVal) && activeCompanyId && !manual) {
+  if (!trimText(contactsVal) && activeCompanyId && !editable) {
     contactsVal = icexSeedContactsText(ICEX_COMPANY_MAP.get(activeCompanyId));
   }
   if (contacts) contacts.value = contactsVal;
   if (notes) notes.value = mine.notes || '';
   if (otherDesc) otherDesc.value = other.description || '';
   let otherContactsVal = other.contacts || '';
-  if (!trimText(otherContactsVal) && activeCompanyId && !manual) {
+  if (!trimText(otherContactsVal) && activeCompanyId && !editable) {
     otherContactsVal = icexSeedContactsText(ICEX_COMPANY_MAP.get(activeCompanyId));
   }
   if (otherContacts) otherContacts.value = otherContactsVal;
@@ -3344,7 +3550,7 @@ async function saveCompanyModal(options) {
   const saveBtn = document.getElementById('company-btn-save');
   const formState = getFormStateFromModal();
 
-  if (isManualFicha(activeModalFicha) && !trimText(formState.name)) {
+  if (isEditableFicha(activeModalFicha) && !trimText(formState.name)) {
     setCompanySaveStatus('El nombre de la empresa es obligatorio', true);
     return false;
   }
@@ -3361,7 +3567,7 @@ async function saveCompanyModal(options) {
     setCompanySaveStatus('Guardado');
     refreshAfterFichaChange(activeCompanyId);
     renderMeetingsSummary();
-    setModalHeaderMode(true);
+    setModalHeaderMode(isEditableFicha(merged));
     captureModalFormSnapshot();
     if (options.closeOnSuccess) {
       closeCompanyModal();
@@ -3375,7 +3581,7 @@ async function saveCompanyModal(options) {
     updateManualSaveButtonState();
     return false;
   } finally {
-    if (saveBtn && !isManualFicha(activeModalFicha)) saveBtn.disabled = false;
+    if (saveBtn && !isEditableFicha(activeModalFicha)) saveBtn.disabled = false;
     else updateManualSaveButtonState();
   }
 }
@@ -3384,9 +3590,11 @@ async function openCompanyModal(companyId, options) {
   options = options || {};
   const seed = ICEX_COMPANY_MAP.get(companyId);
   const isDraft = !!options.draft;
-  const isManual = isDraft || isManualFichaId(companyId) || (options.ficha && isManualFicha(options.ficha));
+  const isEditable = isDraft
+    || isEditableFichaId(companyId)
+    || (options.ficha && isEditableFicha(options.ficha));
 
-  if (!seed && !isManual) return;
+  if (!seed && !isEditable) return;
 
   const modal = document.getElementById('company-modal');
   if (!modal) return;
@@ -3399,9 +3607,9 @@ async function openCompanyModal(companyId, options) {
   const title = document.getElementById('company-modal-title');
   const subtitle = document.getElementById('company-modal-subtitle');
 
-  setModalHeaderMode(isManual);
+  setModalHeaderMode(isEditable);
 
-  if (!isManual && seed) {
+  if (!isEditable && seed) {
     if (title) title.textContent = seed.name;
     if (subtitle) {
       subtitle.textContent = (seed.nameZh ? seed.nameZh + ' · ' : '') + seed.contactPerson;
@@ -3442,7 +3650,7 @@ async function openCompanyModal(companyId, options) {
 }
 
 async function deleteActiveManualFicha() {
-  if (!activeCompanyId || !activeModalFicha || !isManualFicha(activeModalFicha)) return;
+  if (!activeCompanyId || !activeModalFicha || !isEditableFicha(activeModalFicha)) return;
 
   const ok = window.confirm(
     '¿Eliminar esta ficha?\n\nEsta acción no se puede deshacer.'
@@ -3450,11 +3658,16 @@ async function deleteActiveManualFicha() {
   if (!ok) return;
 
   const id = activeCompanyId;
+  const wasCisce = isCisceFicha(activeModalFicha);
   try {
     await deleteRemoteFicha(id);
     remoteFichaMap.delete(id);
     closeCompanyModal();
-    await renderOtrasReuniones();
+    if (wasCisce) {
+      await renderCisceFeria();
+    } else {
+      await renderOtrasReuniones();
+    }
   } catch (err) {
     console.warn(err);
     setCompanySaveStatus('No se ha podido eliminar. Reintenta cuando tengas conexión.', true);
@@ -3915,6 +4128,7 @@ function startApp() {
   initBrochureControls();
   initDevPanel();
   initOtrasReuniones();
+  initCisceFeria();
   initCompanyUnsavedModal();
   if (typeof window.initResumenGenerator === 'function') {
     window.initResumenGenerator();
