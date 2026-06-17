@@ -606,10 +606,30 @@ ICEX_OFFICES.forEach(office => {
   office.companies.forEach(c => ICEX_COMPANY_MAP.set(c.id, { ...c, officeId: office.id, officeLabel: office.heroTitle }));
 });
 
-const CISCE_FERIA_SECTIONS = [
-  { id: 'div', prefix: 'cisce-div-', label: 'Diversificación', emoji: '📦' },
-  { id: 'jv', prefix: 'cisce-jv-', label: 'Joint Venture', emoji: '🤝' }
-];
+let _cisceCompanyMapCache = null;
+
+function getCisceCompanyMap() {
+  const jv = window.CISCE_JV || [];
+  const div = window.CISCE_DIV || [];
+  const apoyo = window.CISCE_APOYO || [];
+  if (_cisceCompanyMapCache && _cisceCompanyMapCache.size > 0) {
+    return _cisceCompanyMapCache;
+  }
+  const map = new Map();
+  jv.forEach(c => map.set(c.id, Object.assign({}, c, { cisceSection: 'jv' })));
+  div.forEach(c => map.set(c.id, Object.assign({}, c, { cisceSection: 'div' })));
+  apoyo.forEach(c => map.set(c.id, Object.assign({}, c, { cisceSection: 'apoyo' })));
+  if (map.size > 0) _cisceCompanyMapCache = map;
+  return map;
+}
+
+function getCisceFeriaSections() {
+  return [
+    { id: 'jv', prefix: 'cisce-jv-', label: 'Joint Venture', emoji: '🤝', seeds: window.CISCE_JV || [] },
+    { id: 'div', prefix: 'cisce-div-', label: 'Diversificación', emoji: '📦', seeds: window.CISCE_DIV || [] },
+    { id: 'apoyo', prefix: 'cisce-apoyo-', label: 'Apoyo / Contexto', emoji: '🧭', seeds: window.CISCE_APOYO || [] }
+  ];
+}
 
 const VALID_MEETING_TYPES = ['b2b', 'visita'];
 
@@ -784,17 +804,24 @@ async function initIcexFichasInSharePoint() {
     const existing = new Set(existingIds);
     const toCreate = [];
     ICEX_COMPANY_MAP.forEach((seed, companyId) => {
-      if (!existing.has(companyId)) toCreate.push(companyId);
+      if (!existing.has(companyId)) toCreate.push({ id: companyId, type: 'icex' });
+    });
+    getCisceCompanyMap().forEach((seed, companyId) => {
+      if (!existing.has(companyId)) toCreate.push({ id: companyId, type: 'cisce' });
     });
 
     if (!toCreate.length) return;
 
     await Promise.allSettled(
-      toCreate.map(async companyId => {
-        const meta = companyMetaFromSeed(companyId);
-        const ficha = defaultRemoteFicha(companyId, meta);
-        applyIcexSeedContacts(ficha, companyId);
-        await putRemoteFicha(companyId, ficha);
+      toCreate.map(async item => {
+        if (item.type === 'cisce' && typeof defaultCisceRemoteFicha === 'function') {
+          await putRemoteFicha(item.id, defaultCisceRemoteFicha(item.id));
+          return;
+        }
+        const meta = companyMetaFromSeed(item.id);
+        const ficha = defaultRemoteFicha(item.id, meta);
+        applyIcexSeedContacts(ficha, item.id);
+        await putRemoteFicha(item.id, ficha);
       })
     );
   } catch (_) {
@@ -836,6 +863,11 @@ function buildModalSnapshotObject() {
       nameZh: readModalField('company-manual-name-zh'),
       contactPerson: readModalField('company-manual-contact'),
       role: readModalField('company-manual-role')
+    };
+  } else if (isCiscePrecargadaFicha(activeModalFicha)) {
+    snap.precarga = {
+      contactPerson: readModalField('company-precarga-contact'),
+      role: readModalField('company-precarga-role')
     };
   }
   return snap;
@@ -966,20 +998,130 @@ function isManualFichaId(companyId) {
 }
 
 function isCisceFichaId(companyId) {
+  if (typeof window.isCisceFichaId === 'function' && window.isCisceFichaId !== isCisceFichaId) {
+    return window.isCisceFichaId(companyId);
+  }
   const id = String(companyId || '');
-  return id.indexOf('cisce-div-') === 0 || id.indexOf('cisce-jv-') === 0;
+  return id.indexOf('cisce-jv-') === 0 || id.indexOf('cisce-div-') === 0 || id.indexOf('cisce-apoyo-') === 0;
+}
+
+function isCiscePrecargadaId(companyId) {
+  if (typeof window.isCiscePrecargadaId === 'function' && window.isCiscePrecargadaId !== isCiscePrecargadaId) {
+    return window.isCiscePrecargadaId(companyId);
+  }
+  return getCisceCompanyMap().has(companyId);
+}
+
+function isCiscePrecargadaFicha(ficha) {
+  if (!ficha) return false;
+  return ficha.isCiscePrecargada === true || isCiscePrecargadaId(ficha.id);
 }
 
 function getCisceFichaSection(companyId) {
   const id = String(companyId || '');
-  if (id.indexOf('cisce-div-') === 0) return 'div';
   if (id.indexOf('cisce-jv-') === 0) return 'jv';
+  if (id.indexOf('cisce-div-') === 0) return 'div';
+  if (id.indexOf('cisce-apoyo-') === 0) return 'apoyo';
   return '';
 }
 
 function isCisceFicha(ficha) {
   if (!ficha) return false;
-  return isCisceFichaId(ficha.id) || ficha.cisceSection === 'div' || ficha.cisceSection === 'jv';
+  return isCisceFichaId(ficha.id) || !!ficha.cisceSection;
+}
+
+function buildCisceFichaView(raw, seed) {
+  const remote = typeof normalizeCisceRemoteFicha === 'function'
+    ? normalizeCisceRemoteFicha(raw, seed.id)
+    : (typeof defaultCisceRemoteFicha === 'function' ? defaultCisceRemoteFicha(seed.id) : null);
+
+  const block = userId => ({
+    description: (remote[userId] && remote[userId].descripcion) || '',
+    contacts: (remote[userId] && remote[userId].personasContacto) || '',
+    notes: (remote[userId] && remote[userId].notas) || '',
+    photos: [],
+    updatedAt: null
+  });
+
+  return {
+    id: seed.id,
+    isCiscePrecargada: true,
+    cisceSection: seed.cisceSection || getCisceFichaSection(seed.id),
+    name: seed.name,
+    nameZh: seed.nameZh || '',
+    potencial: seed.potencial || '',
+    fuente: seed.fuente || '',
+    encaje: seed.encaje || '',
+    queHace: seed.queHace || '',
+    veredicto: seed.veredicto || '',
+    stand: seed.stand || '',
+    contactPerson: remote.contacto || '',
+    role: remote.rol || '',
+    meetingType: remote.tipoReunion || null,
+    userEntries: {
+      krum: block('krum'),
+      oscar: block('oscar')
+    }
+  };
+}
+
+function potencialBadgeClass(potencial) {
+  const key = String(potencial || '').trim();
+  const map = {
+    'Alto': 'cisce-potencial--alto',
+    'Medio-Alto': 'cisce-potencial--medio-alto',
+    'Medio': 'cisce-potencial--medio',
+    'Medio-Bajo': 'cisce-potencial--medio-bajo',
+    'Bajo-Medio': 'cisce-potencial--medio-bajo',
+    'Bajo': 'cisce-potencial--bajo',
+    'Apoyo': 'cisce-potencial--apoyo'
+  };
+  return map[key] || 'cisce-potencial--default';
+}
+
+function veredictoBadgeClass(veredicto) {
+  const key = String(veredicto || '').trim().toUpperCase();
+  if (key === 'CONFIRMADO') return 'cisce-veredicto--confirmado';
+  if (key === 'AJUSTADO') return 'cisce-veredicto--ajustado';
+  if (key === 'POR REVISAR') return 'cisce-veredicto--revisar';
+  return 'cisce-veredicto--default';
+}
+
+function potencialBadgeHtml(potencial) {
+  return `<span class="cisce-badge cisce-potencial ${potencialBadgeClass(potencial)}">${escapeHtml(potencial || '—')}</span>`;
+}
+
+function veredictoBadgeHtml(veredicto) {
+  return `<span class="cisce-badge cisce-veredicto ${veredictoBadgeClass(veredicto)}">${escapeHtml(veredicto || '—')}</span>`;
+}
+
+function buildCisceFeriaCardHtml(ficha, seed) {
+  const meetingType = normalizeMeetingType(ficha && ficha.meetingType);
+  const lizarteClass = isLizarteCompanyName(seed.name) ? ' company-card--lizarte' : '';
+  const nameZhHtml = seed.nameZh
+    ? `<span class="cisce-card-name-zh">${escapeHtml(seed.nameZh)}</span>`
+    : '';
+  const standHtml = seed.stand
+    ? `<p class="cisce-card-stand">📍 ${escapeHtml(seed.stand)}</p>`
+    : '';
+  const preview = truncateText(seed.queHace || '', 60);
+
+  return `
+    <article class="company-card cisce-feria-card${lizarteClass}" data-company-id="${escapeHtml(seed.id)}" role="button" tabindex="0" aria-label="Abrir ficha de ${escapeHtml(seed.name)}">
+      <div class="cisce-card-header">
+        <div class="cisce-card-title-row">
+          <span class="company-name">${escapeHtml(seed.name)}</span>
+          ${nameZhHtml}
+        </div>
+        <div class="cisce-card-badges">
+          ${potencialBadgeHtml(seed.potencial)}
+          ${veredictoBadgeHtml(seed.veredicto)}
+          ${meetingTypeBadgeHtml(meetingType)}
+        </div>
+      </div>
+      ${standHtml}
+      <p class="cisce-card-preview">${escapeHtml(preview)}${seed.queHace && seed.queHace.length > 60 ? '…' : ''}</p>
+    </article>`;
 }
 
 function isEditableFichaId(companyId) {
@@ -988,6 +1130,7 @@ function isEditableFichaId(companyId) {
 
 function isEditableFicha(ficha) {
   if (!ficha) return false;
+  if (isCiscePrecargadaFicha(ficha)) return false;
   if (isCisceFicha(ficha)) return true;
   return isManualFicha(ficha);
 }
@@ -1051,7 +1194,8 @@ function createManualFichaDraft() {
 }
 
 function createCisceFichaDraft(sectionId) {
-  const section = CISCE_FERIA_SECTIONS.find(item => item.id === sectionId) || CISCE_FERIA_SECTIONS[0];
+  const sections = getCisceFeriaSections();
+  const section = sections.find(item => item.id === sectionId) || sections[0];
   const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : 'user';
   return {
     id: section.prefix + uid + '-' + Date.now(),
@@ -1123,8 +1267,30 @@ async function loadAllRemoteFichas(force) {
   remoteFichaMap = new Map(results);
 
   try {
+    const cisceResults = await Promise.all(
+      [...getCisceCompanyMap().keys()].map(async id => {
+        try {
+          const raw = await getRemoteFicha(id);
+          const seed = getCisceCompanyMap().get(id);
+          return [id, buildCisceFichaView(raw, seed)];
+        } catch (err) {
+          console.warn('Ficha CISCE', id, err);
+          const seed = getCisceCompanyMap().get(id);
+          return [id, buildCisceFichaView(null, seed)];
+        }
+      })
+    );
+    cisceResults.forEach(([id, ficha]) => remoteFichaMap.set(id, ficha));
+  } catch (err) {
+    console.warn('Fichas CISCE:', err);
+  }
+
+  try {
     const allIds = await listRemoteFichaIds();
-    const manualIds = allIds.filter(id => isManualFichaId(id) || isCisceFichaId(id));
+    const manualIds = allIds.filter(id => {
+      if (isManualFichaId(id)) return true;
+      return isCisceFichaId(id) && !isCiscePrecargadaId(id);
+    });
     const manualResults = await Promise.allSettled(
       manualIds.map(async id => {
         const raw = await getRemoteFicha(id);
@@ -1149,6 +1315,9 @@ function getCachedFicha(companyId) {
   let ficha;
   if (remoteFichaMap.has(companyId)) {
     ficha = remoteFichaMap.get(companyId);
+  } else if (isCiscePrecargadaId(companyId)) {
+    const seed = getCisceCompanyMap().get(companyId);
+    ficha = buildCisceFichaView(null, seed);
   } else if (isManualFichaId(companyId) || isCisceFichaId(companyId)) {
     ficha = normalizeRemoteFicha(null, companyId, metaFromFicha(null, companyId));
   } else {
@@ -1171,6 +1340,32 @@ function getManualFichasFromCache() {
     { sensitivity: 'base' }
   ));
   return list;
+}
+
+function getCisceFichasForSection(section) {
+  const seeds = section.seeds || [];
+  const cards = seeds.map(seed => {
+    const ficha = getCachedFicha(seed.id);
+    return { seed, ficha };
+  });
+  getCisceFichasFromCache(section.id).forEach(ficha => {
+    if (isCiscePrecargadaId(ficha.id)) return;
+    cards.push({
+      seed: {
+        id: ficha.id,
+        name: ficha.name || 'Sin nombre',
+        nameZh: ficha.nameZh || '',
+        potencial: ficha.potencial || '',
+        veredicto: ficha.veredicto || '',
+        queHace: ficha.queHace || '',
+        stand: ficha.stand || '',
+        encaje: ficha.encaje || ''
+      },
+      ficha,
+      manual: true
+    });
+  });
+  return cards;
 }
 
 function getCisceFichasFromCache(sectionId) {
@@ -2257,7 +2452,7 @@ function initNavAutoHide() {
 /* ──────────────────────────────────────────────
    NAVIGATION — pestañas principales y eventos
 ────────────────────────────────────────────── */
-let activeEventTab = 'cisce';
+let activeEventTab = 'cisce-feria';
 
 function initNavigation() {
   function scrollMainToTop() {
@@ -2944,14 +3139,18 @@ function initOtrasReuniones() {
 }
 
 function buildCisceFeriaSectionHtml(section) {
-  const fichas = getCisceFichasFromCache(section.id);
-  const count = fichas.length;
+  const items = getCisceFichasForSection(section);
+  const count = items.length;
   const panelId = 'cisce-feria-panel-' + section.id;
   const countLabel = count === 1 ? '1 empresa' : count + ' empresas';
 
   const listHtml = count
-    ? `<div class="company-list cisce-feria-company-list">${fichas.map(f => buildCompanyCardHtml(f, f.id)).join('')}</div>`
-    : `<div class="cisce-feria-empty"><p class="cisce-feria-empty-text">Sin empresas aún. Pulsa <strong>+</strong> para añadir la primera.</p></div>`;
+    ? `<div class="company-list cisce-feria-company-list">${items.map(item => (
+      item.manual
+        ? buildCompanyCardHtml(item.ficha, item.seed.id)
+        : buildCisceFeriaCardHtml(item.ficha, item.seed)
+    )).join('')}</div>`
+    : `<div class="cisce-feria-empty"><p class="cisce-feria-empty-text">Sin empresas en esta sub-sección.</p></div>`;
 
   return `
     <div class="cisce-feria-section" data-cisce-section="${escapeHtml(section.id)}">
@@ -2988,7 +3187,7 @@ function bindCisceFeriaSections() {
     if (btn.dataset.bound === '1') return;
     btn.dataset.bound = '1';
     btn.addEventListener('click', () => {
-      openNewCisceFicha(btn.dataset.cisceSection || 'div');
+      openNewCisceFicha(btn.dataset.cisceSection || 'jv');
     });
   });
 }
@@ -3008,24 +3207,25 @@ async function renderCisceFeria() {
     console.warn('Carga fichas CISCE Feria:', err);
   }
 
-  const sectionsHtml = CISCE_FERIA_SECTIONS.map(buildCisceFeriaSectionHtml).join('');
+  const cisceSections = getCisceFeriaSections();
+  const sectionsHtml = cisceSections.map(buildCisceFeriaSectionHtml).join('');
 
   panel.innerHTML = `
     <div class="event-hero event-hero--icex">
       <div class="hero-tag">CISCE · Beijing</div>
       <h3 class="event-hero-title">CISCE Feria</h3>
-      <p class="event-hero-desc">Empresas de la feria · Diversificación y Joint Venture</p>
+      <p class="event-hero-desc">36 empresas priorizadas · Joint Venture, Diversificación y Apoyo</p>
     </div>
     <div class="alert-box alert-box--info">
       <span class="alert-icon">☁️</span>
-      <p>Fichas en SharePoint · marca <strong>B2B</strong> o <strong>Visita</strong> · prefijos <strong>cisce-div-</strong> y <strong>cisce-jv-</strong>.</p>
+      <p>Fichas en SharePoint · solo notas editables · datos estratégicos en la app.</p>
     </div>
     <div class="cisce-feria-root">${sectionsHtml}</div>
     <div class="cisce-feria-global-add">
       <label class="cisce-feria-global-label" for="cisce-feria-add-section">Sub-sección</label>
       <div class="cisce-feria-global-row">
         <select id="cisce-feria-add-section" class="cisce-feria-select" aria-label="Elegir sub-sección">
-          ${CISCE_FERIA_SECTIONS.map(section => `
+          ${cisceSections.map(section => `
             <option value="${escapeHtml(section.id)}">${section.emoji} ${escapeHtml(section.label)}</option>`).join('')}
         </select>
         <button type="button" class="cisce-feria-global-btn" id="btn-cisce-feria-add">+ Añadir empresa</button>
@@ -3048,7 +3248,7 @@ async function renderCisceFeria() {
 }
 
 function initCisceFeria() {
-  /* render bajo demanda al activar la pestaña */
+  renderCisceFeria().catch(err => console.warn('CISCE Feria init:', err));
 }
 
 /* ──────────────────────────────────────────────
@@ -3237,7 +3437,7 @@ function truncateText(text, max) {
 }
 
 function bindIcexCompanyCards() {
-  document.querySelectorAll('.icex-company-card[data-company-id]').forEach(el => {
+  document.querySelectorAll('.icex-company-card[data-company-id], .cisce-feria-card[data-company-id]').forEach(el => {
     const open = () => openCompanyModal(el.dataset.companyId);
     el.addEventListener('click', e => {
       if (e.target.closest('.meeting-type-picker')) return;
@@ -3280,17 +3480,57 @@ function bindMeetingTypePickers() {
   });
 }
 
-function setModalHeaderMode(isEditable) {
+function setModalHeaderMode(fichaOrFlag) {
+  const ficha = fichaOrFlag && typeof fichaOrFlag === 'object' ? fichaOrFlag : null;
+  const isEditable = ficha ? isEditableFicha(ficha) : !!fichaOrFlag;
+  const precarga = ficha ? isCiscePrecargadaFicha(ficha) : false;
   const title = document.getElementById('company-modal-title');
   const subtitle = document.getElementById('company-modal-subtitle');
   const fields = document.getElementById('company-modal-manual-fields');
+  const precargaHeader = document.getElementById('company-modal-precarga-header');
+  const strategic = document.getElementById('company-modal-strategic');
+  const photoSection = document.querySelector('.photo-section');
   const deleteBtn = document.getElementById('company-btn-delete');
   const showDelete = isEditable && !activeManualDraft;
 
-  if (title) title.hidden = isEditable;
-  if (subtitle) subtitle.hidden = isEditable;
+  if (title) title.hidden = isEditable || precarga;
+  if (subtitle) subtitle.hidden = isEditable || precarga;
   if (fields) fields.hidden = !isEditable;
+  if (precargaHeader) precargaHeader.hidden = !precarga;
+  if (strategic) strategic.hidden = !precarga;
+  if (photoSection) photoSection.hidden = !!precarga;
   if (deleteBtn) deleteBtn.hidden = !showDelete;
+}
+
+function fillCisceStrategicSection(ficha) {
+  const encaje = document.getElementById('company-field-encaje');
+  const queHace = document.getElementById('company-field-quehace');
+  const badges = document.getElementById('company-cisce-badges');
+  if (encaje) encaje.textContent = ficha.encaje || '';
+  if (queHace) queHace.textContent = ficha.queHace || '';
+  if (badges) {
+    const standHtml = ficha.stand
+      ? `<span class="cisce-badge cisce-stand">📍 ${escapeHtml(ficha.stand)}</span>`
+      : '';
+    badges.innerHTML = `
+      ${potencialBadgeHtml(ficha.potencial)}
+      ${veredictoBadgeHtml(ficha.veredicto)}
+      ${standHtml}`;
+  }
+}
+
+function fillPrecargaHeader(ficha) {
+  const nameEl = document.getElementById('company-precarga-name');
+  const nameZhEl = document.getElementById('company-precarga-name-zh');
+  const contactInput = document.getElementById('company-precarga-contact');
+  const roleInput = document.getElementById('company-precarga-role');
+  if (nameEl) {
+    const zh = ficha.nameZh ? ` <span class="company-precarga-name-zh-inline">${escapeHtml(ficha.nameZh)}</span>` : '';
+    nameEl.innerHTML = escapeHtml(ficha.name || '') + zh;
+  }
+  if (nameZhEl) nameZhEl.hidden = true;
+  if (contactInput) contactInput.value = ficha.contactPerson || '';
+  if (roleInput) roleInput.value = ficha.role || '';
 }
 
 function updateManualSaveButtonState() {
@@ -3411,6 +3651,11 @@ function getFormStateFromModal() {
       isManual: true,
       cisceSection: getCisceFichaSection(activeCompanyId)
     };
+  } else if (isCiscePrecargadaFicha(activeModalFicha)) {
+    const contactInput = document.getElementById('company-precarga-contact');
+    const roleInput = document.getElementById('company-precarga-role');
+    formState.contactPerson = contactInput ? trimText(contactInput.value) : '';
+    formState.role = roleInput ? trimText(roleInput.value) : '';
   }
 
   return formState;
@@ -3423,8 +3668,9 @@ function fillCompanyModalFromFicha(ficha) {
   const other = ficha.userEntries[otherId] || emptyUserEntry();
   const otherName = userIdToDisplayName(otherId);
   const editable = isEditableFicha(ficha);
+  const precarga = isCiscePrecargadaFicha(ficha);
 
-  setModalHeaderMode(editable);
+  setModalHeaderMode(ficha);
 
   const nameInput = document.getElementById('company-manual-name');
   const nameZhInput = document.getElementById('company-manual-name-zh');
@@ -3435,6 +3681,10 @@ function fillCompanyModalFromFicha(ficha) {
     if (nameZhInput) nameZhInput.value = ficha.nameZh || '';
     if (contactInput) contactInput.value = ficha.contactPerson || '';
     if (roleInput) roleInput.value = ficha.role || '';
+  }
+  if (precarga) {
+    fillPrecargaHeader(ficha);
+    fillCisceStrategicSection(ficha);
   }
 
   const desc = document.getElementById('company-field-desc');
@@ -3447,14 +3697,14 @@ function fillCompanyModalFromFicha(ficha) {
 
   if (desc) desc.value = mine.description || '';
   let contactsVal = mine.contacts || '';
-  if (!trimText(contactsVal) && activeCompanyId && !editable) {
+  if (!trimText(contactsVal) && activeCompanyId && !editable && !precarga) {
     contactsVal = icexSeedContactsText(ICEX_COMPANY_MAP.get(activeCompanyId));
   }
   if (contacts) contacts.value = contactsVal;
   if (notes) notes.value = mine.notes || '';
   if (otherDesc) otherDesc.value = other.description || '';
   let otherContactsVal = other.contacts || '';
-  if (!trimText(otherContactsVal) && activeCompanyId && !editable) {
+  if (!trimText(otherContactsVal) && activeCompanyId && !editable && !precarga) {
     otherContactsVal = icexSeedContactsText(ICEX_COMPANY_MAP.get(activeCompanyId));
   }
   if (otherContacts) otherContacts.value = otherContactsVal;
@@ -3559,7 +3809,14 @@ async function saveCompanyModal(options) {
   setCompanySaveStatus('Guardando…');
 
   try {
-    const merged = await saveFichaAtomic(activeCompanyId, formState);
+    let merged;
+    if (isCiscePrecargadaFicha(activeModalFicha)) {
+      const remote = await saveCisceFichaAtomic(activeCompanyId, formState);
+      const seed = getCisceCompanyMap().get(activeCompanyId);
+      merged = buildCisceFichaView(remote, seed);
+    } else {
+      merged = await saveFichaAtomic(activeCompanyId, formState);
+    }
     activeModalFicha = merged;
     activeManualDraft = false;
     setCachedFicha(activeCompanyId, merged);
@@ -3567,7 +3824,7 @@ async function saveCompanyModal(options) {
     setCompanySaveStatus('Guardado');
     refreshAfterFichaChange(activeCompanyId);
     renderMeetingsSummary();
-    setModalHeaderMode(isEditableFicha(merged));
+    setModalHeaderMode(merged);
     captureModalFormSnapshot();
     if (options.closeOnSuccess) {
       closeCompanyModal();
@@ -3588,13 +3845,15 @@ async function saveCompanyModal(options) {
 
 async function openCompanyModal(companyId, options) {
   options = options || {};
-  const seed = ICEX_COMPANY_MAP.get(companyId);
+  const icexSeed = ICEX_COMPANY_MAP.get(companyId);
+  const cisceSeed = getCisceCompanyMap().get(companyId);
   const isDraft = !!options.draft;
+  const isPrecarga = isCiscePrecargadaId(companyId);
   const isEditable = isDraft
-    || isEditableFichaId(companyId)
+    || (isEditableFichaId(companyId) && !isPrecarga)
     || (options.ficha && isEditableFicha(options.ficha));
 
-  if (!seed && !isEditable) return;
+  if (!icexSeed && !isEditable && !isPrecarga) return;
 
   const modal = document.getElementById('company-modal');
   if (!modal) return;
@@ -3607,12 +3866,12 @@ async function openCompanyModal(companyId, options) {
   const title = document.getElementById('company-modal-title');
   const subtitle = document.getElementById('company-modal-subtitle');
 
-  setModalHeaderMode(isEditable);
+  setModalHeaderMode(isDraft && options.ficha ? options.ficha : (isPrecarga ? { isCiscePrecargada: true } : isEditable));
 
-  if (!isEditable && seed) {
-    if (title) title.textContent = seed.name;
+  if (!isEditable && !isPrecarga && icexSeed) {
+    if (title) title.textContent = icexSeed.name;
     if (subtitle) {
-      subtitle.textContent = (seed.nameZh ? seed.nameZh + ' · ' : '') + seed.contactPerson;
+      subtitle.textContent = (icexSeed.nameZh ? icexSeed.nameZh + ' · ' : '') + icexSeed.contactPerson;
     }
   }
 
@@ -3634,14 +3893,22 @@ async function openCompanyModal(companyId, options) {
 
   try {
     const raw = await getRemoteFicha(companyId);
-    activeModalFicha = normalizeRemoteFicha(raw, companyId, metaFromFicha(raw, companyId));
-    applyIcexSeedContacts(activeModalFicha, companyId);
+    if (isPrecarga && cisceSeed) {
+      activeModalFicha = buildCisceFichaView(raw, cisceSeed);
+    } else {
+      activeModalFicha = normalizeRemoteFicha(raw, companyId, metaFromFicha(raw, companyId));
+      applyIcexSeedContacts(activeModalFicha, companyId);
+    }
     setCachedFicha(companyId, activeModalFicha);
     fillCompanyModalFromFicha(activeModalFicha);
   } catch (err) {
     console.warn(err);
-    activeModalFicha = normalizeRemoteFicha(null, companyId, metaFromFicha(null, companyId));
-    applyIcexSeedContacts(activeModalFicha, companyId);
+    if (isPrecarga && cisceSeed) {
+      activeModalFicha = buildCisceFichaView(null, cisceSeed);
+    } else {
+      activeModalFicha = normalizeRemoteFicha(null, companyId, metaFromFicha(null, companyId));
+      applyIcexSeedContacts(activeModalFicha, companyId);
+    }
     fillCompanyModalFromFicha(activeModalFicha);
     setCompanySaveStatus(connectionErrorMessage(), true);
   } finally {

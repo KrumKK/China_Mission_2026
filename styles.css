@@ -2579,6 +2579,123 @@ body.qr-fullscreen-open {
   opacity: 0.92;
 }
 
+.cisce-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.cisce-card-title-row {
+  min-width: 0;
+}
+
+.cisce-card-name-zh {
+  display: inline;
+  margin-left: 6px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+.cisce-card-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.cisce-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.cisce-potencial--alto { background: #E8F8F0; color: #27AE60; }
+.cisce-potencial--medio-alto { background: #F0F9E8; color: #82C91E; }
+.cisce-potencial--medio { background: #FEF9E7; color: #B7950B; }
+.cisce-potencial--medio-bajo { background: #FDEBD0; color: #E67E22; }
+.cisce-potencial--bajo { background: #ECEFF1; color: #95A5A6; }
+.cisce-potencial--apoyo { background: #EBF5FB; color: #3498DB; }
+.cisce-potencial--default { background: var(--bg-elevated); color: var(--text-soft); }
+
+.cisce-veredicto--confirmado { background: #E8F8F0; color: #27AE60; }
+.cisce-veredicto--ajustado { background: #FDEBD0; color: #E67E22; }
+.cisce-veredicto--revisar { background: #FADBD8; color: #C0392B; }
+.cisce-veredicto--default { background: var(--bg-elevated); color: var(--text-soft); }
+
+.cisce-stand {
+  background: var(--bg-elevated);
+  color: var(--text-soft);
+}
+
+.cisce-card-stand {
+  margin: 0 0 6px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.cisce-card-preview {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-soft);
+}
+
+.cisce-feria-card {
+  cursor: pointer;
+}
+
+.ficha-section--strategic {
+  margin-top: 0;
+  margin-bottom: 14px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: #ececf0;
+  border: 1px solid #d8d8de;
+}
+
+.field-readonly {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: #e4e4e8;
+  border: 1px solid #d0d0d6;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+}
+
+.cisce-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.company-modal-precarga-header .company-precarga-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 10px;
+  line-height: 1.35;
+}
+
+.company-precarga-name-zh-inline {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
 .otras-fab {
   position: fixed;
   right: calc(18px + env(safe-area-inset-right, 0));

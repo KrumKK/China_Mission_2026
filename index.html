@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '45';
+      window.__APP_BUILD__ = '46';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -225,20 +225,20 @@
         <p class="section-lead">Agendas por actividad · Junio 2026</p>
 
         <nav class="event-subnav" id="event-subnav" aria-label="Tipo de evento">
-          <button type="button" class="event-tab active" data-event="cisce">🏛 CISCE</button>
+          <button type="button" class="event-tab active" data-event="cisce-feria">🏛 CISCE Feria</button>
+          <button type="button" class="event-tab" data-event="cisce">🏛 CISCE</button>
           <button type="button" class="event-tab" data-event="shenzhen">🏙 Shenzhen</button>
           <button type="button" class="event-tab" data-event="icex-canton">🏙 ICEX Cantón</button>
           <button type="button" class="event-tab" data-event="icex-shanghai">🌆 ICEX Shanghai</button>
           <button type="button" class="event-tab" data-event="icex-pekin">🏯 ICEX Pekín</button>
-          <button type="button" class="event-tab" data-event="cisce-feria">🏛 CISCE Feria</button>
         </nav>
 
-        <div class="event-panel active" id="event-panel-cisce" data-event="cisce"></div>
+        <div class="event-panel active" id="event-panel-cisce-feria" data-event="cisce-feria"></div>
+        <div class="event-panel" id="event-panel-cisce" data-event="cisce"></div>
         <div class="event-panel" id="event-panel-shenzhen" data-event="shenzhen"></div>
         <div class="event-panel" id="event-panel-icex-canton" data-event="icex-canton"></div>
         <div class="event-panel" id="event-panel-icex-shanghai" data-event="icex-shanghai"></div>
         <div class="event-panel" id="event-panel-icex-pekin" data-event="icex-pekin"></div>
-        <div class="event-panel" id="event-panel-cisce-feria" data-event="cisce-feria"></div>
       </section>
 
       <section class="view view--presentaciones" id="view-presentaciones">
@@ -521,6 +521,14 @@
             <label class="field-label" for="company-manual-role">Rol</label>
             <input type="text" id="company-manual-role" class="field-input" placeholder="Ej: Director comercial" autocomplete="off" />
           </div>
+          <div id="company-modal-precarga-header" class="company-modal-precarga-header" hidden>
+            <p class="company-precarga-name" id="company-precarga-name"></p>
+            <p class="company-precarga-name-zh" id="company-precarga-name-zh" hidden></p>
+            <label class="field-label" for="company-precarga-contact">Persona de contacto</label>
+            <input type="text" id="company-precarga-contact" class="field-input" placeholder="Ej: Wang Li" autocomplete="off" />
+            <label class="field-label" for="company-precarga-role">Rol</label>
+            <input type="text" id="company-precarga-role" class="field-input" placeholder="Ej: Director comercial" autocomplete="off" />
+          </div>
         </div>
         <button type="button" class="company-modal-close" id="company-modal-close" aria-label="Cerrar ficha">✕</button>
       </header>
@@ -528,6 +536,15 @@
         <p class="company-modal-loading-text">Cargando…</p>
       </div>
       <div class="company-modal-body" id="company-modal-form">
+        <section id="company-modal-strategic" class="ficha-section ficha-section--strategic" hidden aria-labelledby="company-strategic-heading">
+          <h4 class="ficha-section-title" id="company-strategic-heading">Información estratégica</h4>
+          <label class="field-label" for="company-field-encaje">Encaje con objetivo</label>
+          <div class="field-readonly" id="company-field-encaje"></div>
+          <label class="field-label" for="company-field-quehace">Qué hace</label>
+          <div class="field-readonly" id="company-field-quehace"></div>
+          <div class="cisce-badge-row" id="company-cisce-badges"></div>
+        </section>
+
         <span class="field-label">Tipo de reunión</span>
         <div class="meeting-type-picker meeting-type-picker--modal" id="company-meeting-type-picker" role="group" aria-label="Tipo de reunión">
           <button type="button" class="meeting-type-btn" data-type="b2b">🤝 B2B</button>
@@ -630,14 +647,21 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '38';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '46';
+      var q = '?v=' + encodeURIComponent(bust);
+      document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
+    })();
+  </script>
+  <script>
+    (function () {
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '46';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
         var s = document.createElement('script');
         s.src = files[i] + q;
         s.onload = function () { loadNext(files, i + 1); };
-        s.onerror = function () { loadNext(files, i + 1); };
+        s.onerror = function () { console.warn('No se cargó:', files[i]); loadNext(files, i + 1); };
         document.body.appendChild(s);
       }
       loadNext(['config.js', 'graph-sync.js', 'ficha-sharepoint.js', 'resumen-generator.js', 'app.js'], 0);

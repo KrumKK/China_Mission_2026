@@ -19,6 +19,93 @@ function normalizeMeetingTypeValue(value) {
   return null;
 }
 
+function isCiscePrecargadaId(companyId) {
+  return /^cisce-(jv|div|apoyo)-\d{2}$/.test(String(companyId || ''));
+}
+
+function isCisceFichaId(companyId) {
+  return /^cisce-(jv|div|apoyo)-/.test(String(companyId || ''));
+}
+
+function emptyCisceUserBlock() {
+  return {
+    descripcion: '',
+    personasContacto: '',
+    notas: ''
+  };
+}
+
+function defaultCisceRemoteFicha(companyId) {
+  return {
+    id: companyId,
+    contacto: '',
+    rol: '',
+    tipoReunion: '',
+    krum: emptyCisceUserBlock(),
+    oscar: emptyCisceUserBlock()
+  };
+}
+
+function normalizeCisceRemoteFicha(raw, companyId) {
+  const base = defaultCisceRemoteFicha(companyId);
+  if (!raw || typeof raw !== 'object') return base;
+
+  const merged = {
+    id: raw.id || companyId,
+    contacto: typeof raw.contacto === 'string' ? raw.contacto : '',
+    rol: typeof raw.rol === 'string' ? raw.rol : '',
+    tipoReunion: normalizeMeetingTypeValue(raw.tipoReunion) || '',
+    krum: emptyCisceUserBlock(),
+    oscar: emptyCisceUserBlock()
+  };
+
+  ['krum', 'oscar'].forEach(userId => {
+    const src = raw[userId];
+    if (!src || typeof src !== 'object') return;
+    merged[userId] = {
+      descripcion: typeof src.descripcion === 'string' ? src.descripcion : '',
+      personasContacto: typeof src.personasContacto === 'string' ? src.personasContacto : '',
+      notas: typeof src.notas === 'string' ? src.notas : ''
+    };
+  });
+
+  return merged;
+}
+
+function mergeCisceFichaForSave(remote, formState, currentUser) {
+  const companyId = formState.companyId;
+  const merged = normalizeCisceRemoteFicha(remote, companyId);
+
+  if (formState.contactPerson !== undefined) merged.contacto = formState.contactPerson;
+  if (formState.role !== undefined) merged.rol = formState.role;
+  if (formState.meetingType !== undefined) {
+    const mt = formState.meetingType;
+    merged.tipoReunion = mt === '' || mt == null ? '' : (normalizeMeetingTypeValue(mt) || '');
+  }
+
+  if (currentUser === 'krum' || currentUser === 'oscar') {
+    const block = merged[currentUser];
+    if (formState.myDescription !== undefined) block.descripcion = formState.myDescription;
+    if (formState.myContacts !== undefined) block.personasContacto = formState.myContacts;
+    if (formState.myNotes !== undefined) block.notas = formState.myNotes;
+  }
+
+  return merged;
+}
+
+async function saveCisceFichaAtomic(empresaId, formState) {
+  const currentUser = getCurrentUser();
+  if (!currentUser) throw new Error('Usuario no identificado');
+  const remote = await getRemoteFicha(empresaId);
+  const merged = mergeCisceFichaForSave(
+    remote,
+    Object.assign({ companyId: empresaId }, formState),
+    currentUser
+  );
+  await putRemoteFicha(empresaId, merged);
+  return merged;
+}
+
 function normalizePhotosArray(raw) {
   if (!Array.isArray(raw)) return [];
   return raw
@@ -65,7 +152,7 @@ function normalizeRemoteFicha(raw, companyId, meta) {
     meetingType: raw.meetingType != null ? normalizeMeetingTypeValue(raw.meetingType) : null,
     isManual: raw.isManual === true
       || String(companyId).indexOf('otras-') === 0
-      || /^cisce-(div|jv)-/.test(String(companyId)),
+      || (isCisceFichaId(companyId) && !isCiscePrecargadaId(companyId)),
     userEntries: {
       krum: emptyUserEntry(),
       oscar: emptyUserEntry()
@@ -256,5 +343,10 @@ window.listRemoteFichaIds = listRemoteFichaIds;
 window.deleteRemoteFicha = deleteRemoteFicha;
 window.mergeFichaForSave = mergeFichaForSave;
 window.saveFichaAtomic = saveFichaAtomic;
+window.saveCisceFichaAtomic = saveCisceFichaAtomic;
+window.defaultCisceRemoteFicha = defaultCisceRemoteFicha;
+window.normalizeCisceRemoteFicha = normalizeCisceRemoteFicha;
+window.isCiscePrecargadaId = isCiscePrecargadaId;
+window.isCisceFichaId = isCisceFichaId;
 window.migrateAllLocalFichasToSharePoint = migrateAllLocalFichasToSharePoint;
 window.PHOTOS_PER_USER_LIMIT = PHOTOS_PER_USER_LIMIT;
