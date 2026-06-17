@@ -89,6 +89,17 @@ const TRIP_LOGISTICS = [
 ];
 
 /* ──────────────────────────────────────────────
+   DATA — Arrival Cards (documentos de llegada)
+────────────────────────────────────────────── */
+const ARRIVAL_CARDS = [
+  {
+    id: 'krum',
+    name: 'Krum Kovachev',
+    file: 'arrival-card-krum.pdf'
+  }
+];
+
+/* ──────────────────────────────────────────────
    DATA — Vuelos
 ────────────────────────────────────────────── */
 const FLIGHTS = [
@@ -2782,6 +2793,30 @@ function renderLogistics() {
 
 
 /* ──────────────────────────────────────────────
+   RENDER — Arrival Cards (General)
+────────────────────────────────────────────── */
+function arrivalCardAssetUrl(filename) {
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '52';
+  return filename + '?v=' + encodeURIComponent(bust);
+}
+
+function renderArrivalCards() {
+  const container = document.getElementById('arrival-cards-list');
+  if (!container) return;
+
+  container.innerHTML = ARRIVAL_CARDS.map(card => `
+    <article class="arrival-card">
+      <div class="arrival-card-header">
+        <span class="arrival-card-doc" aria-hidden="true">📄</span>
+        <span class="arrival-card-name">${escapeHtml(card.name)}</span>
+      </div>
+      <a class="arrival-card-btn" href="${escapeHtml(arrivalCardAssetUrl(card.file))}" target="_blank" rel="noopener noreferrer">Ver Arrival Card</a>
+    </article>
+  `).join('');
+}
+
+
+/* ──────────────────────────────────────────────
    RENDER — Agenda (General)
 ────────────────────────────────────────────── */
 function countDelegationEntries(delegation) {
@@ -4694,6 +4729,7 @@ function startApp() {
   renderAgenda();
   renderFlights();
   renderLogistics();
+  renderArrivalCards();
   renderContacts();
   renderEventAgendas();
   renderIcexOffices().catch(err => console.warn('ICEX:', err));

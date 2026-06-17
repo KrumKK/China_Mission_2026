@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '51';
+      window.__APP_BUILD__ = '52';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -176,6 +176,10 @@
           <span class="alert-icon">ℹ️</span>
           <p>Agendas en <strong>Eventos</strong> · reuniones ICEX en <strong>Resumen</strong> · contactos en <strong>Contactos</strong></p>
         </div>
+
+        <h2 class="section-heading"><span class="section-emoji">🛂</span> Arrival Cards</h2>
+        <p class="section-lead">Tarjetas de llegada a China · disponibles sin conexión</p>
+        <div id="arrival-cards-list" class="arrival-cards-list"></div>
       </section>
 
       <section class="view" id="view-resumen">
@@ -647,14 +651,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '51';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '52';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '51';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '52';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;

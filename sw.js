@@ -1,7 +1,7 @@
 /* Misión China 2026 — Service Worker (red primero en la app) */
 'use strict';
 
-const CACHE_VERSION = 'v51';
+const CACHE_VERSION = 'v52';
 const CACHE_NAME = 'mision-china-' + CACHE_VERSION;
 
 /** Solo recursos estáticos ligeros; la app va siempre a red primero. */
@@ -13,7 +13,8 @@ const OFFLINE_ASSETS = [
   './vcard-qr-krum.png',
   './vcard-qr-oscar.png',
   './wechat-qr-krum.png',
-  './Presentaciones/oem-tier1/slides.json'
+  './Presentaciones/oem-tier1/slides.json',
+  './arrival-card-krum.pdf'
 ];
 
 function isSameOrigin(url) {
@@ -45,6 +46,10 @@ function isPresentationAsset(pathname) {
 
 function isCorporateVideo(pathname) {
   return pathname.indexOf('lizarte-corporate.mp4') !== -1;
+}
+
+function isArrivalCard(pathname) {
+  return /\/arrival-card-[^/]+\.pdf$/i.test(pathname);
 }
 
 self.addEventListener('install', event => {
@@ -84,7 +89,7 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(event.request.url);
 
-  if (isCorporateVideo(url.pathname)) {
+  if (isCorporateVideo(url.pathname) || isArrivalCard(url.pathname)) {
     event.respondWith(cacheFirst(event.request));
     return;
   }
@@ -103,10 +108,28 @@ self.addEventListener('fetch', event => {
   );
 });
 
+function matchCachedByPathname(request) {
+  const pathname = new URL(request.url).pathname;
+  return caches.open(CACHE_NAME).then(cache =>
+    cache.keys().then(keys => {
+      const key = keys.find(entry => {
+        try {
+          return new URL(entry.url).pathname === pathname;
+        } catch (_) {
+          return false;
+        }
+      });
+      return key ? cache.match(key) : null;
+    })
+  );
+}
+
 function cacheFirst(request) {
   return caches.match(request).then(cached => {
     if (cached) return cached;
-    return fetch(request)
+    return matchCachedByPathname(request).then(pathCached => {
+      if (pathCached) return pathCached;
+      return fetch(request)
       .then(response => {
         if (response && response.ok) {
           const copy = response.clone();
@@ -114,7 +137,12 @@ function cacheFirst(request) {
         }
         return response;
       })
-      .catch(() => caches.match(request));
+      .catch(() =>
+        caches.match(request).then(fallback =>
+          fallback || matchCachedByPathname(request)
+        )
+      );
+    });
   });
 }
 
