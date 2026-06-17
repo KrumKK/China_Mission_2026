@@ -41,6 +41,29 @@ const TRIP_LOGISTICS = [
     departureTime: null,
     departureNote: 'Hora de salida del hotel — pendiente de confirmar',
     notes: 'Habitación superior · misión PIN · distrito Longhua'
+  },
+  {
+    id: 'guangzhou',
+    cityEs: 'Guangzhou',
+    cityZh: '广州',
+    cityBadge: {
+      label: 'GUANGZHOU',
+      color: '#E67E22'
+    },
+    dateRange: '25–26 jun 2026 · 1 noche',
+    hotel: {
+      nameEs: 'MaxX by Steigenberger Guangzhou Zhujiang New Town',
+      nameZh: '广州珠江新城华轩美仑美奂酒店',
+      addressEs: '5th Floor (Front Desk), No. 62, Jinsui Road, Zhujiang New Town, Distrito de Tianhe, Guangzhou, Cantón',
+      addressZh: null,
+      phone: '+86-20-28306688-0 / +86-15116459261'
+    },
+    checkIn: 'Jueves 25 junio 2026 — después de las 14:00',
+    checkOut: 'Viernes 26 junio 2026 — antes de las 12:00',
+    nightsBadge: '1 NOCHE',
+    departureTime: null,
+    departureNote: null,
+    notes: 'Estancia para reuniones ICEX Cantón'
   }
 ];
 
@@ -2645,6 +2668,18 @@ function renderLogistics() {
 
   container.innerHTML = TRIP_LOGISTICS.map(item => {
     const isTravel = !item.hotel;
+    const phoneRaw = item.hotel && item.hotel.phone ? String(item.hotel.phone) : '';
+    const phoneLink = phoneRaw ? phoneRaw.split('/')[0].replace(/[^\d+]/g, '') : '';
+    const phoneHtml = phoneRaw
+      ? `<a class="hotel-phone" href="tel:${escapeHtml(phoneLink)}">📞 ${escapeHtml(phoneRaw)}</a>`
+      : '';
+    const stayBadges = (!isTravel && (item.checkIn || item.checkOut || item.nightsBadge))
+      ? `<div class="hotel-stay-badges">
+          ${item.checkIn ? `<span class="hotel-stay-badge">Check-in · ${escapeHtml(item.checkIn)}</span>` : ''}
+          ${item.checkOut ? `<span class="hotel-stay-badge">Check-out · ${escapeHtml(item.checkOut)}</span>` : ''}
+          ${item.nightsBadge ? `<span class="hotel-stay-badge hotel-stay-badge--nights">${escapeHtml(item.nightsBadge)}</span>` : ''}
+         </div>`
+      : '';
     const hotelBlock = item.hotel
       ? `<div class="hotel-names">
           <span class="hotel-name-es">${escapeHtml(item.hotel.nameEs)}</span>
@@ -2652,7 +2687,8 @@ function renderLogistics() {
          </div>
          ${item.hotel.addressEs ? `<span class="hotel-address">${escapeHtml(item.hotel.addressEs)}</span>` : ''}
          ${item.hotel.addressZh ? `<span class="hotel-address-zh">${escapeHtml(item.hotel.addressZh)}</span>` : ''}
-         ${item.hotel.phone ? `<span class="hotel-phone">📞 ${escapeHtml(item.hotel.phone)}</span>` : ''}`
+         ${phoneHtml}
+         ${stayBadges}`
       : `<p class="hotel-travel-note">${escapeHtml(item.departureNote || '')}</p>`;
 
     const departure = item.departureTime
@@ -2672,7 +2708,10 @@ function renderLogistics() {
             <span class="hotel-city-es">${escapeHtml(item.cityEs)}</span>
             <span class="hotel-city-zh">${escapeHtml(item.cityZh)}</span>
           </div>
-          <span class="hotel-dates">${escapeHtml(item.dateRange)}</span>
+          <div class="hotel-header-meta">
+            <span class="hotel-dates">${escapeHtml(item.dateRange)}</span>
+            ${item.cityBadge && item.cityBadge.label ? `<span class="hotel-city-badge" style="--hotel-city-badge-color:${escapeHtml(item.cityBadge.color || '#E67E22')}">${escapeHtml(item.cityBadge.label)}</span>` : ''}
+          </div>
         </header>
         ${isTravel ? '' : `<div class="hotel-card-body">${hotelBlock}${departure}</div>`}
         ${isTravel ? hotelBlock : ''}

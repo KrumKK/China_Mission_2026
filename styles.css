@@ -1466,6 +1466,13 @@ body.user-selector-open {
   margin-bottom: 12px;
 }
 
+.hotel-header-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
 .hotel-city-es {
   display: block;
   font-size: 17px;
@@ -1491,6 +1498,18 @@ body.user-selector-open {
   white-space: nowrap;
 }
 
+.hotel-city-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--hotel-city-badge-color, #E67E22);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
 .hotel-name-es {
   display: block;
   font-size: 15px;
@@ -1511,6 +1530,34 @@ body.user-selector-open {
   font-size: 12px;
   color: var(--text-faint);
   margin-top: 4px;
+}
+
+a.hotel-phone {
+  text-decoration: none;
+}
+
+.hotel-stay-badges {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hotel-stay-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-elevated);
+  color: var(--text-soft);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  padding: 4px 9px;
+}
+
+.hotel-stay-badge--nights {
+  background: #fff4e8;
+  color: #b85f18;
+  border-color: #f3c7a3;
 }
 
 .hotel-departure {
