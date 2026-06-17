@@ -73,15 +73,16 @@ const TRIP_LOGISTICS = [
     interpreter: {
       name: 'Cindia',
       role: 'Intérprete contratada',
+      email: 'cindialiu@hotmail.com',
       schedule: [
-        { date: 'Mar 24 junio', task: 'Cena de presentación' },
+        { date: 'Mar 24 junio', task: 'Cena a las 19:00' },
         { date: 'Mié 25 junio', task: 'Acompaña a visita FinDreams/BYD (Shenzhen)' },
         { date: 'Jue 25 – Vie 26 junio', task: 'Acompaña al equipo' }
       ],
       costs: [
         '1.200 RMB / día',
-        '+ Gastos de hotel',
-        '+ Gastos de tren'
+        'Hotel 1 noche: 221 RMB',
+        'Tren: 68 RMB'
       ]
     }
   }
@@ -2688,6 +2689,10 @@ function renderLogistics() {
 
   container.innerHTML = TRIP_LOGISTICS.map(item => {
     if (item.interpreter) {
+      const email = String(item.interpreter.email || '').trim();
+      const emailHtml = email
+        ? `<a class="hotel-phone" href="mailto:${escapeHtml(email)}">✉️ ${escapeHtml(email)}</a>`
+        : '';
       const schedule = (item.interpreter.schedule || []).map(row => `
         <div class="interpreter-timeline-row">
           <span class="interpreter-date">${escapeHtml(row.date || '')}</span>
@@ -2711,6 +2716,7 @@ function renderLogistics() {
           <div class="interpreter-names">
             <span class="hotel-name-es">${escapeHtml(item.interpreter.name || '')}</span>
             <span class="interpreter-role">${escapeHtml(item.interpreter.role || '')}</span>
+            ${emailHtml}
           </div>
           <div class="interpreter-timeline">${schedule}</div>
           <section class="interpreter-cost">
