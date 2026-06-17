@@ -64,6 +64,26 @@ const TRIP_LOGISTICS = [
     departureTime: null,
     departureNote: null,
     notes: 'Estancia para reuniones ICEX Cantón'
+  },
+  {
+    id: 'interpreter-cindia',
+    cityEs: '🗣️ INTÉRPRETE',
+    cityZh: '',
+    dateRange: 'Plan de trabajo · 24–26 jun 2026',
+    interpreter: {
+      name: 'Cindia',
+      role: 'Intérprete contratada',
+      schedule: [
+        { date: 'Mar 24 junio', task: 'Cena de presentación' },
+        { date: 'Mié 25 junio', task: 'Acompaña a visita FinDreams/BYD (Shenzhen)' },
+        { date: 'Jue 25 – Vie 26 junio', task: 'Acompaña al equipo' }
+      ],
+      costs: [
+        '1.200 RMB / día',
+        '+ Gastos de hotel',
+        '+ Gastos de tren'
+      ]
+    }
   }
 ];
 
@@ -2667,6 +2687,40 @@ function renderLogistics() {
   if (!container) return;
 
   container.innerHTML = TRIP_LOGISTICS.map(item => {
+    if (item.interpreter) {
+      const schedule = (item.interpreter.schedule || []).map(row => `
+        <div class="interpreter-timeline-row">
+          <span class="interpreter-date">${escapeHtml(row.date || '')}</span>
+          <span class="interpreter-task">${escapeHtml(row.task || '')}</span>
+        </div>
+      `).join('');
+      const costs = (item.interpreter.costs || []).map(cost => `
+        <li class="interpreter-cost-item">${escapeHtml(cost)}</li>
+      `).join('');
+      return `
+      <article class="hotel-card interpreter-card">
+        <header class="hotel-card-header">
+          <div class="hotel-city">
+            <span class="hotel-city-es">${escapeHtml(item.cityEs)}</span>
+          </div>
+          <div class="hotel-header-meta">
+            <span class="hotel-dates">${escapeHtml(item.dateRange || '')}</span>
+          </div>
+        </header>
+        <div class="hotel-card-body">
+          <div class="interpreter-names">
+            <span class="hotel-name-es">${escapeHtml(item.interpreter.name || '')}</span>
+            <span class="interpreter-role">${escapeHtml(item.interpreter.role || '')}</span>
+          </div>
+          <div class="interpreter-timeline">${schedule}</div>
+          <section class="interpreter-cost">
+            <h4 class="interpreter-cost-title">Coste</h4>
+            <ul class="interpreter-cost-list">${costs}</ul>
+          </section>
+        </div>
+      </article>`;
+    }
+
     const isTravel = !item.hotel;
     const phoneRaw = item.hotel && item.hotel.phone ? String(item.hotel.phone) : '';
     const phoneLink = phoneRaw ? phoneRaw.split('/')[0].replace(/[^\d+]/g, '') : '';

@@ -1605,6 +1605,70 @@ a.hotel-phone {
   border-top: 1px dashed var(--card-border);
 }
 
+.interpreter-card .hotel-city-es {
+  font-size: 15px;
+}
+
+.interpreter-role {
+  display: block;
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-top: 3px;
+}
+
+.interpreter-timeline {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.interpreter-timeline-row {
+  display: grid;
+  grid-template-columns: 145px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.interpreter-date {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-faint);
+}
+
+.interpreter-task {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.interpreter-cost {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: #ececf0;
+  border: 1px solid #d8d8de;
+}
+
+.interpreter-cost-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+}
+
+.interpreter-cost-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.interpreter-cost-item {
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
 /* ═══ TEAM ═══════════════════════════════════════════════ */
 .team-card {
   display: flex;
