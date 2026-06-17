@@ -96,6 +96,11 @@ const ARRIVAL_CARDS = [
     id: 'krum',
     name: 'Krum Kovachev',
     file: 'arrival-card-krum.pdf'
+  },
+  {
+    id: 'oscar',
+    name: 'Óscar Huarte',
+    file: 'arrival-card-oscar.pdf'
   }
 ];
 
@@ -2796,7 +2801,7 @@ function renderLogistics() {
    RENDER — Arrival Cards (General)
 ────────────────────────────────────────────── */
 function arrivalCardAssetUrl(filename) {
-  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '52';
+  const bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '53';
   return filename + '?v=' + encodeURIComponent(bust);
 }
 
