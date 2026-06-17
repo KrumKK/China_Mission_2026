@@ -2171,6 +2171,146 @@ body.qr-fullscreen-open {
 .icex-stat--visita { background: #FFF5E0; color: #8A6A20; }
 .icex-stat--unset { color: var(--text-faint); }
 
+/* ─── ICEX Cantón — agenda por días ───────────────────── */
+.icex-canton-schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 4px;
+}
+
+.icex-canton-day {
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(61, 53, 80, 0.05);
+}
+
+.icex-canton-day-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.icex-canton-day-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.icex-canton-day-sub {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
+}
+
+.icex-canton-day-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+
+.icex-canton-meeting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.icex-canton-slot-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.icex-canton-slot-badge--morning {
+  background: #E8F4FD;
+  color: #2471A3;
+}
+
+.icex-canton-slot-badge--afternoon {
+  background: #FEF9E7;
+  color: #B7950B;
+}
+
+.icex-canton-slot-badge--event {
+  background: #F4ECF7;
+  color: #7D3C98;
+}
+
+.icex-canton-travel {
+  text-align: center;
+  padding: 10px 12px;
+  margin: 2px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--card-border);
+}
+
+.icex-canton-city {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.icex-canton-meeting .company-card {
+  margin: 0;
+}
+
+.icex-canton-meeting--summit .summit-card {
+  margin: 0;
+  border-radius: var(--radius-lg);
+}
+
+.icex-summit-ficha-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+}
+
+.icex-summit-ficha-btn {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.icex-summit-ficha-btn:active {
+  opacity: 0.9;
+}
+
+.meeting-type-picker--summit {
+  width: 100%;
+}
+
 .company-contact-person {
   font-size: 13px;
   color: var(--text-soft);

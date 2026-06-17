@@ -222,7 +222,7 @@ const TRIP_DELEGATIONS = {
 };
 
 /* ──────────────────────────────────────────────
-   DATA — Summit Automotive Electronics (Eventos · Shenzhen)
+   DATA — Summit Automotive Electronics (ICEX Cantón · 27 jun)
 ────────────────────────────────────────────── */
 const AUTOMOTIVE_SUMMIT = {
   title: '15th International Automotive Electronics Industry Summit 2026',
@@ -555,27 +555,83 @@ const EVENT_AGENDA = {
 ────────────────────────────────────────────── */
 const PHOTOS_PER_USER = 5;
 
+const ICEX_CANTON_LEGACY_ID = 'icex-canton-06';
+const ICEX_CANTON_FINDREAMS_ID = 'icex-canton-01';
+const ICEX_CANTON_SUMMIT_ID = 'icex-canton-05';
+
+const ICEX_CANTON_SCHEDULE = [
+  {
+    dayLabel: 'Jueves 25 junio',
+    daySub: 'Día 1',
+    items: [
+      { type: 'slot', slot: 'morning', slotLabel: 'MAÑANA', companyId: 'icex-canton-01' },
+      { type: 'travel', text: '🚗 Desplazamiento Shenzhen → Guangzhou' },
+      { type: 'slot', slot: 'afternoon', slotLabel: 'TARDE', companyId: 'icex-canton-02' }
+    ]
+  },
+  {
+    dayLabel: 'Viernes 26 junio',
+    daySub: 'Día 2',
+    items: [
+      { type: 'slot', slot: 'morning', slotLabel: 'MAÑANA', companyId: 'icex-canton-03' },
+      { type: 'slot', slot: 'afternoon', slotLabel: 'TARDE', companyId: 'icex-canton-04' },
+      { type: 'travel', text: '🚗 Desplazamiento Guangzhou → Shenzhen' }
+    ]
+  },
+  {
+    dayLabel: 'Sábado 27 junio',
+    daySub: 'Día 3',
+    items: [
+      { type: 'slot', slot: 'event', slotLabel: 'EVENTO', companyId: ICEX_CANTON_SUMMIT_ID, summit: true }
+    ]
+  }
+];
+
 const ICEX_OFFICES = [
   {
     id: 'icex-canton',
     tabLabel: 'ICEX Cantón',
     heroTag: 'Shenzhen · Cantón',
-    heroTitle: 'ICEX Cantón (Shenzhen)',
-    heroDesc: '1 ficha',
+    heroTitle: 'ICEX Cantón',
+    heroDesc: '5 reuniones · 25–27 junio 2026',
     cityMarker: '粤',
     cityClass: 'city-shenzhen',
+    scheduleLayout: true,
     companies: [
       {
-        id: 'icex-canton-06',
-        name: 'FinDreams BYD',
-        nameZh: '弗迪 (比亚迪)',
-        contactPerson: 'Peng HE',
-        role: 'Gerente Depto. Chasis 6 / Director General de Producto',
+        id: 'icex-canton-01',
+        name: 'FinDreams / BYD',
+        nameZh: '弗迪/比亚迪',
+        city: 'Shenzhen',
         krumContactsSeed: [
           'Peng HE — Gerente del Departamento de Chasis 6 y Director General de Producto del Departamento de Chasis 6',
           'Xiaofei ZHANG — Gerente de línea de productos CEPS y experto en EPS',
           'Yuanfei WANG — Director del proyecto en el extranjero y su equipo'
         ].join('\n')
+      },
+      {
+        id: 'icex-canton-02',
+        name: 'XPENG',
+        nameZh: '小鹏',
+        city: 'Guangzhou'
+      },
+      {
+        id: 'icex-canton-03',
+        name: 'GAC Group y GAC Component Co., Ltd.',
+        nameZh: '广汽集团',
+        city: 'Guangzhou'
+      },
+      {
+        id: 'icex-canton-04',
+        name: 'Kuayue Autopart',
+        nameZh: '',
+        city: 'Guangzhou'
+      },
+      {
+        id: ICEX_CANTON_SUMMIT_ID,
+        name: '15th International Automotive Electronics Industry Summit 2026',
+        nameZh: '',
+        city: 'Shenzhen'
       }
     ]
   },
@@ -792,6 +848,47 @@ function setFichasInitChip(text, visible) {
   el.hidden = false;
 }
 
+async function migrateIcexCantonLegacyFicha(existing) {
+  if (!existing.has(ICEX_CANTON_LEGACY_ID)) return;
+  if (typeof getRemoteFicha !== 'function' || typeof putRemoteFicha !== 'function') return;
+
+  try {
+    const legacyRaw = await getRemoteFicha(ICEX_CANTON_LEGACY_ID);
+    if (!legacyRaw) return;
+
+    const targetRaw = await getRemoteFicha(ICEX_CANTON_FINDREAMS_ID);
+    const meta = companyMetaFromSeed(ICEX_CANTON_FINDREAMS_ID);
+
+    function fichaHasUserData(raw) {
+      if (!raw || !raw.userEntries) return false;
+      return ['krum', 'oscar'].some(uid => {
+        const entry = raw.userEntries[uid];
+        if (!entry) return false;
+        if (entry.description || entry.contacts || entry.notes) return true;
+        return Array.isArray(entry.photos) && entry.photos.some(p => p && p.dataBase64);
+      });
+    }
+
+    if (!fichaHasUserData(targetRaw) || fichaHasUserData(legacyRaw)) {
+      const merged = normalizeRemoteFicha(legacyRaw, ICEX_CANTON_FINDREAMS_ID, meta);
+      merged.id = ICEX_CANTON_FINDREAMS_ID;
+      merged.name = meta.name || merged.name;
+      merged.nameZh = meta.nameZh || merged.nameZh;
+      applyIcexSeedContacts(merged, ICEX_CANTON_FINDREAMS_ID);
+      await putRemoteFicha(ICEX_CANTON_FINDREAMS_ID, merged);
+      setCachedFicha(ICEX_CANTON_FINDREAMS_ID, merged);
+    }
+
+    if (typeof deleteRemoteFicha === 'function') {
+      await deleteRemoteFicha(ICEX_CANTON_LEGACY_ID);
+    }
+    remoteFichaMap.delete(ICEX_CANTON_LEGACY_ID);
+    existing.delete(ICEX_CANTON_LEGACY_ID);
+  } catch (err) {
+    console.warn('Migración icex-canton-06 → 01:', err);
+  }
+}
+
 async function initIcexFichasInSharePoint() {
   if (!CONFIG || !CONFIG.driveId) return;
   if (typeof listRemoteFichaIds !== 'function' || typeof putRemoteFicha !== 'function') return;
@@ -802,6 +899,7 @@ async function initIcexFichasInSharePoint() {
   try {
     const existingIds = await listRemoteFichaIds();
     const existing = new Set(existingIds);
+    await migrateIcexCantonLegacyFicha(existing);
     const toCreate = [];
     ICEX_COMPANY_MAP.forEach((seed, companyId) => {
       if (!existing.has(companyId)) toCreate.push({ id: companyId, type: 'icex' });
@@ -3036,7 +3134,6 @@ function renderEventAgendas() {
         <p class="event-hero-desc">${escapeHtml(data.heroDesc)}</p>
       </div>
       ${data.programIntro ? `<div class="alert-box alert-box--info"><span class="alert-icon">📋</span><p>${escapeHtml(data.programIntro)}</p></div>` : ''}
-      ${key === 'shenzhen' ? buildSummitCardHtml() : ''}
       ${key === 'cisce' ? buildNavarraDayCardHtml() : ''}
       <div class="timeline">
         <div class="timeline-city">
@@ -3055,7 +3152,8 @@ function renderEventAgendas() {
 /* ──────────────────────────────────────────────
    RENDER — Tarjetas empresa (ICEX + Otras)
 ────────────────────────────────────────────── */
-function buildCompanyCardHtml(ficha, companyId, seedCompany) {
+function buildCompanyCardHtml(ficha, companyId, seedCompany, cardOptions) {
+  cardOptions = cardOptions || {};
   const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
   const meetingType = normalizeMeetingType(ficha.meetingType);
   const photos = countPhotosInFicha(ficha);
@@ -3065,6 +3163,7 @@ function buildCompanyCardHtml(ficha, companyId, seedCompany) {
   const nameZh = ficha.nameZh || (seedCompany && seedCompany.nameZh) || '';
   const contactPerson = ficha.contactPerson || (seedCompany && seedCompany.contactPerson) || '';
   const role = ficha.role || (seedCompany && seedCompany.role) || '';
+  const city = cardOptions.city || (seedCompany && seedCompany.city) || '';
   const preview = mine.description
     ? truncateText(mine.description, 72)
     : 'Pulsa para abrir ficha en SharePoint';
@@ -3074,6 +3173,9 @@ function buildCompanyCardHtml(ficha, companyId, seedCompany) {
     : '';
   const contactLine = [contactPerson, role].filter(Boolean).join(' · ');
   const lizarteClass = isLizarteCompanyName(displayName) ? ' company-card--lizarte' : '';
+  const cityHtml = city
+    ? `<p class="icex-canton-city">📍 ${escapeHtml(city)}</p>`
+    : '';
 
   return `
     <article class="company-card icex-company-card${lizarteClass}" data-company-id="${escapeHtml(companyId)}" role="button" tabindex="0" aria-label="Abrir ficha de ${escapeHtml(displayName)}">
@@ -3087,11 +3189,83 @@ function buildCompanyCardHtml(ficha, companyId, seedCompany) {
           ${photos.total > 0 ? `<span class="company-badge badge-photos">📷 ${photos.total}</span>` : ''}
         </div>
       </div>
+      ${cityHtml}
       ${buildMeetingTypePickerHtml(companyId, meetingType, 'meeting-type-picker--card')}
       ${contactLine ? `<p class="company-contact-person">👤 ${escapeHtml(contactLine)}</p>` : ''}
       <p class="company-card-preview ${hasNotes ? '' : 'company-card-preview--empty'}">${escapeHtml(preview)}</p>
       <p class="company-card-meta" ${photoLabel ? '' : 'hidden'}>📷 ${escapeHtml(photoLabel)}</p>
     </article>`;
+}
+
+function tallyIcexMeetingStats(ficha) {
+  const meetingType = normalizeMeetingType(ficha.meetingType);
+  if (meetingType === 'b2b') return { b2b: 1, visita: 0, unset: 0 };
+  if (meetingType === 'visita') return { b2b: 0, visita: 1, unset: 0 };
+  return { b2b: 0, visita: 0, unset: 1 };
+}
+
+function mergeIcexOfficeStats(stats, delta) {
+  stats.b2b += delta.b2b;
+  stats.visita += delta.visita;
+  stats.unset += delta.unset;
+}
+
+function buildSummitFichaBarHtml(ficha, companyId) {
+  const meetingType = normalizeMeetingType(ficha.meetingType);
+  return `
+    <div class="icex-summit-ficha-bar">
+      ${buildMeetingTypePickerHtml(companyId, meetingType, 'meeting-type-picker--summit')}
+      <button type="button" class="icex-summit-ficha-btn" data-company-id="${escapeHtml(companyId)}">📝 Notas, contactos y fotos</button>
+    </div>`;
+}
+
+function buildIcexCantonScheduleHtml(office) {
+  const companyMap = new Map(office.companies.map(c => [c.id, c]));
+  const officeStats = { b2b: 0, visita: 0, unset: 0 };
+
+  const daysHtml = ICEX_CANTON_SCHEDULE.map((day, dayIndex) => {
+    const dayId = 'icex-canton-day-' + dayIndex;
+    const itemsHtml = day.items.map(item => {
+      if (item.type === 'travel') {
+        return `<div class="icex-canton-travel" role="note">${escapeHtml(item.text)}</div>`;
+      }
+      const company = companyMap.get(item.companyId);
+      if (!company) return '';
+      const ficha = getCachedFicha(item.companyId);
+      mergeIcexOfficeStats(officeStats, tallyIcexMeetingStats(ficha));
+
+      if (item.summit || item.companyId === ICEX_CANTON_SUMMIT_ID) {
+        return `
+        <div class="icex-canton-meeting icex-canton-meeting--summit">
+          <span class="icex-canton-slot-badge icex-canton-slot-badge--${escapeHtml(item.slot)}">${escapeHtml(item.slotLabel)}</span>
+          ${buildSummitCardHtml()}
+          ${buildSummitFichaBarHtml(ficha, item.companyId)}
+        </div>`;
+      }
+
+      const cardHtml = buildCompanyCardHtml(ficha, item.companyId, company, { city: company.city });
+      return `
+        <div class="icex-canton-meeting">
+          <span class="icex-canton-slot-badge icex-canton-slot-badge--${escapeHtml(item.slot)}">${escapeHtml(item.slotLabel)}</span>
+          ${cardHtml}
+        </div>`;
+    }).join('');
+
+    const subHtml = day.daySub
+      ? `<span class="icex-canton-day-sub">${escapeHtml(day.daySub)}</span>`
+      : '';
+
+    return `
+      <section class="icex-canton-day" aria-labelledby="${dayId}">
+        <header class="icex-canton-day-header" id="${dayId}">
+          <h4 class="icex-canton-day-title">${escapeHtml(day.dayLabel)}</h4>
+          ${subHtml}
+        </header>
+        <div class="icex-canton-day-items">${itemsHtml}</div>
+      </section>`;
+  }).join('');
+
+  return { daysHtml, officeStats };
 }
 
 async function renderOtrasReuniones() {
@@ -3351,8 +3525,16 @@ function bindProgramCollapsible(cardId, btnId, panelId) {
     card.classList.toggle('summit-card--expanded', next);
     panel.hidden = !next;
     btn.querySelector('.summit-toggle-label').textContent = next
-      ? 'Ocultar programa'
-      : 'Ver programa completo';
+      ? 'Ocultar programa ▲'
+      : 'Ver programa completo ▼';
+  });
+}
+
+function bindSummitFichaButtons() {
+  document.querySelectorAll('.icex-summit-ficha-btn[data-company-id]').forEach(btn => {
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => openCompanyModal(btn.dataset.companyId));
   });
 }
 
@@ -3383,14 +3565,26 @@ async function renderIcexOffices() {
 
     const officeStats = { b2b: 0, visita: 0, unset: 0 };
     const hasCompanies = office.companies.length > 0;
-    const cardsHtml = office.companies.map(company => {
-      const ficha = getCachedFicha(company.id);
-      const meetingType = normalizeMeetingType(ficha.meetingType);
-      if (meetingType === 'b2b') officeStats.b2b += 1;
-      else if (meetingType === 'visita') officeStats.visita += 1;
-      else officeStats.unset += 1;
-      return buildCompanyCardHtml(ficha, company.id, company);
-    }).join('');
+    let listHtml;
+
+    if (office.scheduleLayout && office.id === 'icex-canton') {
+      const schedule = buildIcexCantonScheduleHtml(office);
+      officeStats.b2b = schedule.officeStats.b2b;
+      officeStats.visita = schedule.officeStats.visita;
+      officeStats.unset = schedule.officeStats.unset;
+      listHtml = hasCompanies
+        ? `<div class="icex-canton-schedule">${schedule.daysHtml}</div>`
+        : buildIcexOfficeEmptyHtml();
+    } else {
+      const cardsHtml = office.companies.map(company => {
+        const ficha = getCachedFicha(company.id);
+        mergeIcexOfficeStats(officeStats, tallyIcexMeetingStats(ficha));
+        return buildCompanyCardHtml(ficha, company.id, company);
+      }).join('');
+      listHtml = hasCompanies
+        ? `<div class="company-list icex-company-list">${cardsHtml}</div>`
+        : buildIcexOfficeEmptyHtml();
+    }
 
     const statsHtml = hasCompanies
       ? `<div class="icex-office-stats">
@@ -3403,10 +3597,6 @@ async function renderIcexOffices() {
         <p><strong>5 fotos por usuario</strong> · fichas en SharePoint · marca <strong>B2B</strong> o <strong>Visita</strong> en cada tarjeta.</p>
       </div>`
       : '';
-
-    const listHtml = hasCompanies
-      ? `<div class="company-list icex-company-list">${cardsHtml}</div>`
-      : buildIcexOfficeEmptyHtml();
 
     panel.innerHTML = `
       <div class="event-hero event-hero--icex">
@@ -3423,6 +3613,8 @@ async function renderIcexOffices() {
 
   bindIcexCompanyCards();
   bindMeetingTypePickers();
+  bindSummitCollapsible();
+  bindSummitFichaButtons();
   renderMeetingsSummary();
 }
 
