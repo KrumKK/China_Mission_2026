@@ -2254,7 +2254,7 @@ body.qr-fullscreen-open {
   gap: 12px;
 }
 
-.company-meeting-time {
+.icex-canton-meeting .company-meeting-time {
   flex-shrink: 0;
   font-size: 1.35em;
   font-weight: 700;
@@ -2262,9 +2262,10 @@ body.qr-fullscreen-open {
   line-height: 1.1;
   text-align: right;
   letter-spacing: 0.02em;
+  margin-top: 0;
 }
 
-.company-meeting-time--pending {
+.icex-canton-meeting .company-meeting-time--pending {
   font-size: 1.05em;
   font-weight: 600;
   color: var(--text-faint);
@@ -2624,7 +2625,7 @@ body.qr-fullscreen-open {
   margin-bottom: 12px;
 }
 
-.company-objective, .company-notes, .company-meeting-time {
+.company-objective, .company-notes {
   font-size: 13px;
   color: var(--text-soft);
   margin-top: 6px;
