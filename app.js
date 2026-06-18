@@ -286,73 +286,72 @@ const TRIP_DELEGATIONS = {
 ────────────────────────────────────────────── */
 const AUTOMOTIVE_SUMMIT = {
   title: '15th International Automotive Electronics Industry Summit 2026',
-  theme: 'AI Smart Driving Pioneers; Chip & Chain Co-Upgrades; Building a New-Quality Industrial Ecosystem for Automotive Electronics',
+  theme: 'AI Smart Driving Pioneers · Chip & Chain Co-Upgrades · Building a New-Quality Industrial Ecosystem',
   dateBadge: '27 junio 2026',
-  venueBadge: 'Hilton Hotel Shenzhen',
-  venueFull: 'Hilton Hotel, Shenzhen International Convention and Exhibition Center',
+  venueBadge: 'Hilton Hotel, Shenzhen',
   sections: [
     {
-      label: 'Mañana',
+      label: 'MAÑANA',
       slots: [
         { time: '08:00-09:00', activity: 'Check-in' },
         { time: '09:00-09:30', activity: 'Opening Remarks' },
         { time: '09:30-09:50', activity: 'Guest Address' },
         {
           time: '09:50-10:00',
-          activity: 'Keynote: Empowering with AI, Upholding Integrity and Innovation, and Co-building a Global Automotive Intelligent Ecosystem',
-          speaker: 'Yang Hong, President of Shenzhen Automotive Electronics Industry Association and Chairman of Hangsheng Electronics Co., Ltd.'
+          activity: 'Keynote: Empowering with AI, Upholding Integrity and Innovation',
+          speaker: 'Yang Hong – Pres. Shenzhen Automotive Electronics Industry Assoc. / Chairman Hangsheng Electronics'
         },
         {
           time: '10:00-10:15',
-          activity: "Report on Development Trends of China's Intelligent and Connected Vehicles",
-          speaker: 'Ye Shengli, Chief Engineer of China Association of Automobile Manufacturers'
+          activity: "Development Trends of China's Intelligent & Connected Vehicles",
+          speaker: 'Ye Shengli – Chief Engineer, CAAM'
         },
         {
           time: '10:15-10:30',
-          activity: 'Sunlord Electronics Empowers Innovation and Upgrade of Intelligent Cockpit',
-          speaker: 'Jin Zekun, Engineering & Marketing Manager'
+          activity: 'Sunlord Electronics: Innovation of Intelligent Cockpit',
+          speaker: 'Jin Zekun – Engineering & Marketing Manager'
         },
         { time: '10:30-10:40', activity: 'Tea Break ☕', break: true },
         {
           time: '10:40-11:00',
-          activity: 'Build Core Competitiveness of In-Vehicle Communication and Cockpit via Indigenous Independent R&D',
-          speaker: 'Fang Lijun, Industry Director, Strategy & Marketing Dept., Neoway Technology'
+          activity: 'In-Vehicle Communication & Cockpit via R&D',
+          speaker: 'Fang Lijun – Neoway Technology'
         },
         {
           time: '11:00-11:20',
-          activity: 'When the Internet Meets AI – The Intelligent Revolution Driving the Automotive Industry',
+          activity: 'Internet Meets AI – Intelligent Revolution',
           speaker: 'Geely Automobile'
         },
         {
           time: '11:20-11:40',
-          activity: 'The Evolution of Automotive Storage',
+          activity: 'Evolution of Automotive Storage',
           speaker: 'Longsys'
         },
         {
           time: '11:40-12:00',
-          activity: 'Keynote: Leading the New Future of Autonomous Driving: AI and Storage Power a New Era for Intelligent Vehicles',
+          activity: 'AI and Storage Power Autonomous Driving',
           speaker: 'Silicon Motion'
         }
       ]
     },
     {
-      label: 'Almuerzo',
+      label: 'ALMUERZO',
       slots: [
         { time: '12:00-14:00', activity: 'Self-service Lunch 🍽️', meal: true }
       ]
     },
     {
-      label: 'Tarde',
+      label: 'TARDE',
       slots: [
         {
           time: '14:00-14:20',
-          activity: 'Analysis of Intelligent Automotive Development Trends in the AI Era',
+          activity: 'Intelligent Automotive Trends in the AI Era',
           speaker: 'Por confirmar'
         },
         {
           time: '14:20-14:40',
-          activity: 'Opportunities and Challenges in the Flash Memory Chip Market in the Era of Intelligent Connected Vehicles',
-          speaker: 'Mr. Chen Jian, Product Director, Hangzhou Hikvision Storage Technology Co., Ltd.'
+          activity: 'Flash Memory Chip Market for ICV',
+          speaker: 'Chen Jian – Hikvision Storage Technology'
         },
         {
           time: '14:40-15:00',
@@ -362,25 +361,36 @@ const AUTOMOTIVE_SUMMIT = {
         { time: '15:00-15:20', activity: 'Tea Break ☕', break: true },
         {
           time: '15:20-15:40',
-          activity: 'New Explorations in AI-Enabled Intelligent Technologies',
+          activity: 'AI-Enabled Intelligent Technologies',
           speaker: 'Por confirmar'
         },
         {
           time: '15:40-16:00',
-          activity: 'Explorations amid the Era of AI-enabled Intelligent Vehicles',
+          activity: 'AI-enabled Intelligent Vehicles',
           speaker: 'Ethiopia'
         },
         {
           time: '16:00-16:20',
-          activity: 'Development Opportunities of Automotive Industry in Malaysia & ASEAN',
+          activity: 'Automotive Industry in Malaysia & ASEAN',
           speaker: "Dato' Khoo Chong Boon"
         },
-        { time: '16:20-18:00', activity: 'Automotive Electronics Science and Technology Award Ceremony 🏆' },
+        { time: '16:20-18:00', activity: 'Automotive Electronics S&T Award Ceremony 🏆' },
         { time: '18:30-20:30', activity: 'Networking Dinner 🍷', meal: true }
       ]
     }
   ]
 };
+
+const SUMMIT_SEED_COMPANIES = [
+  {
+    id: 'summit-01',
+    name: 'Dare Auto',
+    nameZh: ''
+  }
+];
+
+const SUMMIT_COMPANY_MAP = new Map();
+SUMMIT_SEED_COMPANIES.forEach(c => SUMMIT_COMPANY_MAP.set(c.id, c));
 
 const NAVARRA_DAY_EVENT = {
   subtitle: 'Día de Navarra',
@@ -967,6 +977,9 @@ async function initIcexFichasInSharePoint() {
     getCisceCompanyMap().forEach((seed, companyId) => {
       if (!existing.has(companyId)) toCreate.push({ id: companyId, type: 'cisce' });
     });
+    SUMMIT_COMPANY_MAP.forEach((seed, companyId) => {
+      if (!existing.has(companyId)) toCreate.push({ id: companyId, type: 'summit' });
+    });
 
     if (!toCreate.length) return;
 
@@ -974,6 +987,11 @@ async function initIcexFichasInSharePoint() {
       toCreate.map(async item => {
         if (item.type === 'cisce' && typeof defaultCisceRemoteFicha === 'function') {
           await putRemoteFicha(item.id, defaultCisceRemoteFicha(item.id));
+          return;
+        }
+        if (item.type === 'summit') {
+          const meta = summitMetaFromSeed(item.id);
+          await putRemoteFicha(item.id, defaultRemoteFicha(item.id, meta));
           return;
         }
         const meta = companyMetaFromSeed(item.id);
@@ -1022,6 +1040,9 @@ function buildModalSnapshotObject() {
       contactPerson: readModalField('company-manual-contact'),
       role: readModalField('company-manual-role')
     };
+    if (isSummitFicha(activeModalFicha)) {
+      snap.temas = readModalField('company-field-temas');
+    }
   } else if (isCiscePrecargadaFicha(activeModalFicha)) {
     snap.precarga = {
       contactPerson: readModalField('company-precarga-contact'),
@@ -1155,6 +1176,33 @@ function isManualFichaId(companyId) {
   return String(companyId || '').indexOf('otras-') === 0;
 }
 
+function isSummitFichaId(companyId) {
+  return String(companyId || '').indexOf('summit-') === 0;
+}
+
+function isSummitSeedId(companyId) {
+  return SUMMIT_COMPANY_MAP.has(companyId);
+}
+
+function isSummitFicha(ficha) {
+  if (!ficha) return false;
+  return ficha.isSummit === true || isSummitFichaId(ficha.id);
+}
+
+function summitMetaFromSeed(companyId) {
+  const seed = SUMMIT_COMPANY_MAP.get(companyId);
+  return {
+    companyId,
+    name: seed ? seed.name : '',
+    nameZh: seed ? (seed.nameZh || '') : '',
+    contactPerson: '',
+    role: '',
+    temas: '',
+    icexOffice: 'Auto Electronics',
+    isManual: true
+  };
+}
+
 function isCisceFichaId(companyId) {
   if (typeof window.isCisceFichaId === 'function' && window.isCisceFichaId !== isCisceFichaId) {
     return window.isCisceFichaId(companyId);
@@ -1283,12 +1331,13 @@ function buildCisceFeriaCardHtml(ficha, seed) {
 }
 
 function isEditableFichaId(companyId) {
-  return isManualFichaId(companyId) || isCisceFichaId(companyId);
+  return isManualFichaId(companyId) || isCisceFichaId(companyId) || isSummitFichaId(companyId);
 }
 
 function isEditableFicha(ficha) {
   if (!ficha) return false;
   if (isCiscePrecargadaFicha(ficha)) return false;
+  if (isSummitFicha(ficha)) return true;
   if (isCisceFicha(ficha)) return true;
   return isManualFicha(ficha);
 }
@@ -1330,6 +1379,19 @@ function metaFromFicha(ficha, companyId) {
       isManual: true
     };
   }
+  if (isSummitFichaId(companyId) || isSummitFicha(ficha)) {
+    const seed = SUMMIT_COMPANY_MAP.get(companyId || (ficha && ficha.id));
+    return {
+      companyId: companyId || (ficha && ficha.id),
+      name: (ficha && ficha.name) || (seed && seed.name) || '',
+      nameZh: (ficha && ficha.nameZh) || (seed && seed.nameZh) || '',
+      contactPerson: (ficha && ficha.contactPerson) || '',
+      role: (ficha && ficha.role) || '',
+      temas: (ficha && ficha.temas) || '',
+      icexOffice: 'Auto Electronics',
+      isManual: true
+    };
+  }
   return companyMetaFromSeed(companyId);
 }
 
@@ -1363,6 +1425,7 @@ function createCisceFichaDraft(sectionId) {
     nameZh: '',
     contactPerson: '',
     role: '',
+    temas: '',
     icexOffice: 'CISCE Feria',
     meetingType: null,
     userEntries: {
@@ -1372,7 +1435,75 @@ function createCisceFichaDraft(sectionId) {
   };
 }
 
+function nextSummitFichaId() {
+  const existing = new Set();
+  remoteFichaMap.forEach((_, id) => {
+    if (isSummitFichaId(id)) existing.add(id);
+  });
+  SUMMIT_COMPANY_MAP.forEach((_, id) => existing.add(id));
+  for (let n = 2; n < 100; n++) {
+    const id = 'summit-' + String(n).padStart(2, '0');
+    if (!existing.has(id)) return id;
+  }
+  return 'summit-' + Date.now();
+}
+
+function createSummitFichaDraft() {
+  return {
+    id: nextSummitFichaId(),
+    isManual: true,
+    name: '',
+    nameZh: '',
+    contactPerson: '',
+    role: '',
+    temas: '',
+    icexOffice: 'Auto Electronics',
+    meetingType: null,
+    userEntries: {
+      krum: emptyUserEntry(),
+      oscar: emptyUserEntry()
+    }
+  };
+}
+
+function getSummitFichasFromCache() {
+  const cards = [];
+  SUMMIT_SEED_COMPANIES.forEach(seed => {
+    cards.push({
+      seed,
+      ficha: getCachedFicha(seed.id),
+      manual: false
+    });
+  });
+  remoteFichaMap.forEach((ficha, id) => {
+    if (!isSummitFichaId(id) || SUMMIT_COMPANY_MAP.has(id)) return;
+    cards.push({
+      seed: {
+        id,
+        name: ficha.name || 'Sin nombre',
+        nameZh: ficha.nameZh || ''
+      },
+      ficha,
+      manual: true
+    });
+  });
+  cards.sort((a, b) => {
+    if (!a.manual && b.manual) return -1;
+    if (a.manual && !b.manual) return 1;
+    return String(a.seed.name || a.seed.id).localeCompare(
+      String(b.seed.name || b.seed.id),
+      'es',
+      { sensitivity: 'base' }
+    );
+  });
+  return cards;
+}
+
 function refreshAfterFichaChange(companyId) {
+  if (isSummitFichaId(companyId) || isSummitFicha(getCachedFicha(companyId))) {
+    renderAutoElectronics().catch(err => console.warn('Auto Electronics:', err));
+    return;
+  }
   if (isCisceFichaId(companyId) || isCisceFicha(getCachedFicha(companyId))) {
     renderCisceFeria().catch(err => console.warn('CISCE Feria:', err));
     return;
@@ -1444,9 +1575,28 @@ async function loadAllRemoteFichas(force) {
   }
 
   try {
+    const summitResults = await Promise.all(
+      [...SUMMIT_COMPANY_MAP.keys()].map(async id => {
+        try {
+          const raw = await getRemoteFicha(id);
+          const ficha = normalizeRemoteFicha(raw, id, summitMetaFromSeed(id));
+          return [id, ficha];
+        } catch (err) {
+          console.warn('Ficha summit', id, err);
+          return [id, normalizeRemoteFicha(null, id, summitMetaFromSeed(id))];
+        }
+      })
+    );
+    summitResults.forEach(([id, ficha]) => remoteFichaMap.set(id, ficha));
+  } catch (err) {
+    console.warn('Fichas summit:', err);
+  }
+
+  try {
     const allIds = await listRemoteFichaIds();
     const manualIds = allIds.filter(id => {
       if (isManualFichaId(id)) return true;
+      if (isSummitFichaId(id) && !isSummitSeedId(id)) return true;
       return isCisceFichaId(id) && !isCiscePrecargadaId(id);
     });
     const manualResults = await Promise.allSettled(
@@ -1478,6 +1628,8 @@ function getCachedFicha(companyId) {
     ficha = buildCisceFichaView(null, seed);
   } else if (isManualFichaId(companyId) || isCisceFichaId(companyId)) {
     ficha = normalizeRemoteFicha(null, companyId, metaFromFicha(null, companyId));
+  } else if (isSummitFichaId(companyId)) {
+    ficha = normalizeRemoteFicha(null, companyId, summitMetaFromSeed(companyId));
   } else {
     ficha = normalizeRemoteFicha(null, companyId, companyMetaFromSeed(companyId));
   }
@@ -1488,6 +1640,7 @@ function getManualFichasFromCache() {
   const list = [];
   remoteFichaMap.forEach((ficha, id) => {
     if (isCisceFichaId(id)) return;
+    if (isSummitFichaId(id)) return;
     if (isManualFicha(ficha) || isManualFichaId(id)) {
       list.push(ficha);
     }
@@ -1618,6 +1771,14 @@ async function setCompanyMeetingType(companyId, meetingType) {
     formState.role = ficha.role || '';
     formState.isManual = true;
     formState.icexOffice = '';
+  } else if (isSummitFicha(ficha)) {
+    formState.name = ficha.name || '';
+    formState.nameZh = ficha.nameZh || '';
+    formState.contactPerson = ficha.contactPerson || '';
+    formState.role = ficha.role || '';
+    formState.temas = ficha.temas || '';
+    formState.isManual = true;
+    formState.icexOffice = 'Auto Electronics';
   }
   try {
     const merged = await saveFichaAtomic(companyId, formState);
@@ -2632,6 +2793,9 @@ function initNavigation() {
     if (eventId === 'cisce-feria') {
       renderCisceFeria().catch(err => console.warn('CISCE Feria:', err));
     }
+    if (eventId === 'auto-electronics') {
+      renderAutoElectronics().catch(err => console.warn('Auto Electronics:', err));
+    }
   }
 
   function activateViewByName(target) {
@@ -3375,10 +3539,9 @@ function buildIcexCantonScheduleHtml(office) {
 
       if (item.summit || item.companyId === ICEX_CANTON_SUMMIT_ID) {
         return `
-        <div class="icex-canton-meeting icex-canton-meeting--summit">
+        <div class="icex-canton-meeting icex-canton-meeting--summit-ref">
           <span class="icex-canton-slot-badge icex-canton-slot-badge--${escapeHtml(item.slot)}">${escapeHtml(item.slotLabel)}</span>
-          ${buildSummitCardHtml()}
-          ${buildSummitFichaBarHtml(ficha, item.companyId)}
+          ${buildSummitReferenceHtml(ficha, item.companyId)}
         </div>`;
       }
 
@@ -3607,25 +3770,39 @@ function buildSummitProgramHtml(summit) {
     </div>`).join('');
 }
 
-function buildSummitCardHtml() {
+function buildSummitReferenceHtml(ficha, companyId) {
   const s = AUTOMOTIVE_SUMMIT;
   return `
-    <article class="summit-card" id="automotive-summit-card">
+    <div class="summit-ref-card">
+      <p class="summit-ref-title">${escapeHtml(s.title)}</p>
+      <p class="summit-ref-meta">📅 ${escapeHtml(s.dateBadge)} · 📍 ${escapeHtml(s.venueBadge)}</p>
+      <button type="button" class="summit-ref-tab-link">📍 Ver programa completo en pestaña Auto Electronics</button>
+      ${buildSummitFichaBarHtml(ficha, companyId)}
+    </div>`;
+}
+
+function buildAutoElectronicsSummitCardHtml() {
+  const s = AUTOMOTIVE_SUMMIT;
+  return `
+    <article class="summit-card" id="auto-electronics-summit-card">
       <h4 class="summit-title">${escapeHtml(s.title)}</h4>
       <p class="summit-theme">${escapeHtml(s.theme)}</p>
       <div class="summit-badges">
         <span class="summit-badge">📅 ${escapeHtml(s.dateBadge)}</span>
         <span class="summit-badge">📍 ${escapeHtml(s.venueBadge)}</span>
       </div>
-      <p class="summit-venue-full">${escapeHtml(s.venueFull)}</p>
-      <button type="button" class="summit-toggle" id="summit-toggle-btn" aria-expanded="false" aria-controls="summit-program-panel">
-        <span class="summit-toggle-label">Ver programa completo</span>
+      <button type="button" class="summit-toggle" id="auto-electronics-summit-toggle" aria-expanded="false" aria-controls="auto-electronics-summit-panel">
+        <span class="summit-toggle-label">Ver programa completo ▼</span>
         <span class="summit-toggle-icon" aria-hidden="true">▼</span>
       </button>
-      <div class="summit-program" id="summit-program-panel" hidden>
+      <div class="summit-program" id="auto-electronics-summit-panel" hidden>
         ${buildSummitProgramHtml(s)}
       </div>
     </article>`;
+}
+
+function buildSummitCardHtml() {
+  return buildAutoElectronicsSummitCardHtml();
 }
 
 function buildNavarraDayCardHtml() {
@@ -3664,7 +3841,7 @@ function bindProgramCollapsible(cardId, btnId, panelId) {
     card.classList.toggle('summit-card--expanded', next);
     panel.hidden = !next;
     btn.querySelector('.summit-toggle-label').textContent = next
-      ? 'Ocultar programa ▲'
+      ? 'Ocultar ▲'
       : 'Ver programa completo ▼';
   });
 }
@@ -3678,8 +3855,83 @@ function bindSummitFichaButtons() {
 }
 
 function bindSummitCollapsible() {
-  bindProgramCollapsible('automotive-summit-card', 'summit-toggle-btn', 'summit-program-panel');
+  bindProgramCollapsible('auto-electronics-summit-card', 'auto-electronics-summit-toggle', 'auto-electronics-summit-panel');
   bindProgramCollapsible('navarra-day-card', 'navarra-day-toggle-btn', 'navarra-day-program-panel');
+}
+
+function bindSummitRefTabLinks() {
+  document.querySelectorAll('.summit-ref-tab-link').forEach(btn => {
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      if (typeof window.switchView === 'function') window.switchView('eventos');
+      if (typeof window.switchEventTab === 'function') window.switchEventTab('auto-electronics');
+    });
+  });
+}
+
+function openNewSummitFicha() {
+  const ficha = createSummitFichaDraft();
+  openCompanyModal(ficha.id, { draft: true, ficha });
+}
+
+function initSummitEvent() {
+  const fab = document.getElementById('btn-summit-add');
+  if (fab && fab.dataset.bound !== '1') {
+    fab.dataset.bound = '1';
+    fab.addEventListener('click', () => openNewSummitFicha());
+  }
+}
+
+async function renderAutoElectronics() {
+  const panel = document.getElementById('event-panel-auto-electronics');
+  if (!panel) return;
+
+  try {
+    await loadAllRemoteFichas(false);
+  } catch (err) {
+    console.warn('Carga fichas summit:', err);
+  }
+
+  const items = getSummitFichasFromCache();
+  const officeStats = { b2b: 0, visita: 0, unset: 0 };
+  const cardsHtml = items.map(item => {
+    const ficha = item.ficha;
+    mergeIcexOfficeStats(officeStats, tallyIcexMeetingStats(ficha));
+    return buildCompanyCardHtml(ficha, item.seed.id, item.seed);
+  }).join('');
+
+  const statsHtml = `
+    <div class="icex-office-stats">
+      <span class="icex-stat icex-stat--b2b">🤝 ${officeStats.b2b} B2B</span>
+      <span class="icex-stat icex-stat--visita">🏭 ${officeStats.visita} visitas</span>
+      ${officeStats.unset > 0 ? `<span class="icex-stat icex-stat--unset">${officeStats.unset} sin asignar</span>` : ''}
+    </div>
+    <div class="alert-box alert-box--info">
+      <span class="alert-icon">☁️</span>
+      <p><strong>5 fotos por usuario</strong> · fichas en SharePoint (prefijo <strong>summit-</strong>) · marca <strong>B2B</strong> o <strong>Visita</strong> en cada tarjeta.</p>
+    </div>`;
+
+  panel.innerHTML = `
+    <div class="event-hero event-hero--icex">
+      <div class="hero-tag">Shenzhen</div>
+      <h3 class="event-hero-title">Auto Electronics</h3>
+      <p class="event-hero-desc">Summit 27 junio 2026 · reuniones B2B</p>
+    </div>
+    ${statsHtml}
+    ${buildAutoElectronicsSummitCardHtml()}
+    <h3 class="summit-companies-heading">Reuniones con empresas</h3>
+    <div class="company-list summit-company-list">${cardsHtml}</div>
+    <button type="button" class="summit-add-btn" id="btn-summit-add">+ Añadir empresa</button>`;
+
+  bindSummitCollapsible();
+  bindSummitRefTabLinks();
+  bindIcexCompanyCards();
+  bindMeetingTypePickers();
+  bindSummitFichaButtons();
+  initSummitEvent();
+  renderMeetingsSummary();
 }
 
 function buildIcexOfficeEmptyHtml() {
@@ -3754,6 +4006,7 @@ async function renderIcexOffices() {
   bindMeetingTypePickers();
   bindSummitCollapsible();
   bindSummitFichaButtons();
+  bindSummitRefTabLinks();
   renderMeetingsSummary();
 }
 
@@ -3820,15 +4073,18 @@ function setModalHeaderMode(fichaOrFlag) {
   const fields = document.getElementById('company-modal-manual-fields');
   const precargaHeader = document.getElementById('company-modal-precarga-header');
   const strategic = document.getElementById('company-modal-strategic');
+  const temasSection = document.getElementById('company-modal-temas');
   const photoSection = document.querySelector('.photo-section');
   const deleteBtn = document.getElementById('company-btn-delete');
-  const showDelete = isEditable && !activeManualDraft;
+  const isSummit = ficha ? isSummitFicha(ficha) : isSummitFichaId(activeCompanyId);
+  const showDelete = isEditable && !activeManualDraft && !isSummitSeedId(activeCompanyId || (ficha && ficha.id));
 
   if (title) title.hidden = isEditable || precarga;
   if (subtitle) subtitle.hidden = isEditable || precarga;
   if (fields) fields.hidden = !isEditable;
   if (precargaHeader) precargaHeader.hidden = !precarga;
   if (strategic) strategic.hidden = !precarga;
+  if (temasSection) temasSection.hidden = !isSummit;
   if (photoSection) photoSection.hidden = !!precarga;
   if (deleteBtn) deleteBtn.hidden = !showDelete;
 }
@@ -3877,6 +4133,10 @@ function updateManualSaveButtonState() {
 }
 
 function refreshIcexCompanyCard(companyId) {
+  if (isSummitFichaId(companyId) || isSummitFicha(getCachedFicha(companyId))) {
+    renderAutoElectronics().catch(() => undefined);
+    return;
+  }
   if (isCisceFichaId(companyId) || isCisceFicha(getCachedFicha(companyId))) {
     renderCisceFeria().catch(() => undefined);
     return;
@@ -3971,13 +4231,20 @@ function getFormStateFromModal() {
     formState.contactPerson = contactInput ? trimText(contactInput.value) : '';
     formState.role = roleInput ? trimText(roleInput.value) : '';
     formState.isManual = true;
-    formState.icexOffice = isCisceFicha(activeModalFicha) ? 'CISCE Feria' : '';
+    formState.icexOffice = isCisceFicha(activeModalFicha)
+      ? 'CISCE Feria'
+      : (isSummitFicha(activeModalFicha) ? 'Auto Electronics' : '');
+    if (isSummitFicha(activeModalFicha)) {
+      const temasInput = document.getElementById('company-field-temas');
+      formState.temas = temasInput ? trimText(temasInput.value) : '';
+    }
     formState.meta = {
       companyId: activeCompanyId,
       name: formState.name,
       nameZh: formState.nameZh,
       contactPerson: formState.contactPerson,
       role: formState.role,
+      temas: formState.temas || '',
       icexOffice: formState.icexOffice,
       isManual: true,
       cisceSection: getCisceFichaSection(activeCompanyId)
@@ -4017,6 +4284,9 @@ function fillCompanyModalFromFicha(ficha) {
     fillPrecargaHeader(ficha);
     fillCisceStrategicSection(ficha);
   }
+
+  const temasInput = document.getElementById('company-field-temas');
+  if (temasInput) temasInput.value = ficha.temas || '';
 
   const desc = document.getElementById('company-field-desc');
   const contacts = document.getElementById('company-field-contacts');
@@ -4180,11 +4450,12 @@ async function openCompanyModal(companyId, options) {
   const cisceSeed = getCisceCompanyMap().get(companyId);
   const isDraft = !!options.draft;
   const isPrecarga = isCiscePrecargadaId(companyId);
+  const isSummit = isSummitFichaId(companyId);
   const isEditable = isDraft
     || (isEditableFichaId(companyId) && !isPrecarga)
     || (options.ficha && isEditableFicha(options.ficha));
 
-  if (!icexSeed && !isEditable && !isPrecarga) return;
+  if (!icexSeed && !isEditable && !isPrecarga && !isSummit) return;
 
   const modal = document.getElementById('company-modal');
   if (!modal) return;
@@ -4257,12 +4528,15 @@ async function deleteActiveManualFicha() {
 
   const id = activeCompanyId;
   const wasCisce = isCisceFicha(activeModalFicha);
+  const wasSummit = isSummitFicha(activeModalFicha);
   try {
     await deleteRemoteFicha(id);
     remoteFichaMap.delete(id);
     closeCompanyModal();
     if (wasCisce) {
       await renderCisceFeria();
+    } else if (wasSummit) {
+      await renderAutoElectronics();
     } else {
       await renderOtrasReuniones();
     }
@@ -4727,6 +5001,7 @@ function startApp() {
   initDevPanel();
   initOtrasReuniones();
   initCisceFeria();
+  initSummitEvent();
   initCompanyUnsavedModal();
   if (typeof window.initResumenGenerator === 'function') {
     window.initResumenGenerator();

@@ -128,6 +128,7 @@ function defaultRemoteFicha(companyId, meta) {
     nameZh: meta.nameZh || '',
     contactPerson: meta.contactPerson || '',
     role: meta.role || '',
+    temas: meta.temas || '',
     icexOffice: meta.icexOffice || meta.officeLabel || '',
     meetingType: null,
     isManual: !!meta.isManual,
@@ -148,10 +149,12 @@ function normalizeRemoteFicha(raw, companyId, meta) {
     nameZh: raw.nameZh || base.nameZh,
     contactPerson: raw.contactPerson || base.contactPerson,
     role: raw.role || base.role,
+    temas: typeof raw.temas === 'string' ? raw.temas : base.temas,
     icexOffice: raw.icexOffice != null ? raw.icexOffice : base.icexOffice,
     meetingType: raw.meetingType != null ? normalizeMeetingTypeValue(raw.meetingType) : null,
     isManual: raw.isManual === true
       || String(companyId).indexOf('otras-') === 0
+      || String(companyId).indexOf('summit-') === 0
       || (isCisceFichaId(companyId) && !isCiscePrecargadaId(companyId)),
     userEntries: {
       krum: emptyUserEntry(),
@@ -272,6 +275,7 @@ function mergeFichaForSave(remote, formState, currentUser) {
   if (formState.nameZh !== undefined) merged.nameZh = formState.nameZh;
   if (formState.contactPerson !== undefined) merged.contactPerson = formState.contactPerson;
   if (formState.role !== undefined) merged.role = formState.role;
+  if (formState.temas !== undefined) merged.temas = formState.temas;
   if (formState.isManual !== undefined) merged.isManual = !!formState.isManual;
   if (formState.icexOffice !== undefined) merged.icexOffice = formState.icexOffice;
 
