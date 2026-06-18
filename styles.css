@@ -2242,6 +2242,40 @@ body.qr-fullscreen-open {
   margin-bottom: 8px;
 }
 
+.company-card-header--with-time .company-card-header-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.company-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.company-meeting-time {
+  flex-shrink: 0;
+  font-size: 1.35em;
+  font-weight: 700;
+  color: #D4007F;
+  line-height: 1.1;
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+
+.company-meeting-time--pending {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.company-card-header--with-time .company-badges {
+  flex-direction: row;
+  align-items: center;
+  margin-top: 8px;
+}
+
 .company-name {
   display: block;
   font-size: 16px;

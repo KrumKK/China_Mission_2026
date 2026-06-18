@@ -634,17 +634,17 @@ const ICEX_CANTON_SCHEDULE = [
     dayLabel: 'Jueves 25 junio',
     daySub: 'Día 1',
     items: [
-      { type: 'slot', slot: 'morning', slotLabel: 'MAÑANA', companyId: 'icex-canton-01' },
+      { type: 'slot', slot: 'morning', slotLabel: 'MAÑANA', companyId: 'icex-canton-01', meetingTime: '09:30' },
       { type: 'travel', text: '🚗 Desplazamiento Shenzhen → Guangzhou' },
-      { type: 'slot', slot: 'afternoon', slotLabel: 'TARDE', companyId: 'icex-canton-02' }
+      { type: 'slot', slot: 'afternoon', slotLabel: 'TARDE', companyId: 'icex-canton-02', meetingTime: '15:00' }
     ]
   },
   {
     dayLabel: 'Viernes 26 junio',
     daySub: 'Día 2',
     items: [
-      { type: 'slot', slot: 'morning', slotLabel: 'MAÑANA', companyId: 'icex-canton-03' },
-      { type: 'slot', slot: 'afternoon', slotLabel: 'TARDE', companyId: 'icex-canton-04' },
+      { type: 'slot', slot: 'morning', slotLabel: 'MAÑANA', companyId: 'icex-canton-03', meetingTime: '10:00' },
+      { type: 'slot', slot: 'afternoon', slotLabel: 'TARDE', companyId: 'icex-canton-04', meetingTime: null },
       { type: 'travel', text: '🚗 Desplazamiento Guangzhou → Shenzhen' }
     ]
   },
@@ -3455,6 +3455,14 @@ function renderEventAgendas() {
 /* ──────────────────────────────────────────────
    RENDER — Tarjetas empresa (ICEX + Otras)
 ────────────────────────────────────────────── */
+function buildCantonMeetingTimeHtml(meetingTime) {
+  const time = trimText(meetingTime);
+  if (time) {
+    return `<span class="company-meeting-time" aria-label="Hora de reunión">${escapeHtml(time)}</span>`;
+  }
+  return '<span class="company-meeting-time company-meeting-time--pending">Sin hora</span>';
+}
+
 function buildCompanyCardHtml(ficha, companyId, seedCompany, cardOptions) {
   cardOptions = cardOptions || {};
   const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
@@ -3467,6 +3475,8 @@ function buildCompanyCardHtml(ficha, companyId, seedCompany, cardOptions) {
   const contactPerson = ficha.contactPerson || (seedCompany && seedCompany.contactPerson) || '';
   const role = ficha.role || (seedCompany && seedCompany.role) || '';
   const city = cardOptions.city || (seedCompany && seedCompany.city) || '';
+  const showCantonTime = Object.prototype.hasOwnProperty.call(cardOptions, 'cantonMeetingTime');
+  const cantonTimeHtml = showCantonTime ? buildCantonMeetingTimeHtml(cardOptions.cantonMeetingTime) : '';
   const preview = mine.description
     ? truncateText(mine.description, 72)
     : 'Pulsa para abrir ficha en SharePoint';
@@ -3480,8 +3490,24 @@ function buildCompanyCardHtml(ficha, companyId, seedCompany, cardOptions) {
     ? `<p class="icex-canton-city">📍 ${escapeHtml(city)}</p>`
     : '';
 
-  return `
-    <article class="company-card icex-company-card${lizarteClass}" data-company-id="${escapeHtml(companyId)}" role="button" tabindex="0" aria-label="Abrir ficha de ${escapeHtml(displayName)}">
+  const headerHtml = showCantonTime
+    ? `
+      <div class="company-card-header company-card-header--with-time">
+        <div class="company-card-header-main">
+          <div class="company-card-title-row">
+            <div>
+              <span class="company-name">${escapeHtml(displayName)}</span>
+              ${nameZh ? `<span class="company-name-zh">${escapeHtml(nameZh)}</span>` : ''}
+            </div>
+            ${cantonTimeHtml}
+          </div>
+          <div class="company-badges">
+            ${meetingTypeBadgeHtml(meetingType)}
+            ${photos.total > 0 ? `<span class="company-badge badge-photos">📷 ${photos.total}</span>` : ''}
+          </div>
+        </div>
+      </div>`
+    : `
       <div class="company-card-header">
         <div>
           <span class="company-name">${escapeHtml(displayName)}</span>
@@ -3491,7 +3517,11 @@ function buildCompanyCardHtml(ficha, companyId, seedCompany, cardOptions) {
           ${meetingTypeBadgeHtml(meetingType)}
           ${photos.total > 0 ? `<span class="company-badge badge-photos">📷 ${photos.total}</span>` : ''}
         </div>
-      </div>
+      </div>`;
+
+  return `
+    <article class="company-card icex-company-card${lizarteClass}" data-company-id="${escapeHtml(companyId)}" role="button" tabindex="0" aria-label="Abrir ficha de ${escapeHtml(displayName)}">
+      ${headerHtml}
       ${cityHtml}
       ${buildMeetingTypePickerHtml(companyId, meetingType, 'meeting-type-picker--card')}
       ${contactLine ? `<p class="company-contact-person">👤 ${escapeHtml(contactLine)}</p>` : ''}
@@ -3545,7 +3575,10 @@ function buildIcexCantonScheduleHtml(office) {
         </div>`;
       }
 
-      const cardHtml = buildCompanyCardHtml(ficha, item.companyId, company, { city: company.city });
+      const cardHtml = buildCompanyCardHtml(ficha, item.companyId, company, {
+        city: company.city,
+        cantonMeetingTime: item.meetingTime
+      });
       return `
         <div class="icex-canton-meeting">
           <span class="icex-canton-slot-badge icex-canton-slot-badge--${escapeHtml(item.slot)}">${escapeHtml(item.slotLabel)}</span>
