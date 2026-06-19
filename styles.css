@@ -259,6 +259,29 @@ body.app-authenticated::before {
   z-index: 2;
 }
 
+.connection-status-chip {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--bg-elevated);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.connection-status-chip--online {
+  border-color: #2e7d4a;
+  background: #e8f5ec;
+  color: #1b5e34;
+}
+
+.connection-status-chip--offline {
+  border-color: #c62828;
+  background: #fdecea;
+  color: #b71c1c;
+}
+
 .graph-init-chip {
   padding: 8px 12px;
   border-radius: var(--radius-md);

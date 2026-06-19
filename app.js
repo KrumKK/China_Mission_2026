@@ -902,9 +902,81 @@ function setActiveUser(userIdOrName) {
 
 window.setActiveUser = setActiveUser;
 
+function isAppOnline() {
+  return typeof navigator.onLine !== 'boolean' || navigator.onLine;
+}
+
+function sharePointOfflineMessage() {
+  return 'Sin conexión — los cambios no se guardarán en SharePoint';
+}
+
 function connectionErrorMessage() {
+  if (!isAppOnline()) return sharePointOfflineMessage();
   return 'Sin conexión, reintenta cuando tengas VPN';
 }
+
+function updateConnectionStatus() {
+  const chip = document.getElementById('connection-status-chip');
+  const online = isAppOnline();
+  if (chip) {
+    chip.textContent = online ? '🟢 Online' : '🔴 Offline';
+    chip.className = 'connection-status-chip connection-status-chip--' + (online ? 'online' : 'offline');
+    chip.setAttribute('aria-label', online ? 'Conectado a internet' : 'Sin conexión a internet');
+  }
+  document.body.classList.toggle('app-offline', !online);
+  updateSharePointControlsForConnection();
+}
+
+function updateSharePointControlsForConnection() {
+  const online = isAppOnline();
+  const offlineMsg = sharePointOfflineMessage();
+
+  const saveBtn = document.getElementById('company-btn-save');
+  if (saveBtn) {
+    if (!online) {
+      saveBtn.disabled = true;
+      saveBtn.title = offlineMsg;
+    } else {
+      saveBtn.removeAttribute('title');
+      updateManualSaveButtonState();
+    }
+  }
+
+  ['btn-generar-resumen-dia', 'btn-generar-resumen-total', 'btn-migrate-local'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.disabled = !online;
+    if (!online) btn.title = offlineMsg;
+    else btn.removeAttribute('title');
+  });
+}
+
+function setResumenOfflineStatus() {
+  const el = document.getElementById('resumen-dia-status');
+  if (!el) return;
+  el.textContent = sharePointOfflineMessage();
+  el.classList.add('resumen-dia-status--error');
+}
+
+function initConnectionStatus() {
+  updateConnectionStatus();
+  window.addEventListener('online', updateConnectionStatus);
+  window.addEventListener('offline', updateConnectionStatus);
+
+  ['btn-generar-resumen-dia', 'btn-generar-resumen-total'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn || btn.dataset.offlineGuard === '1') return;
+    btn.dataset.offlineGuard = '1';
+    btn.addEventListener('click', event => {
+      if (isAppOnline()) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      setResumenOfflineStatus();
+    }, true);
+  });
+}
+
+window.isAppOnline = isAppOnline;
 
 function setFichasInitChip(text, visible) {
   const el = document.getElementById('fichas-init-chip');
@@ -1757,6 +1829,12 @@ async function getAllRecordsFromDatabase() {
 }
 
 async function setCompanyMeetingType(companyId, meetingType) {
+  if (!isAppOnline()) {
+    if (activeCompanyId === companyId) {
+      setCompanySaveStatus(sharePointOfflineMessage(), true);
+    }
+    throw new Error(sharePointOfflineMessage());
+  }
   const ficha = getCachedFicha(companyId);
   const meta = metaFromFicha(ficha, companyId);
   const next = normalizeMeetingType(meetingType);
@@ -4453,7 +4531,9 @@ function updateManualSaveButtonState() {
   }
   const nameInput = document.getElementById('company-manual-name');
   const name = nameInput ? trimText(nameInput.value) : trimText(activeModalFicha.name);
-  saveBtn.disabled = !name;
+  saveBtn.disabled = !name || !isAppOnline();
+  if (!isAppOnline()) saveBtn.title = sharePointOfflineMessage();
+  else saveBtn.removeAttribute('title');
 }
 
 function refreshIcexCompanyCard(companyId) {
@@ -4871,6 +4951,11 @@ async function saveCompanyModal(options) {
   const saveBtn = document.getElementById('company-btn-save');
   const formState = getFormStateFromModal();
 
+  if (!isAppOnline()) {
+    setCompanySaveStatus(sharePointOfflineMessage(), true);
+    return false;
+  }
+
   if (isEditableFicha(activeModalFicha) && !trimText(formState.name)) {
     setCompanySaveStatus('El nombre de la empresa es obligatorio', true);
     return false;
@@ -4990,6 +5075,11 @@ async function openCompanyModal(companyId, options) {
 
 async function deleteActiveManualFicha() {
   if (!activeCompanyId || !activeModalFicha || !isEditableFicha(activeModalFicha)) return;
+
+  if (!isAppOnline()) {
+    setCompanySaveStatus(sharePointOfflineMessage(), true);
+    return;
+  }
 
   const ok = window.confirm(
     '¿Eliminar esta ficha?\n\nEsta acción no se puede deshacer.'
@@ -5157,6 +5247,13 @@ function initDevPanel() {
   if (!migrateBtn) return;
 
   migrateBtn.addEventListener('click', async () => {
+    if (!isAppOnline()) {
+      if (statusEl) {
+        statusEl.textContent = sharePointOfflineMessage();
+      }
+      return;
+    }
+
     migrateBtn.disabled = true;
     if (statusEl) statusEl.textContent = 'Leyendo fichas locales…';
 
@@ -5409,6 +5506,7 @@ function escapeHtml(str) {
    INIT — compatible con carga dinámica de app.js
 ────────────────────────────────────────────── */
 function startApp() {
+  initConnectionStatus();
   initCountdown();
   initNavAutoHide();
   initNavigation();

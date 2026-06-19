@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '66';
+      window.__APP_BUILD__ = '67';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -123,6 +123,7 @@
     <main class="app-main" id="app-main">
 
       <div class="app-status-bar">
+        <span class="connection-status-chip connection-status-chip--online" id="connection-status-chip" aria-live="polite">🟢 Online</span>
         <span class="graph-init-chip" id="graph-init-chip" title="">Graph: pendiente</span>
         <span class="fichas-init-chip" id="fichas-init-chip" hidden aria-live="polite"></span>
       </div>
@@ -613,14 +614,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '66';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '67';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '66';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '67';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
