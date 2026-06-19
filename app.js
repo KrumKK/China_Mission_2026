@@ -161,6 +161,143 @@ const FLIGHTS = [
 ];
 
 /* ──────────────────────────────────────────────
+   DATA — Resumen diario maestro (General)
+────────────────────────────────────────────── */
+const TRIP_DAILY_SUMMARY = [
+  {
+    id: 'jun-21',
+    title: 'Domingo 21 junio — Beijing',
+    summaryLine: 'Domingo 21 — Beijing (1 evento)',
+    location: '📍 Beijing',
+    slots: [
+      {
+        time: '18:00',
+        label: 'Cena bienvenida CISCE',
+        detail: 'Punto de encuentro: vestíbulo hotel 17:00'
+      }
+    ]
+  },
+  {
+    id: 'jun-22',
+    title: 'Lunes 22 junio — Beijing / CISCE',
+    summaryLine: 'Lunes 22 — Beijing / CISCE (5 eventos)',
+    location: '📍 Beijing',
+    slots: [
+      { time: '09:30', label: 'Ceremonia inauguración CISCE' },
+      { time: '12:00', label: 'Almuerzo inauguración' },
+      { time: '14:30', label: 'Conferencia Anhui + MOU', warning: 'confirmar' },
+      { time: '16:00', label: 'Mesa redonda Cámaras Comercio', warning: 'confirmar' },
+      { time: '19:00', label: 'Cena delegación Navarra' }
+    ]
+  },
+  {
+    id: 'jun-23',
+    title: 'Martes 23 junio — Beijing → Shenzhen',
+    summaryLine: 'Martes 23 — Beijing → Shenzhen (vuelo noche)',
+    location: '📍 Beijing (mañana) → ✈️ Shenzhen (noche)',
+    slots: [
+      { time: '09:30', label: 'Sesión intercambio Chongqing (E201)' },
+      { time: '11:00', label: 'Evento Día de Navarra' },
+      { time: '14:00', label: 'Visita guiada sala exposiciones CISCE' },
+      { time: '', label: '✈️ Vuelo Beijing → Shenzhen (llega 23:35)', flight: true }
+    ]
+  },
+  {
+    id: 'jun-24',
+    title: 'Miércoles 24 junio — Shenzhen / Foro',
+    summaryLine: 'Miércoles 24 — Shenzhen / Foro Longhua (10 eventos)',
+    location: '📍 Shenzhen',
+    slots: [
+      { time: '09:30', label: 'Visita Longhua International Cooperation Center' },
+      { time: '10:00', label: '(FORO) Apertura Institucional' },
+      { time: '10:30', label: '(FORO) Presentaciones empresas' },
+      { time: '12:00', label: '(FORO) Almuerzo de trabajo' },
+      { time: '13:30', label: '(FORO) B2B Matchmaking' },
+      { time: '15:00', label: '(FORO) Foto de grupo' },
+      { time: '16:00', label: 'Visita Hongmeng', confirmed: true },
+      { time: '17:30', label: 'Visita Meituan', confirmed: true },
+      { time: '19:00', label: '🗣️ Cena con intérprete Cindia' }
+    ]
+  },
+  {
+    id: 'jun-25',
+    title: 'Jueves 25 junio — ⚠️ DÍA PARTIDO',
+    summaryLine: 'Jueves 25 — ⚠️ Día partido: ICEX Lizarte + Grupo',
+    conflict: true,
+    location: '📍 Shenzhen + Guangzhou',
+    groups: [
+      {
+        heading: 'LIZARTE (separados del grupo)',
+        slots: [
+          { time: '09:30', label: 'FinDreams / BYD (Shenzhen) — ICEX', lizarte: true },
+          { travel: true, label: 'Desplazamiento Shenzhen → Guangzhou' },
+          { time: '15:00', label: 'XPENG (Guangzhou) — ICEX', lizarte: true },
+          { time: '', label: '🏨 Hotel MaxX Steigenberger Guangzhou (check-in 14:00)' }
+        ]
+      },
+      {
+        heading: 'GRUPO NAVARRA (sin Lizarte)',
+        slots: [
+          { time: '10:00', label: 'Visita Hithium' },
+          { time: '11:30', label: 'Centro Nacional Dispositivos Médicos' },
+          { time: '15:00', label: 'Ye Sun Technology Park' },
+          { time: '19:30', label: 'Cena' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'jun-26',
+    title: 'Viernes 26 junio — ⚠️ DÍA PARTIDO',
+    summaryLine: 'Viernes 26 — ⚠️ Día partido: ICEX Lizarte + Grupo',
+    conflict: true,
+    location: '📍 Guangzhou + Shenzhen',
+    groups: [
+      {
+        heading: 'LIZARTE (separados del grupo)',
+        slots: [
+          { time: '10:00', label: 'GAC Group + GAC Component (Guangzhou) — ICEX', lizarte: true },
+          { time: '', label: '🏨 Check-out hotel Guangzhou (antes 12:00)' },
+          { time: 'Tarde', label: 'Kuayue Autopart (Guangzhou) — ICEX', lizarte: true },
+          { travel: true, label: 'Desplazamiento Guangzhou → Shenzhen' }
+        ]
+      },
+      {
+        heading: 'GRUPO NAVARRA (sin Lizarte)',
+        slots: [
+          { time: '10:00', label: 'Reunión empresas SIF' },
+          { time: '14:00', label: 'Huaqiangbei' },
+          { time: '15:00', label: 'Tax Free shopping' },
+          { time: '16:00', label: 'Proyección película', warning: 'pendiente' },
+          { time: '18:30', label: 'Cena' },
+          { time: '', label: '✈️ Aeropuerto', flight: true }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'jun-27',
+    title: 'Sábado 27 junio — Shenzhen / Summit',
+    summaryLine: 'Sábado 27 — Summit Automotive Electronics + Dare Auto',
+    location: '📍 Shenzhen — Hilton Hotel',
+    slots: [
+      {
+        time: 'Todo el día',
+        label: '15th International Automotive Electronics Industry Summit',
+        lizarte: true
+      },
+      { time: '08:00', label: 'Check-in' },
+      { time: '09:00', label: 'Apertura' },
+      { time: '12:00', label: 'Almuerzo' },
+      { time: '14:00', label: 'Sesiones tarde' },
+      { time: '16:20', label: 'Ceremonia premios' },
+      { time: '18:30', label: 'Networking Dinner' },
+      { time: '', label: 'Reunión: Dare Auto', lizarte: true }
+    ]
+  }
+];
+
+/* ──────────────────────────────────────────────
    DATA — Delegaciones (Eventos · CISCE / Shenzhen)
 ────────────────────────────────────────────── */
 const TRIP_DELEGATIONS = {
@@ -3470,6 +3607,111 @@ function bindAgendaDelegations() {
 }
 
 /* ──────────────────────────────────────────────
+   RENDER — Resumen diario maestro (General)
+────────────────────────────────────────────── */
+function buildTripDailySlotLabel(slot) {
+  if (slot.travel) return '🚗 ' + slot.label;
+  const parts = [];
+  if (slot.lizarte) parts.push('🔴');
+  parts.push(slot.label);
+  if (slot.confirmed) parts.push('✅');
+  if (slot.warning === 'confirmar') parts.push('⚠️ Por confirmar');
+  if (slot.warning === 'pendiente') parts.push('⚠️ Pendiente');
+  return parts.join(' ');
+}
+
+function buildTripDailySlotHtml(slot) {
+  if (slot.travel) {
+    return `
+      <div class="trip-daily-slot trip-daily-slot--travel">
+        <span class="trip-daily-slot-label">${escapeHtml(buildTripDailySlotLabel(slot))}</span>
+      </div>`;
+  }
+
+  const classes = ['trip-daily-slot'];
+  if (slot.lizarte) classes.push('trip-daily-slot--lizarte');
+  if (slot.warning) classes.push('trip-daily-slot--warning');
+  if (slot.flight) classes.push('trip-daily-slot--flight');
+
+  const time = slot.time ? escapeHtml(slot.time) : '';
+  const detail = slot.detail
+    ? `<span class="trip-daily-slot-detail">${escapeHtml(slot.detail)}</span>`
+    : '';
+
+  return `
+    <div class="${classes.join(' ')}">
+      <span class="trip-daily-slot-time">${time}</span>
+      <div class="trip-daily-slot-body">
+        <span class="trip-daily-slot-label">${escapeHtml(buildTripDailySlotLabel(slot))}</span>
+        ${detail}
+      </div>
+    </div>`;
+}
+
+function buildTripDailySlotsHtml(slots) {
+  return (slots || []).map(buildTripDailySlotHtml).join('');
+}
+
+function buildTripDailyDayHtml(day) {
+  const panelId = 'trip-daily-panel-' + day.id;
+  const dayClass = day.conflict ? ' trip-daily-day--conflict' : '';
+
+  let bodyHtml = '';
+  if (day.location) {
+    bodyHtml += `<p class="trip-daily-location">${escapeHtml(day.location)}</p>`;
+  }
+  if (day.groups && day.groups.length) {
+    bodyHtml += day.groups.map(group => `
+      <div class="trip-daily-group">
+        <h4 class="trip-daily-group-heading">${escapeHtml(group.heading)}</h4>
+        <div class="trip-daily-timeline">${buildTripDailySlotsHtml(group.slots)}</div>
+      </div>`).join('');
+  } else {
+    bodyHtml += `<div class="trip-daily-timeline">${buildTripDailySlotsHtml(day.slots)}</div>`;
+  }
+
+  return `
+    <article class="trip-daily-day${dayClass}" data-trip-day="${escapeHtml(day.id)}">
+      <button type="button" class="trip-daily-toggle" aria-expanded="false" aria-controls="${escapeHtml(panelId)}">
+        <span class="trip-daily-toggle-title">${escapeHtml(day.title)}</span>
+        <span class="trip-daily-toggle-summary">${escapeHtml(day.summaryLine)}</span>
+        <span class="trip-daily-toggle-icon" aria-hidden="true">▼</span>
+      </button>
+      <div class="trip-daily-panel" id="${escapeHtml(panelId)}" hidden>
+        ${bodyHtml}
+      </div>
+    </article>`;
+}
+
+function bindTripDailySummary() {
+  document.querySelectorAll('.trip-daily-toggle').forEach(btn => {
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+
+    btn.addEventListener('click', () => {
+      const day = btn.closest('.trip-daily-day');
+      const panel = day ? day.querySelector('.trip-daily-panel') : null;
+      const icon = btn.querySelector('.trip-daily-toggle-icon');
+      if (!panel) return;
+
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      const next = !expanded;
+      btn.setAttribute('aria-expanded', next ? 'true' : 'false');
+      panel.hidden = !next;
+      if (day) day.classList.toggle('trip-daily-day--expanded', next);
+      if (icon) icon.textContent = next ? '▲' : '▼';
+    });
+  });
+}
+
+function renderTripDailySummary() {
+  const root = document.getElementById('trip-daily-summary');
+  if (!root) return;
+  root.innerHTML = TRIP_DAILY_SUMMARY.map(buildTripDailyDayHtml).join('');
+  bindTripDailySummary();
+}
+
+/* ──────────────────────────────────────────────
    RENDER — Vuelos
 ────────────────────────────────────────────── */
 function renderFlights() {
@@ -5513,6 +5755,7 @@ function startApp() {
   if (typeof window.initResumenGenerator === 'function') {
     window.initResumenGenerator();
   }
+  renderTripDailySummary();
   renderFlights();
   renderLogistics();
   renderArrivalCards();

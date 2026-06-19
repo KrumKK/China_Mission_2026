@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '73';
+      window.__APP_BUILD__ = '74';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -160,6 +160,10 @@
           </div>
 
         </div>
+
+        <h2 class="section-heading"><span class="section-emoji">📅</span> Resumen del viaje día a día</h2>
+        <p class="section-lead">Vista rápida del programa · toque cada día para ver el detalle</p>
+        <div id="trip-daily-summary" class="trip-daily-summary"></div>
 
         <h2 class="section-heading"><span class="section-emoji">✈️</span> Vuelos</h2>
         <p class="section-lead">Horarios en hora local</p>
@@ -610,14 +614,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '73';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '74';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '73';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '74';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
