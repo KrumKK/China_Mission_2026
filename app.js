@@ -75,8 +75,8 @@ const TRIP_LOGISTICS = [
       role: 'Intérprete contratada',
       email: 'cindialiu@hotmail.com',
       schedule: [
-        { date: 'Mar 24 junio', task: 'Cena a las 19:00' },
-        { date: 'Mié 25 junio', task: 'Acompaña a visita FinDreams/BYD (Shenzhen)' },
+        { date: 'Mié 24 junio', task: 'Cena a las 19:00' },
+        { date: 'Jue 25 junio', task: 'Acompaña a visita FinDreams/BYD (Shenzhen)' },
         { date: 'Jue 25 – Vie 26 junio', task: 'Acompaña al equipo' }
       ],
       costs: [
@@ -515,7 +515,7 @@ const EVENT_AGENDA = {
     days: [
       {
         date: '2026-06-21',
-        dateLabel: 'Sábado 21 junio',
+        dateLabel: 'Domingo 21 junio',
         slots: [
           {
             time: '18:00-20:00',
@@ -526,7 +526,7 @@ const EVENT_AGENDA = {
       },
       {
         date: '2026-06-22',
-        dateLabel: 'Domingo 22 junio',
+        dateLabel: 'Lunes 22 junio',
         slots: [
           {
             time: '09:30-11:30',
@@ -560,7 +560,7 @@ const EVENT_AGENDA = {
       },
       {
         date: '2026-06-23',
-        dateLabel: 'Lunes 23 junio',
+        dateLabel: 'Martes 23 junio',
         slots: [
           {
             time: '09:30-11:00',
@@ -594,7 +594,7 @@ const EVENT_AGENDA = {
     days: [
       {
         date: '2026-06-23',
-        dateLabel: 'Lunes 23 junio',
+        dateLabel: 'Martes 23 junio',
         slots: [
           {
             time: '09:00',
@@ -615,7 +615,7 @@ const EVENT_AGENDA = {
       },
       {
         date: '2026-06-24',
-        dateLabel: 'Martes 24 junio',
+        dateLabel: 'Miércoles 24 junio',
         slots: [
           { time: '09:00', travel: true, label: 'Desplazamiento' },
           { time: '09:30', label: 'Visita a Longhua International Cooperation Center', visit: true },
@@ -635,7 +635,7 @@ const EVENT_AGENDA = {
       },
       {
         date: '2026-06-25',
-        dateLabel: 'Miércoles 25 junio',
+        dateLabel: 'Jueves 25 junio',
         slots: [
           { time: '09:30', travel: true, label: 'Desplazamiento' },
           { time: '10:00', label: 'Visita a Hithium', visit: true, statusBadge: 'confirmada' },
@@ -661,7 +661,7 @@ const EVENT_AGENDA = {
       },
       {
         date: '2026-06-26',
-        dateLabel: 'Jueves 26 junio',
+        dateLabel: 'Viernes 26 junio',
         slots: [
           { time: '09:30', travel: true, label: 'Desplazamiento en coche' },
           {
