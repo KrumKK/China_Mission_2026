@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '62';
+      window.__APP_BUILD__ = '63';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -548,9 +548,14 @@
     <div class="deck-zoom-backdrop" id="deck-zoom-backdrop"></div>
     <div class="deck-zoom-sheet" role="dialog" aria-modal="true" aria-label="Diapositiva ampliada">
       <button type="button" class="deck-zoom-close" id="deck-zoom-close" aria-label="Cerrar">✕</button>
-      <div class="deck-zoom-viewport" id="deck-zoom-viewport">
-        <img class="deck-zoom-img fullscreen-img" id="deck-zoom-img" src="" alt="" />
+      <div class="deck-zoom-stage">
+        <button type="button" class="deck-zoom-nav deck-zoom-nav--prev" id="deck-zoom-prev" data-deck-zoom-nav="prev" aria-label="Diapositiva anterior">‹</button>
+        <div class="deck-zoom-viewport" id="deck-zoom-viewport">
+          <img class="deck-zoom-img fullscreen-img" id="deck-zoom-img" src="" alt="" />
+        </div>
+        <button type="button" class="deck-zoom-nav deck-zoom-nav--next" id="deck-zoom-next" data-deck-zoom-nav="next" aria-label="Diapositiva siguiente">›</button>
       </div>
+      <p class="deck-zoom-indicator" id="deck-zoom-indicator" aria-live="polite"></p>
     </div>
   </div>
 
@@ -595,14 +600,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '62';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '63';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '62';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '63';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;

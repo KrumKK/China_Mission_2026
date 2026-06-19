@@ -2402,17 +2402,51 @@ function unlockPresentationOrientation() {
   } catch (_) { /* silenciar si no soportado */ }
 }
 
-async function openDeckZoomModal(src, alt) {
-  const modal = document.getElementById('deck-zoom-modal');
-  const img = document.getElementById('deck-zoom-img');
+let activeDeckZoomId = null;
+
+function resetDeckZoomViewportScroll() {
   const viewport = document.getElementById('deck-zoom-viewport');
-  if (!modal || !img) return;
-  img.src = src;
-  img.alt = alt || 'Diapositiva ampliada';
   if (viewport) viewport.scrollTop = viewport.scrollLeft = 0;
+}
+
+function refreshDeckZoomModal() {
+  if (!activeDeckZoomId) return;
+  const state = slideDeckState.get(activeDeckZoomId);
+  const img = document.getElementById('deck-zoom-img');
+  const indicator = document.getElementById('deck-zoom-indicator');
+  const prevBtn = document.getElementById('deck-zoom-prev');
+  const nextBtn = document.getElementById('deck-zoom-next');
+  if (!state || !img || !state.slides.length) return;
+
+  const index = state.current;
+  const filename = state.slides[index];
+  const src = slideDeckAssetUrl(state.folder, filename);
+  img.src = src;
+  img.alt = 'Diapositiva ' + (index + 1) + ' de ' + state.slides.length;
+  if (indicator) indicator.textContent = (index + 1) + ' / ' + state.slides.length;
+  if (prevBtn) prevBtn.disabled = index <= 0;
+  if (nextBtn) nextBtn.disabled = index >= state.slides.length - 1;
+  preloadAdjacentDeckSlides(activeDeckZoomId);
+}
+
+function stepDeckZoomSlide(delta) {
+  if (!activeDeckZoomId) return;
+  stepDeckSlide(activeDeckZoomId, delta);
+  refreshDeckZoomModal();
+  resetDeckZoomViewportScroll();
+}
+
+async function openDeckZoomModal(deckId) {
+  const state = slideDeckState.get(deckId);
+  const modal = document.getElementById('deck-zoom-modal');
+  if (!state || !state.slides.length || !modal) return;
+
+  activeDeckZoomId = deckId;
   modal.hidden = false;
   modal.setAttribute('aria-hidden', 'false');
   document.body.classList.add('deck-zoom-open');
+  refreshDeckZoomModal();
+  resetDeckZoomViewportScroll();
 
   try {
     await requestDocumentFullscreen();
@@ -2434,7 +2468,9 @@ async function closeDeckZoomModal(options) {
 
   const modal = document.getElementById('deck-zoom-modal');
   const img = document.getElementById('deck-zoom-img');
+  const indicator = document.getElementById('deck-zoom-indicator');
   if (!modal) return;
+  activeDeckZoomId = null;
   modal.hidden = true;
   modal.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('deck-zoom-open');
@@ -2442,6 +2478,7 @@ async function closeDeckZoomModal(options) {
     img.src = '';
     img.alt = '';
   }
+  if (indicator) indicator.textContent = '';
 }
 
 function bindDeckSlideZoom(deckId) {
@@ -2451,8 +2488,40 @@ function bindDeckSlideZoom(deckId) {
   els.slideImg.classList.add('deck-slide-img--zoomable');
   els.slideImg.addEventListener('click', () => {
     if (!els.slideImg.src) return;
-    openDeckZoomModal(els.slideImg.src, els.slideImg.alt);
+    openDeckZoomModal(deckId);
   });
+}
+
+function bindDeckZoomSwipe() {
+  const viewport = document.getElementById('deck-zoom-viewport');
+  if (!viewport || viewport.dataset.bound === '1') return;
+  viewport.dataset.bound = '1';
+
+  const touch = { startX: 0, startY: 0, multiTouch: false };
+
+  viewport.addEventListener('touchstart', event => {
+    touch.multiTouch = event.touches.length > 1;
+    if (!event.changedTouches || !event.changedTouches.length) return;
+    touch.startX = event.changedTouches[0].screenX;
+    touch.startY = event.changedTouches[0].screenY;
+  }, { passive: true });
+
+  viewport.addEventListener('touchmove', event => {
+    if (event.touches.length > 1) touch.multiTouch = true;
+  }, { passive: true });
+
+  viewport.addEventListener('touchend', event => {
+    if (touch.multiTouch) {
+      if (event.touches.length === 0) touch.multiTouch = false;
+      return;
+    }
+    if (!event.changedTouches || !event.changedTouches.length) return;
+    const dx = event.changedTouches[0].screenX - touch.startX;
+    const dy = event.changedTouches[0].screenY - touch.startY;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+    if (dx < 0) stepDeckZoomSlide(1);
+    else stepDeckZoomSlide(-1);
+  }, { passive: true });
 }
 
 function initDeckZoomModal() {
@@ -2461,12 +2530,19 @@ function initDeckZoomModal() {
   modal.dataset.bound = '1';
 
   const closeBtn = document.getElementById('deck-zoom-close');
-  const backdrop = document.getElementById('deck-zoom-backdrop');
+  const prevBtn = document.getElementById('deck-zoom-prev');
+  const nextBtn = document.getElementById('deck-zoom-next');
   if (closeBtn) closeBtn.addEventListener('click', () => { closeDeckZoomModal(); });
-  if (backdrop) backdrop.addEventListener('click', () => { closeDeckZoomModal(); });
+  if (prevBtn) prevBtn.addEventListener('click', () => { stepDeckZoomSlide(-1); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { stepDeckZoomSlide(1); });
+
+  bindDeckZoomSwipe();
 
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && modal && !modal.hidden) closeDeckZoomModal();
+    if (!modal || modal.hidden) return;
+    if (event.key === 'Escape') closeDeckZoomModal();
+    else if (event.key === 'ArrowRight') stepDeckZoomSlide(1);
+    else if (event.key === 'ArrowLeft') stepDeckZoomSlide(-1);
   });
 
   const onFullscreenEnd = () => {
