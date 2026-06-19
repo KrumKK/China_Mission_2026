@@ -2306,10 +2306,34 @@ body.qr-fullscreen-open {
   border: 1px solid #f59e0b;
 }
 
-.slot-status-badge--pendiente {
+.slot-status-badge--pendiente,
+.slot-status-badge--por-confirmar {
   background: #fffbea;
   color: #92680a;
   border: 1px solid #e6b800;
+}
+
+.slot-status-badge--por-confirmar {
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.meeting-slot--institutional {
+  border-left: 3px solid var(--accent);
+  background: linear-gradient(90deg, rgba(209, 0, 122, 0.07) 0%, var(--bg-elevated) 28px);
+}
+
+.slot-institutional-tag {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  text-transform: uppercase;
 }
 
 /* ═══ COMPANY / VISIT CARDS ══════════════════════════════ */

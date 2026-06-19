@@ -509,41 +509,76 @@ const EVENT_AGENDA = {
   cisce: {
     heroTag: 'Pekín',
     heroTitle: 'Feria CISCE',
-    heroDesc: 'China International Supply Chain Expo · Beijing',
+    heroDesc: 'China International Supply Chain Expo · Beijing · junio 2026',
     cityMarker: '北京',
     cityClass: 'city-beijing',
-    programIntro: 'Programa preliminar del PIN. Se finalizará en las próximas semanas.',
     days: [
       {
         date: '2026-06-21',
-        dateLabel: 'Dom 21 junio',
-        badge: 'LLEGADA',
-        badgeClass: 'day-badge--mision',
-        note: 'Llegada 06:00 PEK · Hotel Beijing Liangmahe (check-in).',
-        slots: []
+        dateLabel: 'Sábado 21 junio',
+        slots: [
+          {
+            time: '18:00-20:00',
+            label: 'Cena oficial de bienvenida de la CISCE',
+            detail: 'Punto de encuentro: vestíbulo del hotel a las 17:00'
+          }
+        ]
       },
       {
         date: '2026-06-22',
-        dateLabel: 'Lun 22 junio',
-        badge: 'CISCE',
-        badgeClass: 'day-badge--feria',
-        note: 'Día 22 · Feria CISCE',
+        dateLabel: 'Domingo 22 junio',
         slots: [
-          { time: 'Jornada', label: 'Agenda institucional' },
-          { time: 'Jornada', label: 'Citas B2B' }
+          {
+            time: '09:30-11:30',
+            label: 'Ceremonia de inauguración de la CISCE',
+            detail: 'Asistirán todos los miembros de la delegación de Navarra',
+            institutional: true
+          },
+          {
+            time: '12:00',
+            label: 'Almuerzo de inauguración de la CISCE'
+          },
+          {
+            time: '14:30-15:30',
+            label: 'Conferencia de promoción temática de la provincia de Anhui y reunión de negociación sobre cooperación en la cadena de suministro global y firma de MOU Anhui-Navarra',
+            detail: 'Lugar: Pabellones W1-2',
+            statusBadge: 'por-confirmar'
+          },
+          {
+            time: '16:00-17:00',
+            label: 'Mesa redonda de la Alianza de Cámaras de Comercio Internacionales del Nuevo Corredor Comercial Terrestre-Marítimo Internacional',
+            detail: 'Lugar: Jardín Oeste, Centro Internacional de Exposiciones de China (Pabellón Shunyi). El Consejero pronunciará un discurso e intercambiará ideas con los empresarios.',
+            statusBadge: 'por-confirmar',
+            institutional: true
+          },
+          {
+            time: '19:00',
+            label: 'Cena de la delegación de Navarra',
+            detail: 'Lugar: Tienda Siji Minfu Shuangjing'
+          }
         ]
       },
       {
         date: '2026-06-23',
-        dateLabel: 'Mar 23 junio',
-        badge: 'CISCE',
-        badgeClass: 'day-badge--feria',
-        note: 'Día 23 · Check-out hotel · vuelo a Shenzhen por la noche',
+        dateLabel: 'Lunes 23 junio',
         slots: [
-          { time: 'Jornada', label: "Encuentro «Día de Navarra» en el stand", priority: true },
-          { time: 'Jornada', label: 'Agenda institucional' },
-          { time: 'Jornada', label: 'Citas B2B' },
-          { time: '20:15', label: 'Vuelo PEK → SZX', priority: true }
+          {
+            time: '09:30-11:00',
+            label: 'Sesión de intercambio y networking sobre cooperación industrial con la Comisión de Economía e Información de Chongqing y delegación de empresarios de Chongqing',
+            detail: 'Lugar: E201. Asisten el Consejero y todos los miembros de la delegación.',
+            institutional: true
+          },
+          {
+            time: '11:00-12:30',
+            label: 'Evento de promoción del Día de Navarra',
+            institutional: true
+          },
+          {
+            time: '14:00-15:00',
+            label: 'Visita guiada a la sala de exposiciones',
+            detail: 'El Consejero y todos los miembros de la delegación de Navarra',
+            institutional: true
+          }
         ]
       }
     ],
@@ -3806,7 +3841,8 @@ const EVENT_SLOT_STATUS_LABELS = {
   confirmado: 'Confirmado',
   confirmada: 'Confirmada',
   cambiada: 'Cambiada',
-  pendiente: 'Pendiente'
+  pendiente: 'Pendiente',
+  'por-confirmar': 'Por confirmar si es evento abierto'
 };
 
 function buildEventSlotStatusBadge(statusBadge) {
@@ -3821,9 +3857,13 @@ function buildEventAgendaSlotHtml(slot) {
   if (slot.empty) classes.push('meeting-slot--empty');
   if (slot.priority) classes.push('meeting-slot--priority');
   if (slot.travel) classes.push('meeting-slot--travel');
+  if (slot.institutional) classes.push('meeting-slot--institutional');
 
   const time = slot.time ? escapeHtml(slot.time) : '';
   const badgeHtml = buildEventSlotStatusBadge(slot.statusBadge);
+  const institutionalTag = slot.institutional
+    ? '<span class="slot-institutional-tag">Consejero</span>'
+    : '';
   const sub = slot.sub
     ? `<span class="slot-sub">${escapeHtml(slot.sub)}</span>`
     : '';
@@ -3847,6 +3887,7 @@ function buildEventAgendaSlotHtml(slot) {
       <div class="slot-text">
         <div class="slot-label-row">
           ${labelHtml}
+          ${institutionalTag}
           ${badgeHtml}
         </div>
         ${detail}
@@ -3871,7 +3912,7 @@ function renderEventAgendas() {
       return `
         <div class="timeline-day" data-date="${day.date}">
           <div class="day-header">
-            <span class="day-date${key === 'shenzhen' ? ' day-date--major' : ''}">${escapeHtml(day.dateLabel)}</span>
+            <span class="day-date${(key === 'shenzhen' || key === 'cisce') ? ' day-date--major' : ''}">${escapeHtml(day.dateLabel)}</span>
             ${badgeHtml}
           </div>
           <div class="day-content">
