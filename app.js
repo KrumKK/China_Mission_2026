@@ -5015,104 +5015,51 @@ async function resolveSwCacheVersionLabel() {
   el.textContent = 'Caché SW ' + label;
 }
 
-function listenForSwControllerReload() {
-  if (!navigator.serviceWorker) return;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    window.location.reload();
-  }, { once: true });
-}
-
-function activateWaitingServiceWorker(reg) {
-  if (!reg || !reg.waiting) return false;
-  reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-  return true;
-}
-
-function watchInstallingWorker(reg) {
-  if (!reg) return;
-  reg.addEventListener('updatefound', () => {
-    const worker = reg.installing;
-    if (!worker) return;
-    worker.addEventListener('statechange', () => {
-      if (worker.state !== 'installed') return;
-      if (navigator.serviceWorker.controller) {
-        activateWaitingServiceWorker(reg);
-      }
-    });
-  });
-}
-
-function waitForInstallingWorker(reg) {
-  const worker = reg && reg.installing;
-  if (!worker) return Promise.resolve();
-
-  if (worker.state === 'installed' || worker.state === 'activated') {
-    return Promise.resolve();
-  }
-
-  return new Promise(resolve => {
-    worker.addEventListener('statechange', () => {
-      if (worker.state === 'installed' || worker.state === 'activated') {
-        resolve();
-      }
-    });
-  });
-}
-
 async function forceLoginAppUpdate() {
   const btn = document.getElementById('login-update-app-btn');
   if (btn && btn.disabled) return;
 
-  if (!navigator.serviceWorker) {
-    showLoginToast('Sin conexión. Inténtalo más tarde.');
-    return;
-  }
-
   if (btn) {
     btn.disabled = true;
     btn.setAttribute('aria-busy', 'true');
+    btn.textContent = 'Borrando caché...';
+  } else {
+    showLoginToast('Borrando caché...');
   }
-
-  let pendingReload = false;
 
   try {
-    const reg = await navigator.serviceWorker.getRegistration();
-    if (!reg) {
-      showLoginToast('App actualizada ✓');
-      return;
+    sessionStorage.setItem('mision-china-nuclear-update', window.__APP_BUILD__ || '');
+  } catch (_) {}
+
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        await reg.unregister();
+      }
     }
 
-    listenForSwControllerReload();
-
-    if (activateWaitingServiceWorker(reg)) {
-      pendingReload = true;
-      return;
+    if (window.caches) {
+      const cacheNames = await caches.keys();
+      for (const name of cacheNames) {
+        await caches.delete(name);
+      }
     }
-
-    await reg.update();
-
-    if (activateWaitingServiceWorker(reg)) {
-      pendingReload = true;
-      return;
-    }
-
-    await waitForInstallingWorker(reg);
-
-    if (activateWaitingServiceWorker(reg)) {
-      pendingReload = true;
-      return;
-    }
-
-    showLoginToast('App actualizada ✓');
-    await resolveSwCacheVersionLabel();
-  } catch (_) {
-    showLoginToast('Sin conexión. Inténtalo más tarde.');
-  } finally {
-    if (btn && !pendingReload) {
-      btn.disabled = false;
-      btn.removeAttribute('aria-busy');
-    }
+  } catch (err) {
+    console.warn('Nuclear update:', err);
   }
+
+  window.location.reload(true);
+}
+
+function checkNuclearUpdateToast() {
+  try {
+    const flag = sessionStorage.getItem('mision-china-nuclear-update');
+    if (!flag) return;
+    sessionStorage.removeItem('mision-china-nuclear-update');
+    const build = window.__APP_BUILD__ || flag;
+    showLoginToast('App actualizada a v' + build + ' ✓');
+  } catch (_) {}
 }
 
 function initLoginAppUpdate() {
@@ -5122,11 +5069,7 @@ function initLoginAppUpdate() {
   btn.addEventListener('click', () => {
     forceLoginAppUpdate();
   });
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistration()
-      .then(reg => { if (reg) watchInstallingWorker(reg); })
-      .catch(() => undefined);
-  }
+  checkNuclearUpdateToast();
   resolveSwCacheVersionLabel();
 }
 
