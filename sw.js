@@ -1,8 +1,19 @@
 /* Misión China 2026 — Service Worker (red primero en la app) */
 'use strict';
 
-const CACHE_VERSION = 'v60';
+const CACHE_VERSION = 'v61';
 const CACHE_NAME = 'mision-china-' + CACHE_VERSION;
+
+function diversificacionSlideAssets() {
+  const langs = ['div-es', 'div-zh', 'div-en'];
+  const assets = [];
+  langs.forEach(lang => {
+    for (let i = 1; i <= 12; i++) {
+      assets.push('./Presentaciones/diversificacion/' + lang + '/Diapositiva' + i + '.JPG');
+    }
+  });
+  return assets;
+}
 
 /** Solo recursos estáticos ligeros; la app va siempre a red primero. */
 const OFFLINE_ASSETS = [
@@ -15,7 +26,8 @@ const OFFLINE_ASSETS = [
   './wechat-qr-krum.png',
   './Presentaciones/oem-tier1/slides.json',
   './arrival-card-krum.pdf',
-  './arrival-card-oscar.pdf'
+  './arrival-card-oscar.pdf',
+  ...diversificacionSlideAssets()
 ];
 
 function isSameOrigin(url) {

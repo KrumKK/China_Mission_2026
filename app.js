@@ -1927,6 +1927,18 @@ const DECK_PRESENTATIONS = {
   reman: { folder: 'Presentaciones/reman' }
 };
 
+const DIVERSIFICACION_LANGS = ['es', 'zh', 'en'];
+const DIVERSIFICACION_SLIDE_COUNT = 12;
+let diversificacionLang = 'es';
+
+function buildDiversificacionSlideNames() {
+  return Array.from({ length: DIVERSIFICACION_SLIDE_COUNT }, (_, i) => 'Diapositiva' + (i + 1) + '.JPG');
+}
+
+function getDiversificacionFolder(lang) {
+  return 'Presentaciones/diversificacion/div-' + lang;
+}
+
 const CORPORATE_VIDEO_FILE = 'Presentaciones/lizarte-corporate.mp4';
 
 function getMediaCacheName() {
@@ -2077,6 +2089,7 @@ function showPresentacionesScreen(screen) {
     exitBrochureFullscreen(document.getElementById('brochure-viewport'));
     exitDeckFullscreen();
     exitCorporateVideoFullscreen();
+    closeDeckZoomModal();
     pauseCorporateVideo();
   }
 
@@ -2084,7 +2097,9 @@ function showPresentacionesScreen(screen) {
     initCorporateVideoViewer();
   }
 
-  if (DECK_PRESENTATIONS[presentacionesScreen]) {
+  if (presentacionesScreen === 'diversificacion') {
+    initDiversificacionDeck();
+  } else if (DECK_PRESENTATIONS[presentacionesScreen]) {
     initSlideDeck(presentacionesScreen).catch(err => console.warn('Slide deck:', err));
   }
 }
@@ -2124,6 +2139,7 @@ function initPresentaciones() {
   });
 
   initDeckViewers();
+  initDeckZoomModal();
   initCorporateVideoControls();
   showPresentacionesScreen('menu');
 }
@@ -2322,6 +2338,120 @@ async function initSlideDeck(deckId) {
   bindSlideDeckControls(deckId);
   goToDeckSlide(deckId, 0);
   console.log('[SlideDeck] carrusel activo:', deckId, slides.length, 'diapositivas');
+}
+
+function syncDiversificacionLangButtons() {
+  document.querySelectorAll('.div-lang-btn[data-div-lang]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.divLang === diversificacionLang);
+  });
+}
+
+function switchDiversificacionLang(lang) {
+  if (!DIVERSIFICACION_LANGS.includes(lang) || lang === diversificacionLang) return;
+  diversificacionLang = lang;
+  closeDeckZoomModal();
+  slideDeckState.set('diversificacion', {
+    folder: getDiversificacionFolder(lang),
+    slides: buildDiversificacionSlideNames(),
+    lang,
+    current: 0,
+    preloaded: new Map(),
+    ready: true
+  });
+  const els = getDeckViewerElements('diversificacion');
+  setDeckViewportSlideMode(els, true);
+  goToDeckSlide('diversificacion', 0);
+  syncDiversificacionLangButtons();
+}
+
+function bindDiversificacionLangSelector() {
+  const picker = document.getElementById('div-lang-picker');
+  if (!picker || picker.dataset.bound === '1') return;
+  picker.dataset.bound = '1';
+  picker.addEventListener('click', event => {
+    const btn = event.target.closest('.div-lang-btn[data-div-lang]');
+    if (!btn) return;
+    event.preventDefault();
+    switchDiversificacionLang(btn.dataset.divLang);
+  });
+}
+
+function openDeckZoomModal(src, alt) {
+  const modal = document.getElementById('deck-zoom-modal');
+  const img = document.getElementById('deck-zoom-img');
+  const viewport = document.getElementById('deck-zoom-viewport');
+  if (!modal || !img) return;
+  img.src = src;
+  img.alt = alt || 'Diapositiva ampliada';
+  if (viewport) viewport.scrollTop = viewport.scrollLeft = 0;
+  modal.hidden = false;
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('deck-zoom-open');
+}
+
+function closeDeckZoomModal() {
+  const modal = document.getElementById('deck-zoom-modal');
+  const img = document.getElementById('deck-zoom-img');
+  if (!modal) return;
+  modal.hidden = true;
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('deck-zoom-open');
+  if (img) {
+    img.src = '';
+    img.alt = '';
+  }
+}
+
+function bindDiversificacionSlideZoom() {
+  const els = getDeckViewerElements('diversificacion');
+  if (!els || !els.slideImg || els.slideImg.dataset.zoomBound === '1') return;
+  els.slideImg.dataset.zoomBound = '1';
+  els.slideImg.addEventListener('click', () => {
+    if (!els.slideImg.src) return;
+    openDeckZoomModal(els.slideImg.src, els.slideImg.alt);
+  });
+}
+
+function initDeckZoomModal() {
+  const modal = document.getElementById('deck-zoom-modal');
+  if (!modal || modal.dataset.bound === '1') return;
+  modal.dataset.bound = '1';
+
+  const closeBtn = document.getElementById('deck-zoom-close');
+  const backdrop = document.getElementById('deck-zoom-backdrop');
+  if (closeBtn) closeBtn.addEventListener('click', closeDeckZoomModal);
+  if (backdrop) backdrop.addEventListener('click', closeDeckZoomModal);
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && modal && !modal.hidden) closeDeckZoomModal();
+  });
+}
+
+function initDiversificacionDeck() {
+  const existing = slideDeckState.get('diversificacion');
+  if (existing && existing.ready && existing.lang === diversificacionLang) {
+    goToDeckSlide('diversificacion', existing.current);
+    syncDiversificacionLangButtons();
+    return;
+  }
+
+  slideDeckState.set('diversificacion', {
+    folder: getDiversificacionFolder(diversificacionLang),
+    slides: buildDiversificacionSlideNames(),
+    lang: diversificacionLang,
+    current: 0,
+    preloaded: new Map(),
+    ready: true
+  });
+
+  const els = getDeckViewerElements('diversificacion');
+  setDeckViewportSlideMode(els, true);
+  bindSlideDeckControls('diversificacion');
+  bindDiversificacionLangSelector();
+  bindDiversificacionSlideZoom();
+  goToDeckSlide('diversificacion', 0);
+  syncDiversificacionLangButtons();
+  console.log('[SlideDeck] Diversificación activa:', diversificacionLang, DIVERSIFICACION_SLIDE_COUNT, 'diapositivas');
 }
 
 function isDeckFullscreenActive(deckId) {

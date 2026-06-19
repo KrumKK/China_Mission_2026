@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '60';
+      window.__APP_BUILD__ = '61';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -271,7 +271,7 @@
             </button>
             <button type="button" class="presentacion-card" data-presentaciones-go="diversificacion">
               <span class="presentacion-card-title">Diversificación</span>
-              <span class="presentacion-card-sub">Próximamente</span>
+              <span class="presentacion-card-sub">12 diapositivas · ES / 中文 / EN</span>
             </button>
           </div>
         </div>
@@ -395,11 +395,28 @@
             <header class="deck-header">
               <h3 class="deck-title">Diversificación</h3>
               <p class="deck-subtitle">Presentación corporativa</p>
+              <div class="div-lang-picker" id="div-lang-picker" role="group" aria-label="Idioma de la presentación">
+                <button type="button" class="div-lang-btn active" data-div-lang="es">🇪🇸 ES</button>
+                <button type="button" class="div-lang-btn" data-div-lang="zh">🇨🇳 中文</button>
+                <button type="button" class="div-lang-btn" data-div-lang="en">🇬🇧 EN</button>
+              </div>
             </header>
             <div class="deck-viewport" id="deck-viewport-diversificacion">
               <div class="deck-placeholder">
                 <span class="deck-placeholder-icon" aria-hidden="true">🏗️</span>
                 <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
+              </div>
+              <div class="deck-slide-carousel" hidden>
+                <div class="deck-slide-carousel-inner">
+                  <button type="button" class="deck-nav deck-nav--prev" data-deck-nav="prev" aria-label="Diapositiva anterior">‹</button>
+                  <div class="deck-slide-stage" data-deck-swipe>
+                    <div class="deck-slide-zoom-wrap">
+                      <img class="deck-slide-img deck-slide-img--zoomable" alt="" decoding="async" />
+                    </div>
+                  </div>
+                  <button type="button" class="deck-nav deck-nav--next" data-deck-nav="next" aria-label="Diapositiva siguiente">›</button>
+                </div>
+                <p class="deck-carousel-indicator" aria-live="polite"></p>
               </div>
             </div>
           </div>
@@ -527,6 +544,16 @@
     </div>
   </div>
 
+  <div id="deck-zoom-modal" class="deck-zoom-modal" hidden aria-hidden="true">
+    <div class="deck-zoom-backdrop" id="deck-zoom-backdrop"></div>
+    <div class="deck-zoom-sheet" role="dialog" aria-modal="true" aria-label="Diapositiva ampliada">
+      <button type="button" class="deck-zoom-close" id="deck-zoom-close" aria-label="Cerrar">✕</button>
+      <div class="deck-zoom-viewport" id="deck-zoom-viewport">
+        <img class="deck-zoom-img" id="deck-zoom-img" src="" alt="" />
+      </div>
+    </div>
+  </div>
+
   <div id="qr-fullscreen-modal" class="qr-fullscreen-modal" hidden aria-hidden="true">
     <div class="qr-fullscreen-backdrop" id="qr-fullscreen-backdrop"></div>
     <div class="qr-fullscreen-sheet" role="dialog" aria-modal="true" aria-labelledby="qr-fullscreen-title">
@@ -568,14 +595,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '60';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '61';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '60';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '61';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
