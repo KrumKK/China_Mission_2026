@@ -66,23 +66,29 @@ const TRIP_LOGISTICS = [
     notes: 'Estancia para reuniones ICEX Cantón'
   },
   {
-    id: 'interpreter-cindia',
+    id: 'interpreter-selina',
     cityEs: '🗣️ INTÉRPRETE',
     cityZh: '',
-    dateRange: 'Plan de trabajo · 24–26 jun 2026',
+    dateRange: 'Plan de trabajo · 24–27 jun 2026',
     interpreter: {
-      name: 'Cindia',
-      role: 'Intérprete contratada',
-      email: 'cindialiu@hotmail.com',
+      name: 'Selina',
+      role: 'Intérprete',
+      email: '',
       schedule: [
-        { date: 'Mié 24 junio', task: 'Cena a las 19:00' },
-        { date: 'Jue 25 junio', task: 'Acompaña a visita FinDreams/BYD (Shenzhen)' },
-        { date: 'Jue 25 – Vie 26 junio', task: 'Acompaña al equipo' }
+        { date: 'Mié 24 junio', task: 'Quedamos a las 17:00. Cena.' },
+        { date: 'Jue 25 junio', task: 'Acompaña a FinDreams/BYD (Shenzhen) + XPENG (Guangzhou)' },
+        { date: 'Vie 26 junio', task: 'Acompaña a GAC Group y GAC Components (Guangzhou) + Kuayue Autopart (Guangzhou)' },
+        {
+          date: 'Sáb 27 junio',
+          task: 'Acompaña a reuniones en el International Automotive Electronics Industry Summit (Shenzhen)'
+        }
       ],
       costs: [
-        '1.200 RMB / día',
-        'Hotel 1 noche: 221 RMB',
-        'Tren: 68 RMB'
+        '3 días: 3.400 RMB (todo incluido)',
+        'Hotel 24 junio: 220 RMB',
+        'Hotel 26 junio: 220 RMB',
+        'Descuento: 1 noche de hotel bonificada',
+        'Transporte: pendiente de confirmar'
       ]
     }
   }
@@ -215,8 +221,8 @@ const TRIP_DAILY_SUMMARY = [
       { time: '13:30', label: '(FORO) B2B Matchmaking' },
       { time: '15:00', label: '(FORO) Foto de grupo' },
       { time: '16:00', label: 'Visita Hongmeng', confirmed: true },
-      { time: '17:30', label: 'Visita Meituan', confirmed: true },
-      { time: '19:00', label: '🗣️ Cena con intérprete Cindia' }
+      { time: '17:00', label: '🗣️ Quedamos con intérprete Selina a las 17:00' },
+      { time: '17:30', label: 'Visita Meituan', confirmed: true }
     ]
   },
   {
@@ -225,6 +231,7 @@ const TRIP_DAILY_SUMMARY = [
     summaryLine: 'Jueves 25 — ⚠️ Día partido: ICEX Lizarte + Grupo',
     conflict: true,
     location: '📍 Shenzhen + Guangzhou',
+    dayNotes: ['🗣️ Intérprete Selina'],
     groups: [
       {
         heading: 'LIZARTE (separados del grupo)',
@@ -252,6 +259,7 @@ const TRIP_DAILY_SUMMARY = [
     summaryLine: 'Viernes 26 — ⚠️ Día partido: ICEX Lizarte + Grupo',
     conflict: true,
     location: '📍 Guangzhou + Shenzhen',
+    dayNotes: ['🗣️ Intérprete Selina'],
     groups: [
       {
         heading: 'LIZARTE (separados del grupo)',
@@ -280,6 +288,7 @@ const TRIP_DAILY_SUMMARY = [
     title: 'Sábado 27 junio — Shenzhen / Summit',
     summaryLine: 'Sábado 27 — Summit Automotive Electronics + Dare Auto',
     location: '📍 Shenzhen — Hilton Hotel',
+    dayNotes: ['🗣️ Intérprete Selina'],
     slots: [
       {
         time: 'Todo el día',
@@ -3419,6 +3428,7 @@ function renderLogistics() {
             <span class="interpreter-role">${escapeHtml(item.interpreter.role || '')}</span>
             ${emailHtml}
           </div>
+          <h4 class="interpreter-section-title">Plan de trabajo</h4>
           <div class="interpreter-timeline">${schedule}</div>
           <section class="interpreter-cost">
             <h4 class="interpreter-cost-title">Coste</h4>
@@ -3668,6 +3678,10 @@ function buildTripDailyDayHtml(day) {
       </div>`).join('');
   } else {
     bodyHtml += `<div class="trip-daily-timeline">${buildTripDailySlotsHtml(day.slots)}</div>`;
+  }
+  if (day.dayNotes && day.dayNotes.length) {
+    bodyHtml += day.dayNotes.map(note => `
+      <p class="trip-daily-day-note">${escapeHtml(note)}</p>`).join('');
   }
 
   return `

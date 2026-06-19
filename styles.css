@@ -1317,6 +1317,17 @@ body.user-selector-open {
   color: var(--text-soft);
 }
 
+.trip-daily-day-note {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 /* ═══ VUELOS ═══════════════════════════════════════════ */
 
 /* ═══ SUMMIT CARD (ICEX Cantón) ══════════════════════════ */
@@ -1831,6 +1842,15 @@ a.hotel-phone {
   font-size: 13px;
   color: var(--text-soft);
   margin-top: 3px;
+}
+
+.interpreter-section-title {
+  margin: 14px 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-soft);
 }
 
 .interpreter-timeline {
