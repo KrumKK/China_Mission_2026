@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '64';
+      window.__APP_BUILD__ = '65';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -180,6 +180,18 @@
         <h2 class="section-heading"><span class="section-emoji">🛂</span> Arrival Cards</h2>
         <p class="section-lead">Tarjetas de llegada a China · disponibles sin conexión</p>
         <div id="arrival-cards-list" class="arrival-cards-list"></div>
+
+        <h2 class="section-heading"><span class="section-emoji">🛡️</span> Seguro de viaje</h2>
+        <p class="section-lead">Póliza del seguro · disponible sin conexión</p>
+        <div class="arrival-cards-list">
+          <article class="arrival-card">
+            <div class="arrival-card-header">
+              <span class="arrival-card-doc" aria-hidden="true">🛡️</span>
+              <span class="arrival-card-name">Póliza seguro de viaje</span>
+            </div>
+            <a class="arrival-card-btn" id="travel-insurance-link" href="poliza-seguro-viaje.pdf" target="_blank" rel="noopener noreferrer">Ver póliza</a>
+          </article>
+        </div>
       </section>
 
       <section class="view" id="view-resumen">
@@ -600,14 +612,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '64';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '65';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '64';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '65';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;

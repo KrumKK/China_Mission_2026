@@ -3238,6 +3238,12 @@ function renderArrivalCards() {
   `).join('');
 }
 
+function initTravelInsuranceLink() {
+  const link = document.getElementById('travel-insurance-link');
+  if (!link) return;
+  link.href = arrivalCardAssetUrl('poliza-seguro-viaje.pdf');
+}
+
 
 /* ──────────────────────────────────────────────
    RENDER — Agenda (General)
@@ -5389,6 +5395,7 @@ function startApp() {
   renderFlights();
   renderLogistics();
   renderArrivalCards();
+  initTravelInsuranceLink();
   renderContacts();
   renderEventAgendas();
   renderIcexOffices().catch(err => console.warn('ICEX:', err));

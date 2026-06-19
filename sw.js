@@ -1,7 +1,7 @@
 /* Misión China 2026 — Service Worker (red primero en la app) */
 'use strict';
 
-const CACHE_VERSION = 'v64';
+const CACHE_VERSION = 'v65';
 const CACHE_NAME = 'mision-china-' + CACHE_VERSION;
 
 function diversificacionSlideAssets() {
@@ -27,6 +27,7 @@ const OFFLINE_ASSETS = [
   './Presentaciones/oem-tier1/slides.json',
   './arrival-card-krum.pdf',
   './arrival-card-oscar.pdf',
+  './poliza-seguro-viaje.pdf',
   ...diversificacionSlideAssets()
 ];
 
@@ -66,6 +67,10 @@ function isArrivalCard(pathname) {
   return /\/arrival-card-[^/]+\.pdf$/i.test(pathname);
 }
 
+function isTravelInsurancePolicy(pathname) {
+  return /\/poliza-seguro-viaje\.pdf$/i.test(pathname);
+}
+
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache =>
@@ -103,7 +108,7 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(event.request.url);
 
-  if (isCorporateVideo(url.pathname) || isArrivalCard(url.pathname)) {
+  if (isCorporateVideo(url.pathname) || isArrivalCard(url.pathname) || isTravelInsurancePolicy(url.pathname)) {
     event.respondWith(cacheFirst(event.request));
     return;
   }
