@@ -4352,6 +4352,152 @@ function fillCompanyModalFromFicha(ficha) {
   renderCompanyPhotoGrid(ficha);
   updateManualSaveButtonState();
   captureModalFormSnapshot();
+  renderFindreamsRespuestasSection();
+}
+
+function getFindreamsRespuestas() {
+  if (typeof FINDREAMS_RESPUESTAS !== 'undefined' && Array.isArray(FINDREAMS_RESPUESTAS)) {
+    return FINDREAMS_RESPUESTAS;
+  }
+  return [];
+}
+
+function isFindreamsFichaId(companyId) {
+  return companyId === ICEX_CANTON_FINDREAMS_ID;
+}
+
+function findreamsEscenarioBadgeLabel(escenario) {
+  const e = String(escenario || '').toLowerCase();
+  const hasReman = e.indexOf('remanufactura') !== -1 || e.indexOf('reman') !== -1;
+  const hasMaquila = e.indexOf('maquila') !== -1;
+  if (e.indexOf('ambos') !== -1 || (hasReman && hasMaquila)) return 'Ambos';
+  if (hasMaquila) return 'Maquila';
+  if (hasReman) return 'Remanufactura';
+  return trimText(escenario) || '—';
+}
+
+function findreamsEscenarioBadgeClass(label) {
+  if (label === 'Maquila') return 'findreams-pa-badge--maquila';
+  if (label === 'Ambos') return 'findreams-pa-badge--ambos';
+  return 'findreams-pa-badge--reman';
+}
+
+function buildFindreamsPaLangHtml(flag, text) {
+  if (!trimText(text)) return '';
+  return `
+    <div class="findreams-pa-lang">
+      <span class="findreams-pa-flag" aria-hidden="true">${flag}</span>
+      <p class="findreams-pa-text">${escapeHtml(text)}</p>
+    </div>`;
+}
+
+function buildFindreamsPaItemHtml(item) {
+  const badgeLabel = findreamsEscenarioBadgeLabel(item.escenario);
+  const badgeClass = findreamsEscenarioBadgeClass(badgeLabel);
+  const panelId = 'findreams-pa-panel-' + String(item.id || '').replace(/[^a-z0-9-]/gi, '');
+  const internoHtml = trimText(item.interno)
+    ? `<div class="findreams-pa-interno">
+        <span class="findreams-pa-interno-label">⚠️ INTERNO</span>
+        <p class="findreams-pa-interno-text">${escapeHtml(item.interno)}</p>
+      </div>`
+    : '';
+
+  return `
+    <article class="findreams-pa-item">
+      <button type="button" class="findreams-pa-toggle" aria-expanded="false" aria-controls="${escapeHtml(panelId)}">
+        <span class="findreams-pa-head">
+          <span class="findreams-pa-title">[${escapeHtml(item.id)}] ${escapeHtml(item.titulo)}</span>
+          <span class="findreams-pa-badge ${badgeClass}">${escapeHtml(badgeLabel)}</span>
+        </span>
+        <span class="findreams-pa-icon" aria-hidden="true">▼</span>
+      </button>
+      <div class="findreams-pa-body" id="${escapeHtml(panelId)}" hidden>
+        ${buildFindreamsPaLangHtml('🇪🇸', item.es)}
+        ${buildFindreamsPaLangHtml('🇨🇳', item.zh)}
+        ${buildFindreamsPaLangHtml('🇬🇧', item.en)}
+        ${internoHtml}
+      </div>
+    </article>`;
+}
+
+function bindFindreamsPaAccordions(listEl) {
+  if (!listEl) return;
+  listEl.querySelectorAll('.findreams-pa-toggle').forEach(btn => {
+    if (btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      const next = !expanded;
+      const panelId = btn.getAttribute('aria-controls');
+      const panel = panelId ? document.getElementById(panelId) : null;
+      btn.setAttribute('aria-expanded', next ? 'true' : 'false');
+      btn.classList.toggle('findreams-pa-toggle--expanded', next);
+      if (panel) panel.hidden = !next;
+    });
+  });
+}
+
+function resetFindreamsRespuestasSection() {
+  const section = document.getElementById('company-modal-findreams-respuestas');
+  const toggle = document.getElementById('findreams-respuestas-toggle');
+  const panel = document.getElementById('findreams-respuestas-panel');
+  const list = document.getElementById('findreams-respuestas-list');
+  if (section) section.hidden = true;
+  if (toggle) {
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.classList.remove('findreams-respuestas-toggle--expanded');
+  }
+  if (panel) panel.hidden = true;
+  if (list) list.innerHTML = '';
+}
+
+function renderFindreamsRespuestasSection() {
+  const section = document.getElementById('company-modal-findreams-respuestas');
+  const list = document.getElementById('findreams-respuestas-list');
+  const toggle = document.getElementById('findreams-respuestas-toggle');
+  const panel = document.getElementById('findreams-respuestas-panel');
+  if (!section || !list) return;
+
+  const show = isFindreamsFichaId(activeCompanyId);
+  section.hidden = !show;
+  if (!show) {
+    if (list) list.innerHTML = '';
+    return;
+  }
+
+  const items = getFindreamsRespuestas();
+  const count = items.length;
+  const labelEl = toggle && toggle.querySelector('.findreams-respuestas-toggle-label');
+  if (labelEl) labelEl.textContent = '📋 Respuestas técnicas (' + count + ') ▼';
+  if (toggle) {
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.classList.remove('findreams-respuestas-toggle--expanded');
+  }
+  if (panel) panel.hidden = true;
+
+  list.innerHTML = items.map(buildFindreamsPaItemHtml).join('');
+  bindFindreamsPaAccordions(list);
+}
+
+function initFindreamsRespuestasControls() {
+  const toggle = document.getElementById('findreams-respuestas-toggle');
+  const panel = document.getElementById('findreams-respuestas-panel');
+  if (!toggle || !panel || toggle.dataset.bound === '1') return;
+  toggle.dataset.bound = '1';
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    const next = !expanded;
+    toggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+    toggle.classList.toggle('findreams-respuestas-toggle--expanded', next);
+    panel.hidden = !next;
+    const labelEl = toggle.querySelector('.findreams-respuestas-toggle-label');
+    if (labelEl) {
+      const count = getFindreamsRespuestas().length;
+      labelEl.textContent = next
+        ? '📋 Respuestas técnicas (' + count + ') ▲'
+        : '📋 Respuestas técnicas (' + count + ') ▼';
+    }
+  });
 }
 
 function renderCompanyPhotoGrid(ficha) {
@@ -4589,6 +4735,7 @@ function closeCompanyModal() {
   activeCompanyId = null;
   activePhotoSlot = null;
   activeModalFicha = null;
+  resetFindreamsRespuestasSection();
   modal.hidden = true;
   modal.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('company-modal-open');
@@ -4691,6 +4838,8 @@ function initCompanyModalControls() {
     }
     if (event.key === 'Escape' && activeCompanyId) requestCloseCompanyModal();
   });
+
+  initFindreamsRespuestasControls();
 }
 
 /* ──────────────────────────────────────────────

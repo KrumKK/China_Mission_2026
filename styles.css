@@ -3200,6 +3200,179 @@ body.qr-fullscreen-open {
   border-color: #d0d0d6;
 }
 
+/* ═══ FINDREAMS — Respuestas técnicas (modal) ═════════════ */
+.findreams-respuestas-section {
+  margin-top: 20px;
+  padding-top: 0;
+}
+
+.findreams-respuestas-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #fdf2f8 0%, #f8f4fc 100%);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(61, 53, 80, 0.06);
+}
+
+.findreams-respuestas-toggle:active {
+  transform: scale(0.99);
+}
+
+.findreams-respuestas-panel {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.findreams-respuestas-panel[hidden] {
+  display: none;
+}
+
+.findreams-pa-item {
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--card);
+}
+
+.findreams-pa-toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  background: #fafafa;
+  text-align: left;
+  cursor: pointer;
+}
+
+.findreams-pa-toggle:active {
+  background: #f0f0f4;
+}
+
+.findreams-pa-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.findreams-pa-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.findreams-pa-badge {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.findreams-pa-badge--reman {
+  background: #E8F6F3;
+  color: #117A65;
+}
+
+.findreams-pa-badge--maquila {
+  background: #EBF5FB;
+  color: #2471A3;
+}
+
+.findreams-pa-badge--ambos {
+  background: #FCF3CF;
+  color: #9A7D0A;
+}
+
+.findreams-pa-icon {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 4px;
+  transition: transform 0.15s ease;
+}
+
+.findreams-pa-toggle--expanded .findreams-pa-icon {
+  transform: rotate(180deg);
+}
+
+.findreams-pa-body {
+  padding: 0 14px 14px;
+  border-top: 1px dashed var(--card-border);
+  background: #fff;
+}
+
+.findreams-pa-body[hidden] {
+  display: none;
+}
+
+.findreams-pa-lang {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 0 0;
+  border-bottom: 1px solid #f0f0f4;
+}
+
+.findreams-pa-lang:last-of-type {
+  border-bottom: none;
+}
+
+.findreams-pa-flag {
+  flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.findreams-pa-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.findreams-pa-interno {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: #FFF9E6;
+  border: 1px solid #F4D03F;
+}
+
+.findreams-pa-interno-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #922B21;
+  margin-bottom: 6px;
+}
+
+.findreams-pa-interno-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #922B21;
+}
+
 .photo-slot--readonly {
   border-style: solid;
   opacity: 0.95;

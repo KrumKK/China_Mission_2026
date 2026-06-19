@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '57';
+      window.__APP_BUILD__ = '58';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -563,6 +563,15 @@
           <textarea id="company-field-temas" class="field-textarea" rows="3" placeholder="Temas a tratar en la reunión…"></textarea>
         </section>
 
+        <section id="company-modal-findreams-respuestas" class="ficha-section findreams-respuestas-section" hidden aria-labelledby="findreams-respuestas-heading">
+          <button type="button" class="findreams-respuestas-toggle" id="findreams-respuestas-toggle" aria-expanded="false" aria-controls="findreams-respuestas-panel">
+            <span class="findreams-respuestas-toggle-label" id="findreams-respuestas-heading">📋 Respuestas técnicas (16) ▼</span>
+          </button>
+          <div class="findreams-respuestas-panel" id="findreams-respuestas-panel" hidden>
+            <div class="findreams-respuestas-list" id="findreams-respuestas-list"></div>
+          </div>
+        </section>
+
         <section class="ficha-section ficha-section--mine" aria-labelledby="company-mine-heading">
           <h4 class="ficha-section-title" id="company-mine-heading">Mis notas</h4>
           <label class="field-label" for="company-field-desc">Descripción de la empresa</label>
@@ -659,14 +668,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '57';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '58';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '57';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '58';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
@@ -676,7 +685,7 @@
         s.onerror = function () { console.warn('No se cargó:', files[i]); loadNext(files, i + 1); };
         document.body.appendChild(s);
       }
-      loadNext(['config.js', 'graph-sync.js', 'ficha-sharepoint.js', 'resumen-generator.js', 'app.js'], 0);
+      loadNext(['config.js', 'graph-sync.js', 'ficha-sharepoint.js', 'resumen-generator.js', 'findreams-respuestas-data.js', 'app.js'], 0);
     })();
   </script>
 </body>
