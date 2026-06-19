@@ -1924,10 +1924,7 @@ function getPresentacionesPanelId(screen) {
 ────────────────────────────────────────────── */
 const DECK_PRESENTATIONS = {
   oem: { folder: 'Presentaciones/oem-tier1' },
-  reman: { folder: 'Presentaciones/reman' },
-  exoesqueletos: { folder: 'Presentaciones/diversificacion/exoesqueletos' },
-  amr: { folder: 'Presentaciones/diversificacion/amr' },
-  cobots: { folder: 'Presentaciones/diversificacion/cobots' }
+  reman: { folder: 'Presentaciones/reman' }
 };
 
 const CORPORATE_VIDEO_FILE = 'Presentaciones/lizarte-corporate.mp4';

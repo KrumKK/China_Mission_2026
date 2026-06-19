@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '58';
+      window.__APP_BUILD__ = '59';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -271,7 +271,7 @@
             </button>
             <button type="button" class="presentacion-card" data-presentaciones-go="diversificacion">
               <span class="presentacion-card-title">Diversificación</span>
-              <span class="presentacion-card-sub">Exoesqueletos · AMR/AGV · Cobots</span>
+              <span class="presentacion-card-sub">Próximamente</span>
             </button>
           </div>
         </div>
@@ -391,115 +391,15 @@
 
         <div class="presentaciones-panel" id="presentaciones-panel-diversificacion" hidden>
           <button type="button" class="presentaciones-back" data-presentaciones-back="menu">← Volver a Presentaciones</button>
-          <h3 class="presentaciones-subheading">Diversificación</h3>
-          <p class="section-lead">Selecciona una línea de presentación</p>
-          <div class="presentaciones-menu presentaciones-menu--sub">
-            <button type="button" class="presentacion-card" data-presentaciones-go="exoesqueletos">
-              <span class="presentacion-card-title">Exoesqueletos</span>
-              <span class="presentacion-card-sub">Soluciones de asistencia y rehabilitación</span>
-            </button>
-            <button type="button" class="presentacion-card" data-presentaciones-go="amr">
-              <span class="presentacion-card-title">AMR / AGV</span>
-              <span class="presentacion-card-sub">Robots móviles autónomos</span>
-            </button>
-            <button type="button" class="presentacion-card" data-presentaciones-go="cobots">
-              <span class="presentacion-card-title">Cobots / Brazos robóticos</span>
-              <span class="presentacion-card-sub">Colaboración humano-robot</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="presentaciones-panel" id="presentaciones-panel-exoesqueletos" hidden>
-          <button type="button" class="presentaciones-back" data-presentaciones-back="diversificacion">← Volver a Diversificación</button>
-          <div class="deck-viewer" id="deck-viewer-exoesqueletos" data-deck-id="exoesqueletos">
+          <div class="deck-viewer" id="deck-viewer-diversificacion" data-deck-id="diversificacion">
             <header class="deck-header">
-              <h3 class="deck-title">Exoesqueletos</h3>
-              <div class="deck-toolbar">
-                <button type="button" class="btn-deck-fullscreen" data-deck-fs="exoesqueletos" hidden disabled aria-label="Pantalla completa">⛶ Pantalla completa</button>
-                <a class="btn-deck-download" data-deck-dl="exoesqueletos" hidden download>↓ Descargar</a>
-              </div>
+              <h3 class="deck-title">Diversificación</h3>
+              <p class="deck-subtitle">Presentación corporativa</p>
             </header>
-            <div class="deck-viewport" id="deck-viewport-exoesqueletos">
+            <div class="deck-viewport" id="deck-viewport-diversificacion">
               <div class="deck-placeholder">
                 <span class="deck-placeholder-icon" aria-hidden="true">🏗️</span>
                 <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
-              </div>
-              <iframe class="deck-pdf-frame" title="Exoesqueletos" hidden></iframe>
-              <div class="deck-slide-carousel" hidden>
-                <div class="deck-slide-carousel-inner">
-                  <button type="button" class="deck-nav deck-nav--prev" data-deck-nav="prev" aria-label="Diapositiva anterior">‹</button>
-                  <div class="deck-slide-stage" data-deck-swipe>
-                    <div class="deck-slide-zoom-wrap">
-                      <img class="deck-slide-img" alt="" decoding="async" />
-                    </div>
-                  </div>
-                  <button type="button" class="deck-nav deck-nav--next" data-deck-nav="next" aria-label="Diapositiva siguiente">›</button>
-                </div>
-                <p class="deck-carousel-indicator" aria-live="polite"></p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="presentaciones-panel" id="presentaciones-panel-amr" hidden>
-          <button type="button" class="presentaciones-back" data-presentaciones-back="diversificacion">← Volver a Diversificación</button>
-          <div class="deck-viewer" id="deck-viewer-amr" data-deck-id="amr">
-            <header class="deck-header">
-              <h3 class="deck-title">AMR / AGV</h3>
-              <div class="deck-toolbar">
-                <button type="button" class="btn-deck-fullscreen" data-deck-fs="amr" hidden disabled aria-label="Pantalla completa">⛶ Pantalla completa</button>
-                <a class="btn-deck-download" data-deck-dl="amr" hidden download>↓ Descargar</a>
-              </div>
-            </header>
-            <div class="deck-viewport" id="deck-viewport-amr">
-              <div class="deck-placeholder">
-                <span class="deck-placeholder-icon" aria-hidden="true">🏗️</span>
-                <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
-              </div>
-              <iframe class="deck-pdf-frame" title="AMR / AGV" hidden></iframe>
-              <div class="deck-slide-carousel" hidden>
-                <div class="deck-slide-carousel-inner">
-                  <button type="button" class="deck-nav deck-nav--prev" data-deck-nav="prev" aria-label="Diapositiva anterior">‹</button>
-                  <div class="deck-slide-stage" data-deck-swipe>
-                    <div class="deck-slide-zoom-wrap">
-                      <img class="deck-slide-img" alt="" decoding="async" />
-                    </div>
-                  </div>
-                  <button type="button" class="deck-nav deck-nav--next" data-deck-nav="next" aria-label="Diapositiva siguiente">›</button>
-                </div>
-                <p class="deck-carousel-indicator" aria-live="polite"></p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="presentaciones-panel" id="presentaciones-panel-cobots" hidden>
-          <button type="button" class="presentaciones-back" data-presentaciones-back="diversificacion">← Volver a Diversificación</button>
-          <div class="deck-viewer" id="deck-viewer-cobots" data-deck-id="cobots">
-            <header class="deck-header">
-              <h3 class="deck-title">Cobots / Brazos robóticos</h3>
-              <div class="deck-toolbar">
-                <button type="button" class="btn-deck-fullscreen" data-deck-fs="cobots" hidden disabled aria-label="Pantalla completa">⛶ Pantalla completa</button>
-                <a class="btn-deck-download" data-deck-dl="cobots" hidden download>↓ Descargar</a>
-              </div>
-            </header>
-            <div class="deck-viewport" id="deck-viewport-cobots">
-              <div class="deck-placeholder">
-                <span class="deck-placeholder-icon" aria-hidden="true">🏗️</span>
-                <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
-              </div>
-              <iframe class="deck-pdf-frame" title="Cobots / Brazos robóticos" hidden></iframe>
-              <div class="deck-slide-carousel" hidden>
-                <div class="deck-slide-carousel-inner">
-                  <button type="button" class="deck-nav deck-nav--prev" data-deck-nav="prev" aria-label="Diapositiva anterior">‹</button>
-                  <div class="deck-slide-stage" data-deck-swipe>
-                    <div class="deck-slide-zoom-wrap">
-                      <img class="deck-slide-img" alt="" decoding="async" />
-                    </div>
-                  </div>
-                  <button type="button" class="deck-nav deck-nav--next" data-deck-nav="next" aria-label="Diapositiva siguiente">›</button>
-                </div>
-                <p class="deck-carousel-indicator" aria-live="polite"></p>
               </div>
             </div>
           </div>
@@ -668,14 +568,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '58';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '59';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '58';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '59';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
