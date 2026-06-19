@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '61';
+      window.__APP_BUILD__ = '62';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -549,7 +549,7 @@
     <div class="deck-zoom-sheet" role="dialog" aria-modal="true" aria-label="Diapositiva ampliada">
       <button type="button" class="deck-zoom-close" id="deck-zoom-close" aria-label="Cerrar">✕</button>
       <div class="deck-zoom-viewport" id="deck-zoom-viewport">
-        <img class="deck-zoom-img" id="deck-zoom-img" src="" alt="" />
+        <img class="deck-zoom-img fullscreen-img" id="deck-zoom-img" src="" alt="" />
       </div>
     </div>
   </div>
@@ -595,14 +595,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '61';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '62';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '61';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '62';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;

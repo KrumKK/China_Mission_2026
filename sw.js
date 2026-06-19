@@ -1,7 +1,7 @@
 /* Misión China 2026 — Service Worker (red primero en la app) */
 'use strict';
 
-const CACHE_VERSION = 'v61';
+const CACHE_VERSION = 'v62';
 const CACHE_NAME = 'mision-china-' + CACHE_VERSION;
 
 function diversificacionSlideAssets() {

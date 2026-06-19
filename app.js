@@ -2310,6 +2310,7 @@ async function initSlideDeck(deckId) {
 
   const existing = slideDeckState.get(deckId);
   if (existing && existing.ready) {
+    bindDeckSlideZoom(deckId);
     goToDeckSlide(deckId, existing.current);
     return;
   }
@@ -2336,6 +2337,7 @@ async function initSlideDeck(deckId) {
   }
 
   bindSlideDeckControls(deckId);
+  bindDeckSlideZoom(deckId);
   goToDeckSlide(deckId, 0);
   console.log('[SlideDeck] carrusel activo:', deckId, slides.length, 'diapositivas');
 }
@@ -2346,10 +2348,10 @@ function syncDiversificacionLangButtons() {
   });
 }
 
-function switchDiversificacionLang(lang) {
+async function switchDiversificacionLang(lang) {
   if (!DIVERSIFICACION_LANGS.includes(lang) || lang === diversificacionLang) return;
   diversificacionLang = lang;
-  closeDeckZoomModal();
+  await closeDeckZoomModal();
   slideDeckState.set('diversificacion', {
     folder: getDiversificacionFolder(lang),
     slides: buildDiversificacionSlideNames(),
@@ -2376,7 +2378,31 @@ function bindDiversificacionLangSelector() {
   });
 }
 
-function openDeckZoomModal(src, alt) {
+async function requestDocumentFullscreen() {
+  const root = document.documentElement;
+  try {
+    if (root.requestFullscreen) await root.requestFullscreen();
+    else if (root.webkitRequestFullscreen) await root.webkitRequestFullscreen();
+  } catch (_) { /* silenciar si no soportado */ }
+}
+
+async function lockPresentationLandscape() {
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      await screen.orientation.lock('landscape');
+    }
+  } catch (_) { /* silenciar si no soportado */ }
+}
+
+function unlockPresentationOrientation() {
+  try {
+    if (screen.orientation && screen.orientation.unlock) {
+      screen.orientation.unlock();
+    }
+  } catch (_) { /* silenciar si no soportado */ }
+}
+
+async function openDeckZoomModal(src, alt) {
   const modal = document.getElementById('deck-zoom-modal');
   const img = document.getElementById('deck-zoom-img');
   const viewport = document.getElementById('deck-zoom-viewport');
@@ -2387,9 +2413,25 @@ function openDeckZoomModal(src, alt) {
   modal.hidden = false;
   modal.setAttribute('aria-hidden', 'false');
   document.body.classList.add('deck-zoom-open');
+
+  try {
+    await requestDocumentFullscreen();
+    await lockPresentationLandscape();
+  } catch (_) { /* silenciar si no soportado */ }
 }
 
-function closeDeckZoomModal() {
+async function closeDeckZoomModal(options) {
+  const skipFullscreen = options && options.skipFullscreen;
+
+  if (!skipFullscreen) {
+    try {
+      unlockPresentationOrientation();
+      if (getFullscreenElement()) {
+        await exitNativeFullscreen();
+      }
+    } catch (_) { /* silenciar si no soportado */ }
+  }
+
   const modal = document.getElementById('deck-zoom-modal');
   const img = document.getElementById('deck-zoom-img');
   if (!modal) return;
@@ -2402,10 +2444,11 @@ function closeDeckZoomModal() {
   }
 }
 
-function bindDiversificacionSlideZoom() {
-  const els = getDeckViewerElements('diversificacion');
+function bindDeckSlideZoom(deckId) {
+  const els = getDeckViewerElements(deckId);
   if (!els || !els.slideImg || els.slideImg.dataset.zoomBound === '1') return;
   els.slideImg.dataset.zoomBound = '1';
+  els.slideImg.classList.add('deck-slide-img--zoomable');
   els.slideImg.addEventListener('click', () => {
     if (!els.slideImg.src) return;
     openDeckZoomModal(els.slideImg.src, els.slideImg.alt);
@@ -2419,17 +2462,25 @@ function initDeckZoomModal() {
 
   const closeBtn = document.getElementById('deck-zoom-close');
   const backdrop = document.getElementById('deck-zoom-backdrop');
-  if (closeBtn) closeBtn.addEventListener('click', closeDeckZoomModal);
-  if (backdrop) backdrop.addEventListener('click', closeDeckZoomModal);
+  if (closeBtn) closeBtn.addEventListener('click', () => { closeDeckZoomModal(); });
+  if (backdrop) backdrop.addEventListener('click', () => { closeDeckZoomModal(); });
 
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && modal && !modal.hidden) closeDeckZoomModal();
   });
+
+  const onFullscreenEnd = () => {
+    if (!modal || modal.hidden) return;
+    if (!getFullscreenElement()) closeDeckZoomModal({ skipFullscreen: true });
+  };
+  document.addEventListener('fullscreenchange', onFullscreenEnd);
+  document.addEventListener('webkitfullscreenchange', onFullscreenEnd);
 }
 
 function initDiversificacionDeck() {
   const existing = slideDeckState.get('diversificacion');
   if (existing && existing.ready && existing.lang === diversificacionLang) {
+    bindDeckSlideZoom('diversificacion');
     goToDeckSlide('diversificacion', existing.current);
     syncDiversificacionLangButtons();
     return;
@@ -2448,7 +2499,7 @@ function initDiversificacionDeck() {
   setDeckViewportSlideMode(els, true);
   bindSlideDeckControls('diversificacion');
   bindDiversificacionLangSelector();
-  bindDiversificacionSlideZoom();
+  bindDeckSlideZoom('diversificacion');
   goToDeckSlide('diversificacion', 0);
   syncDiversificacionLangButtons();
   console.log('[SlideDeck] Diversificación activa:', diversificacionLang, DIVERSIFICACION_SLIDE_COUNT, 'diapositivas');
