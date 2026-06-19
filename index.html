@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '65';
+      window.__APP_BUILD__ = '66';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -260,6 +260,7 @@
       </section>
 
       <section class="view view--presentaciones" id="view-presentaciones">
+        <button type="button" id="presentaciones-back-fab" class="presentaciones-back-fab" hidden aria-label="Volver a Presentaciones">← Volver</button>
 
         <div class="presentaciones-panel presentaciones-panel--menu active" id="presentaciones-menu">
           <h2 class="section-heading"><span class="section-emoji">📁</span> Presentaciones</h2>
@@ -612,14 +613,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '65';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '66';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '65';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '66';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;

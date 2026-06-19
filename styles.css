@@ -4283,18 +4283,54 @@ body.corporate-video-fullscreen-active {
 }
 
 .presentaciones-back {
+  display: none !important;
+}
+
+.presentaciones-back-fab {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  z-index: 12100;
   display: inline-flex;
   align-items: center;
-  margin-bottom: 14px;
-  padding: 8px 0;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 16px;
   border: none;
-  background: transparent;
-  color: var(--accent-dark);
+  border-radius: 22px;
+  background: rgba(45, 38, 58, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
+  line-height: 1.2;
   cursor: pointer;
   touch-action: manipulation;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.28);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.presentaciones-back-fab[hidden] {
+  display: none !important;
+}
+
+.presentaciones-back-fab:active {
+  background: rgba(45, 38, 58, 0.92);
+  transform: scale(0.98);
+}
+
+body.brochure-fs-portal-open .presentaciones-back-fab {
+  z-index: 10050;
+}
+
+body.deck-fullscreen-active .presentaciones-back-fab,
+body.deck-zoom-open .presentaciones-back-fab,
+body.corporate-video-fullscreen-active .presentaciones-back-fab,
+body.brochure-fullscreen-active .presentaciones-back-fab {
+  z-index: 12100;
 }
 
 .presentaciones-subheading {
@@ -4855,6 +4891,7 @@ body.deck-zoom-open {
 .view--brochure,
 .view--presentaciones .presentaciones-panel:not(.presentaciones-panel--menu) {
   margin-top: 0;
+  padding-top: calc(52px + env(safe-area-inset-top, 0px));
 }
 
 .brochure-header {

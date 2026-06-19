@@ -2102,6 +2102,27 @@ function showPresentacionesScreen(screen) {
   } else if (DECK_PRESENTATIONS[presentacionesScreen]) {
     initSlideDeck(presentacionesScreen).catch(err => console.warn('Slide deck:', err));
   }
+
+  updatePresentacionesBackFab();
+}
+
+function updatePresentacionesBackFab() {
+  const fab = document.getElementById('presentaciones-back-fab');
+  const view = document.getElementById('view-presentaciones');
+  if (!fab) return;
+  const viewActive = view && view.classList.contains('active');
+  const show = viewActive && presentacionesScreen !== 'menu';
+  fab.hidden = !show;
+  fab.setAttribute('aria-hidden', show ? 'false' : 'true');
+}
+
+function handlePresentacionesBackFab() {
+  showPresentacionesScreen('menu');
+  try {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (_) {
+    window.scrollTo(0, 0);
+  }
 }
 
 function resetPresentacionesToMenu() {
@@ -2112,6 +2133,14 @@ function initPresentaciones() {
   const root = document.getElementById('view-presentaciones');
   if (!root || root.dataset.bound === '1') return;
   root.dataset.bound = '1';
+
+  const fab = document.getElementById('presentaciones-back-fab');
+  if (fab) {
+    fab.addEventListener('click', event => {
+      event.preventDefault();
+      handlePresentacionesBackFab();
+    });
+  }
 
   root.addEventListener('click', event => {
     const goBtn = event.target.closest('[data-presentaciones-go]');
@@ -3084,6 +3113,8 @@ function initNavigation() {
       exitBrochureFullscreen(document.getElementById('brochure-viewport'));
       resetPresentacionesToMenu();
     }
+
+    updatePresentacionesBackFab();
 
     scrollMainToTop();
   }
