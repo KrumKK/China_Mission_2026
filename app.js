@@ -3797,6 +3797,7 @@ function renderEventAgendas() {
         <p class="event-hero-desc">${escapeHtml(data.heroDesc)}</p>
       </div>
       ${data.programIntro ? `<div class="alert-box alert-box--info"><span class="alert-icon">📋</span><p>${escapeHtml(data.programIntro)}</p></div>` : ''}
+      ${delegationHtml}
       ${key === 'cisce' ? buildNavarraDayCardHtml() : ''}
       <div class="timeline">
         <div class="timeline-city">
@@ -3805,8 +3806,7 @@ function renderEventAgendas() {
         ${daysHtml}
       </div>
       ${data.footerAlert ? `<div class="alert-box alert-box--warn"><span class="alert-icon">⚠️</span><p>${escapeHtml(data.footerAlert)}</p></div>` : ''}
-      ${data.footerNote ? `<div class="info-box"><span class="info-box-icon">ℹ</span><p>${escapeHtml(data.footerNote)}</p></div>` : ''}
-      ${delegationHtml}`;
+      ${data.footerNote ? `<div class="info-box"><span class="info-box-icon">ℹ</span><p>${escapeHtml(data.footerNote)}</p></div>` : ''}`;
   });
 
   bindSummitCollapsible();
