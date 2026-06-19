@@ -1045,6 +1045,15 @@ body.user-selector-open {
   overflow: hidden;
 }
 
+.event-delegation-wrap {
+  margin-top: 16px;
+}
+
+.event-delegation-wrap .agenda-delegation {
+  border-top: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+}
+
 .agenda-delegation-toggle {
   display: flex;
   align-items: center;

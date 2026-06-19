@@ -161,61 +161,7 @@ const FLIGHTS = [
 ];
 
 /* ──────────────────────────────────────────────
-   DATA — Agenda resumida (pestaña General)
-────────────────────────────────────────────── */
-const TRIP_AGENDA = [
-  {
-    id: 'cisce',
-    title: 'Feria CISCE — Beijing',
-    items: [
-      { date: '22 junio', text: 'Agenda institucional y citas B2B' },
-      {
-        date: '23 junio',
-        lines: [
-          'Encuentro «Día de Navarra» (11:00-12:00, Sala E201)',
-          { text: '«Navarra: your innovative, agile and efficient partner in Europe»', italic: true },
-          '+ firma MOU con provincia de Hainan'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'shenzhen',
-    title: 'Misión Shenzhen',
-    days: [
-      {
-        date: '23 junio',
-        text: 'Sesión de trabajo empresas con SPI, preparatoria de las sesiones y B2Bs'
-      },
-      {
-        date: '24 junio',
-        subtitle: 'Foro Navarra-Longhua',
-        forumTitle: 'Innovación, industria y relaciones estratégicas en la Gran Bahía',
-        timeline: [
-          { time: '9:00', activity: 'Inauguración institucional (modera Longhua)' },
-          { time: '9:30', activity: 'Panel 1 — Innovación (modera Navarra)' },
-          { time: '10:30', activity: 'Panel 2 — Industria (modera Longhua)' },
-          { time: '11:30', activity: 'Panel 3 — Relaciones Estratégicas (modera Navarra)' },
-          { time: '12:00', activity: 'Palabras de clausura (modera Longhua)' },
-          { time: '', activity: 'Comida Networking', meal: true },
-          { time: '15:00', activity: 'B2B' }
-        ]
-      },
-      {
-        date: '25–26 junio',
-        text: 'Visitas y reuniones a determinar'
-      },
-      {
-        date: '27 junio',
-        eventTitle: '15th International Automotive Electronics Industry Summit',
-        venue: 'Hilton Hotel, Shenzhen'
-      }
-    ]
-  }
-];
-
-/* ──────────────────────────────────────────────
-   DATA — Delegaciones (Agenda · General)
+   DATA — Delegaciones (Eventos · CISCE / Shenzhen)
 ────────────────────────────────────────────── */
 const TRIP_DELEGATIONS = {
   cisce: {
@@ -3430,7 +3376,7 @@ function initTravelInsuranceLink() {
 
 
 /* ──────────────────────────────────────────────
-   RENDER — Agenda (General)
+   RENDER — Delegaciones (Eventos)
 ────────────────────────────────────────────── */
 function countDelegationEntries(delegation) {
   if (!delegation) return 0;
@@ -3466,6 +3412,17 @@ function buildDelegationSectionHtml(label, entries) {
     </div>`;
 }
 
+const DELEGATION_EVENT_LABELS = {
+  cisce: 'CISCE',
+  shenzhen: 'Shenzhen'
+};
+
+function getDelegationToggleLabel(blockId, count, expanded) {
+  const name = DELEGATION_EVENT_LABELS[blockId] || blockId;
+  if (expanded) return `👥 Delegación ${name} ▲`;
+  return `👥 Delegación ${name} (${count} personas) ▼`;
+}
+
 function buildDelegationBlockHtml(blockId) {
   const delegation = TRIP_DELEGATIONS[blockId];
   if (!delegation) return '';
@@ -3474,21 +3431,17 @@ function buildDelegationBlockHtml(blockId) {
   const panelId = 'delegation-panel-' + blockId;
 
   return `
-    <div class="agenda-delegation" data-delegation-id="${escapeHtml(blockId)}">
-      <button type="button" class="agenda-delegation-toggle" aria-expanded="false" aria-controls="${escapeHtml(panelId)}">
-        <span class="agenda-delegation-toggle-label">Ver delegación (${count} personas) ▼</span>
-      </button>
-      <div class="agenda-delegation-panel" id="${escapeHtml(panelId)}" hidden>
-        ${buildDelegationSectionHtml('Institucional', delegation.institutional)}
-        ${buildDelegationSectionHtml('Empresas', delegation.companies)}
+    <div class="event-delegation-wrap">
+      <div class="agenda-delegation" data-delegation-id="${escapeHtml(blockId)}">
+        <button type="button" class="agenda-delegation-toggle" aria-expanded="false" aria-controls="${escapeHtml(panelId)}">
+          <span class="agenda-delegation-toggle-label">${escapeHtml(getDelegationToggleLabel(blockId, count, false))}</span>
+        </button>
+        <div class="agenda-delegation-panel" id="${escapeHtml(panelId)}" hidden>
+          ${buildDelegationSectionHtml('Institucional', delegation.institutional)}
+          ${buildDelegationSectionHtml('Empresas', delegation.companies)}
+        </div>
       </div>
     </div>`;
-}
-
-function wrapAgendaCardWithDelegation(cardHtml, blockId) {
-  const delegationHtml = buildDelegationBlockHtml(blockId);
-  if (!delegationHtml) return cardHtml;
-  return `<div class="agenda-card-group">${cardHtml}${delegationHtml}</div>`;
 }
 
 function bindAgendaDelegations() {
@@ -3500,6 +3453,7 @@ function bindAgendaDelegations() {
       const wrap = btn.closest('.agenda-delegation');
       const panel = wrap ? wrap.querySelector('.agenda-delegation-panel') : null;
       const label = btn.querySelector('.agenda-delegation-toggle-label');
+      const blockId = wrap ? wrap.dataset.delegationId : '';
       if (!panel || !label) return;
 
       const expanded = btn.getAttribute('aria-expanded') === 'true';
@@ -3508,101 +3462,11 @@ function bindAgendaDelegations() {
       panel.hidden = !next;
       wrap.classList.toggle('agenda-delegation--expanded', next);
 
-      const countMatch = label.textContent.match(/\((\d+)\s+personas\)/);
-      const count = countMatch ? countMatch[1] : '';
-      label.textContent = next
-        ? 'Ocultar delegación ▲'
-        : `Ver delegación (${count} personas) ▼`;
+      const delegation = TRIP_DELEGATIONS[blockId];
+      const count = countDelegationEntries(delegation);
+      label.textContent = getDelegationToggleLabel(blockId, count, next);
     });
   });
-}
-
-function buildAgendaCisceRow(item) {
-  if (item.lines) {
-    const body = item.lines.map(line => {
-      if (typeof line === 'string') {
-        return `<p class="agenda-day-text">${escapeHtml(line)}</p>`;
-      }
-      const cls = line.italic ? ' agenda-day-text--italic' : '';
-      return `<p class="agenda-day-text${cls}">${escapeHtml(line.text)}</p>`;
-    }).join('');
-    return `
-    <div class="agenda-day-row">
-      <span class="agenda-day-date">${escapeHtml(item.date)}</span>
-      <div class="agenda-day-lines">${body}</div>
-    </div>`;
-  }
-  return `
-    <div class="agenda-day-row">
-      <span class="agenda-day-date">${escapeHtml(item.date)}</span>
-      <p class="agenda-day-text">${escapeHtml(item.text)}</p>
-    </div>`;
-}
-
-function buildAgendaCisceCard(block) {
-  const rows = block.items.map(buildAgendaCisceRow).join('');
-
-  return wrapAgendaCardWithDelegation(`
-    <article class="agenda-card" data-id="${escapeHtml(block.id)}">
-      <header class="agenda-card-header">${escapeHtml(block.title)}</header>
-      <div class="agenda-card-body">${rows}</div>
-    </article>`, block.id);
-}
-
-function buildAgendaTimelineRows(slots) {
-  return slots.map(slot => {
-    const timeCell = slot.time
-      ? `<span class="agenda-timeline-time">${escapeHtml(slot.time)}</span>`
-      : '<span class="agenda-timeline-time agenda-timeline-time--empty" aria-hidden="true">·</span>';
-    const activityClass = slot.meal ? ' agenda-timeline-activity--meal' : '';
-    return `
-      <div class="agenda-timeline-row${slot.meal ? ' agenda-timeline-row--meal' : ''}">
-        ${timeCell}
-        <span class="agenda-timeline-activity${activityClass}">${escapeHtml(slot.activity)}</span>
-      </div>`;
-  }).join('');
-}
-
-function buildAgendaShenzhenCard(block) {
-  const daysHtml = block.days.map(day => {
-    if (day.eventTitle) {
-      return `
-        <div class="agenda-day-block">
-          <p class="agenda-day-label">${escapeHtml(day.date)}</p>
-          <p class="agenda-day-text agenda-day-text--event">${escapeHtml(day.eventTitle)}</p>
-          ${day.venue ? `<p class="agenda-day-venue">📍 ${escapeHtml(day.venue)}</p>` : ''}
-        </div>`;
-    }
-    if (day.timeline) {
-      return `
-        <div class="agenda-day-block">
-          <p class="agenda-day-label">${escapeHtml(day.date)}${day.subtitle ? ' — ' + escapeHtml(day.subtitle) : ''}</p>
-          ${day.forumTitle ? `<p class="agenda-forum-title">${escapeHtml(day.forumTitle)}</p>` : ''}
-          <div class="agenda-timeline">${buildAgendaTimelineRows(day.timeline)}</div>
-        </div>`;
-    }
-    return `
-      <div class="agenda-day-block">
-        <p class="agenda-day-label">${escapeHtml(day.date)}</p>
-        <p class="agenda-day-text">${escapeHtml(day.text)}</p>
-      </div>`;
-  }).join('');
-
-  return wrapAgendaCardWithDelegation(`
-    <article class="agenda-card" data-id="${escapeHtml(block.id)}">
-      <header class="agenda-card-header">${escapeHtml(block.title)}</header>
-      <div class="agenda-card-body">${daysHtml}</div>
-    </article>`, block.id);
-}
-
-function renderAgenda() {
-  const root = document.getElementById('agenda-root');
-  if (!root) return;
-  root.innerHTML = TRIP_AGENDA.map(block => {
-    if (block.items) return buildAgendaCisceCard(block);
-    return buildAgendaShenzhenCard(block);
-  }).join('');
-  bindAgendaDelegations();
 }
 
 /* ──────────────────────────────────────────────
@@ -3922,6 +3786,10 @@ function renderEventAgendas() {
         </div>`;
     }).join('');
 
+    const delegationHtml = (key === 'cisce' || key === 'shenzhen')
+      ? buildDelegationBlockHtml(key)
+      : '';
+
     panel.innerHTML = `
       <div class="event-hero">
         <div class="hero-tag">${escapeHtml(data.heroTag)}</div>
@@ -3937,10 +3805,12 @@ function renderEventAgendas() {
         ${daysHtml}
       </div>
       ${data.footerAlert ? `<div class="alert-box alert-box--warn"><span class="alert-icon">⚠️</span><p>${escapeHtml(data.footerAlert)}</p></div>` : ''}
-      ${data.footerNote ? `<div class="info-box"><span class="info-box-icon">ℹ</span><p>${escapeHtml(data.footerNote)}</p></div>` : ''}`;
+      ${data.footerNote ? `<div class="info-box"><span class="info-box-icon">ℹ</span><p>${escapeHtml(data.footerNote)}</p></div>` : ''}
+      ${delegationHtml}`;
   });
 
   bindSummitCollapsible();
+  bindAgendaDelegations();
 }
 
 
@@ -5643,7 +5513,6 @@ function startApp() {
   if (typeof window.initResumenGenerator === 'function') {
     window.initResumenGenerator();
   }
-  renderAgenda();
   renderFlights();
   renderLogistics();
   renderArrivalCards();
