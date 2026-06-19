@@ -553,70 +553,110 @@ const EVENT_AGENDA = {
   shenzhen: {
     heroTag: 'Shenzhen',
     heroTitle: 'Misión Shenzhen',
-    heroDesc: 'Foro Navarra–Longhua · SPI · visitas empresariales',
+    heroDesc: 'Foro Navarra–Longhua · visitas empresariales · junio 2026',
     cityMarker: '深圳',
     cityClass: 'city-shenzhen',
-    programIntro: 'Programa preliminar del PIN. Se finalizará en las próximas semanas.',
     days: [
       {
         date: '2026-06-23',
-        dateLabel: 'Mar 23 junio',
-        badge: 'LLEGADA',
-        badgeClass: 'day-badge--mision',
-        note: 'Llegada 23:35 SZX · Hotel Grand Madison LongHua Yujing',
+        dateLabel: 'Lunes 23 junio',
         slots: [
-          { time: 'Por confirmar', label: 'Sesión de trabajo empresas con SPI (preparación sesiones y B2B)', empty: true }
+          {
+            time: '09:00',
+            label: 'Llegada de parte de la delegación, recogida en aeropuerto y repaso de agenda para el miércoles',
+            detail: 'Vuelo llega a las 07:10h'
+          },
+          {
+            time: '17:30',
+            label: 'Llegada de una persona de la delegación',
+            detail: 'Vuelo de Jürgen llega a las 17:40h'
+          },
+          {
+            time: '19:30',
+            label: 'Llegada de parte de la delegación',
+            detail: 'Vuelo de Beijing llega a las 23:35h'
+          }
         ]
       },
       {
         date: '2026-06-24',
-        dateLabel: 'Mié 24 junio',
-        badge: 'FORO',
-        badgeClass: 'day-badge--mision',
-        note: 'Foro Navarra – Longhua (Shenzhen). Innovación, industria y relaciones estratégicas en el Greater Bay Area.',
+        dateLabel: 'Martes 24 junio',
         slots: [
-          { time: '09:00', label: 'Apertura institucional', sub: 'Modera: Longhua' },
-          { time: '09:30', label: 'Panel 1: Innovación', sub: 'Modera: Navarra' },
-          { time: '10:30', label: 'Panel 2: Industria', sub: 'Modera: Longhua' },
-          { time: '11:30', label: 'Panel 3: Relaciones estratégicas', sub: 'Modera: Navarra' },
-          { time: '12:00', label: 'Clausura', sub: 'Modera: Longhua' },
-          { time: 'Mediodía', label: 'Comida networking' },
-          { time: '15:00', label: 'Reuniones B2B', priority: true }
+          { time: '09:00', travel: true, label: 'Desplazamiento' },
+          { time: '09:30', label: 'Visita a Longhua International Cooperation Center', visit: true },
+          { time: '10:00', label: '(FORO) Apertura Institucional' },
+          { time: '10:30', label: '(FORO) Presentaciones de las empresas', statusBadge: 'confirmado' },
+          { time: '12:00', label: '(FORO) Almuerzo de trabajo' },
+          { time: '13:30', label: '(FORO) B2B Matchmaking' },
+          { time: '15:00', label: '(FORO) Foto de grupo' },
+          { time: '15:30', travel: true, label: 'Desplazamiento' },
+          { time: '16:00', label: 'Visita a Hongmeng', visit: true, statusBadge: 'confirmada' },
+          { time: '17:00', travel: true, label: 'Desplazamiento' },
+          { time: '17:30', label: 'Visita a Meituan', visit: true, statusBadge: 'confirmada' },
+          { time: '18:30', travel: true, label: 'Desplazamiento' },
+          { time: '19:00', label: 'Cena' },
+          { time: '19:30', label: 'Regreso al hotel' }
         ]
       },
       {
         date: '2026-06-25',
-        dateLabel: 'Jue 25 junio',
-        badge: 'VISITAS',
-        badgeClass: 'day-badge--mision',
-        note: 'Visitas y reuniones a determinar (programa preliminar).',
+        dateLabel: 'Miércoles 25 junio',
         slots: [
-          { time: 'Prioridad', label: 'BYD + proveedor EPS · visita planta', priority: true },
-          { time: 'Por determinar', label: 'Visita AIERFY', empty: true },
-          { time: 'Por determinar', label: 'Visita SINOMZ', empty: true },
-          { time: 'Por determinar', label: 'Otras visitas y B2B', empty: true }
+          { time: '09:30', travel: true, label: 'Desplazamiento' },
+          { time: '10:00', label: 'Visita a Hithium', visit: true, statusBadge: 'confirmada' },
+          { time: '11:00', travel: true, label: 'Desplazamiento' },
+          {
+            time: '11:30',
+            label: 'Visita al Centro Nacional de Dispositivos Médicos',
+            visit: true,
+            statusBadge: 'confirmada'
+          },
+          { time: '13:00', travel: true, label: 'Desplazamiento' },
+          { time: '13:30', label: 'Almuerzo' },
+          { time: '14:30', travel: true, label: 'Desplazamiento' },
+          { time: '15:00', label: 'Visita a Ye Sun Technology Park', visit: true, statusBadge: 'cambiada' },
+          { time: '16:30', travel: true, label: 'Desplazamiento' },
+          {
+            time: '17:30',
+            label: 'Tiempo de descanso',
+            detail: 'Con los participantes que quieran, podemos ir a visitar el parque de la Estación de Shenzhen Norte (cerca del hotel)'
+          },
+          { time: '19:30', label: 'Cena y regreso al hotel' }
         ]
       },
       {
         date: '2026-06-26',
-        dateLabel: 'Vie 26 junio',
-        badge: 'VISITAS',
-        badgeClass: 'day-badge--mision',
-        note: 'Visitas y reuniones a determinar (programa preliminar).',
+        dateLabel: 'Jueves 26 junio',
         slots: [
-          { time: 'Por determinar', label: 'Visitas y reuniones pendientes de confirmar', empty: true }
+          { time: '09:30', travel: true, label: 'Desplazamiento en coche' },
+          {
+            time: '10:00',
+            label: 'Reunión con empresas en la Shenzhen International Foundation',
+            visit: true,
+            statusBadge: 'pendiente',
+            detail: 'Han tenido algunos cambios internos y nos están gestionando la información más lentamente de lo esperado. Actualizo lo más pronto posible.'
+          },
+          { time: '12:00', travel: true, label: 'Desplazamiento' },
+          { time: '12:30', label: 'Almuerzo' },
+          { time: '13:30', travel: true, label: 'Desplazamiento' },
+          { time: '14:00', label: 'Huaqiangbei', statusBadge: 'confirmada' },
+          { time: '15:00', label: 'Tax Free shopping' },
+          { time: '15:30', travel: true, label: 'Desplazamiento' },
+          {
+            time: '16:00',
+            label: 'Proyección película',
+            statusBadge: 'pendiente',
+            detail: 'Falta una segunda aprobación gubernamental. Estamos trabajando en plan B por si finalmente no hay proyección.'
+          },
+          { time: '18:00', travel: true, label: 'Desplazamiento' },
+          { time: '18:30', label: 'Cena' },
+          { time: '19:00', label: 'Tiempo de descanso y organización de maletas' },
+          { time: '', travel: true, label: 'Desplazamiento' },
+          { time: '', label: 'Aeropuerto ✈️' }
         ]
-      },
-      {
-        date: '2026-06-27',
-        dateLabel: 'Sáb 27 junio',
-        badge: 'SALIDA',
-        badgeClass: 'day-badge--mision',
-        note: 'Check-out hotel Grand Madison (reserva hasta 27 jun).',
-        slots: []
       }
     ],
-    footerNote: 'Hotel Grand Madison LongHua Yujing (23–27 jun). Vuelo PEK→SZX el 23 jun 20:15.'
+    footerNote: 'Hotel Grand Madison LongHua Yujing (23–27 jun).'
   }
 };
 
@@ -3762,6 +3802,59 @@ function buildContactCard(c) {
 /* ──────────────────────────────────────────────
    RENDER — Agendas CISCE / Shenzhen
 ────────────────────────────────────────────── */
+const EVENT_SLOT_STATUS_LABELS = {
+  confirmado: 'Confirmado',
+  confirmada: 'Confirmada',
+  cambiada: 'Cambiada',
+  pendiente: 'Pendiente'
+};
+
+function buildEventSlotStatusBadge(statusBadge) {
+  const key = String(statusBadge || '').toLowerCase();
+  const text = EVENT_SLOT_STATUS_LABELS[key];
+  if (!text) return '';
+  return `<span class="slot-status-badge slot-status-badge--${escapeHtml(key)}">${escapeHtml(text)}</span>`;
+}
+
+function buildEventAgendaSlotHtml(slot) {
+  const classes = ['meeting-slot'];
+  if (slot.empty) classes.push('meeting-slot--empty');
+  if (slot.priority) classes.push('meeting-slot--priority');
+  if (slot.travel) classes.push('meeting-slot--travel');
+
+  const time = slot.time ? escapeHtml(slot.time) : '';
+  const badgeHtml = buildEventSlotStatusBadge(slot.statusBadge);
+  const sub = slot.sub
+    ? `<span class="slot-sub">${escapeHtml(slot.sub)}</span>`
+    : '';
+  const detail = slot.detail
+    ? `<span class="slot-detail">${escapeHtml(slot.detail)}</span>`
+    : '';
+
+  let labelHtml;
+  if (slot.travel) {
+    const travelLabel = slot.label || 'Desplazamiento';
+    labelHtml = `<span class="slot-label slot-label--travel">🚗 &gt;&gt;&gt;&gt;&gt; ${escapeHtml(travelLabel)}</span>`;
+  } else if (slot.visit) {
+    labelHtml = `<strong class="slot-label slot-label--visit">${escapeHtml(slot.label)}</strong>`;
+  } else {
+    labelHtml = `<span class="slot-label">${escapeHtml(slot.label)}</span>`;
+  }
+
+  return `
+    <div class="${classes.join(' ')}">
+      <span class="slot-time">${time}</span>
+      <div class="slot-text">
+        <div class="slot-label-row">
+          ${labelHtml}
+          ${badgeHtml}
+        </div>
+        ${detail}
+        ${sub}
+      </div>
+    </div>`;
+}
+
 function renderEventAgendas() {
   Object.keys(EVENT_AGENDA).forEach(key => {
     const panel = document.getElementById('event-panel-' + key);
@@ -3769,28 +3862,17 @@ function renderEventAgendas() {
     if (!panel || !data) return;
 
     const daysHtml = data.days.map(day => {
-      const slots = (day.slots || []).map(slot => {
-        const classes = ['meeting-slot'];
-        if (slot.empty) classes.push('meeting-slot--empty');
-        if (slot.priority) classes.push('meeting-slot--priority');
-        const sub = slot.sub
-          ? `<span class="slot-sub">${escapeHtml(slot.sub)}</span>`
-          : '';
-        return `
-          <div class="${classes.join(' ')}">
-            <span class="slot-time">${escapeHtml(slot.time)}</span>
-            <div class="slot-text">
-              <span class="slot-label">${escapeHtml(slot.label)}</span>
-              ${sub}
-            </div>
-          </div>`;
-      }).join('');
+      const slots = (day.slots || []).map(buildEventAgendaSlotHtml).join('');
+
+      const badgeHtml = day.badge
+        ? `<span class="day-badge ${day.badgeClass || ''}">${escapeHtml(day.badge)}</span>`
+        : '';
 
       return `
         <div class="timeline-day" data-date="${day.date}">
           <div class="day-header">
-            <span class="day-date">${escapeHtml(day.dateLabel)}</span>
-            <span class="day-badge ${day.badgeClass || ''}">${escapeHtml(day.badge)}</span>
+            <span class="day-date${key === 'shenzhen' ? ' day-date--major' : ''}">${escapeHtml(day.dateLabel)}</span>
+            ${badgeHtml}
           </div>
           <div class="day-content">
             ${day.note ? `<p class="day-note">${escapeHtml(day.note)}</p>` : ''}

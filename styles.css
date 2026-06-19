@@ -2244,6 +2244,74 @@ body.qr-fullscreen-open {
   line-height: 1.35;
 }
 
+.day-date--major {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.slot-label-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.slot-label--travel {
+  font-style: italic;
+  color: var(--text-faint);
+  font-weight: 500;
+}
+
+.slot-label--visit {
+  font-weight: 700;
+}
+
+.slot-detail {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-soft);
+}
+
+.meeting-slot--travel {
+  background: transparent;
+  border-color: transparent;
+  border-style: dashed;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.slot-status-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.slot-status-badge--confirmado,
+.slot-status-badge--confirmada {
+  background: #e8f5ec;
+  color: #1b5e34;
+  border: 1px solid #2e7d4a;
+}
+
+.slot-status-badge--cambiada {
+  background: #fff3e6;
+  color: #b45309;
+  border: 1px solid #f59e0b;
+}
+
+.slot-status-badge--pendiente {
+  background: #fffbea;
+  color: #92680a;
+  border: 1px solid #e6b800;
+}
+
 /* ═══ COMPANY / VISIT CARDS ══════════════════════════════ */
 .company-card {
   cursor: pointer;
