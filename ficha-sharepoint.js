@@ -41,6 +41,8 @@ function defaultCisceRemoteFicha(companyId) {
     contacto: '',
     rol: '',
     tipoReunion: '',
+    standOverride: undefined,
+    standConfirmed: false,
     krum: emptyCisceUserBlock(),
     oscar: emptyCisceUserBlock()
   };
@@ -55,6 +57,8 @@ function normalizeCisceRemoteFicha(raw, companyId) {
     contacto: typeof raw.contacto === 'string' ? raw.contacto : '',
     rol: typeof raw.rol === 'string' ? raw.rol : '',
     tipoReunion: normalizeMeetingTypeValue(raw.tipoReunion) || '',
+    standOverride: typeof raw.standOverride === 'string' ? raw.standOverride : undefined,
+    standConfirmed: raw.standConfirmed === true,
     krum: emptyCisceUserBlock(),
     oscar: emptyCisceUserBlock()
   };
@@ -89,6 +93,9 @@ function mergeCisceFichaForSave(remote, formState, currentUser) {
     if (formState.myContacts !== undefined) block.personasContacto = formState.myContacts;
     if (formState.myNotes !== undefined) block.notas = formState.myNotes;
   }
+
+  if (formState.stand !== undefined) merged.standOverride = formState.stand;
+  if (formState.standConfirmed === true) merged.standConfirmed = true;
 
   return merged;
 }

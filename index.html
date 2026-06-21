@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '75';
+      window.__APP_BUILD__ = '76';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -479,6 +479,9 @@
           <div class="field-readonly" id="company-field-encaje"></div>
           <label class="field-label" for="company-field-quehace">Qué hace</label>
           <div class="field-readonly" id="company-field-quehace"></div>
+          <label class="field-label" for="company-precarga-stand">Stand</label>
+          <input type="text" id="company-precarga-stand" class="field-input" placeholder="Ej: E2-C04" autocomplete="off" />
+          <p class="cisce-stand-field-hint" id="company-precarga-stand-hint"></p>
           <div class="cisce-badge-row" id="company-cisce-badges"></div>
         </section>
 
@@ -614,14 +617,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '75';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '76';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '75';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '76';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
