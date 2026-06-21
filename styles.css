@@ -2147,56 +2147,136 @@ a.hotel-phone {
   line-height: 1.4;
 }
 
+.qr-contact-qr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.qr-contact-qr-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  background: var(--bg-elevated);
+}
+
+.qr-contact-qr-item--vcard {
+  border-top: 3px solid var(--accent);
+}
+
+.qr-contact-qr-item--wechat {
+  border-top: 3px solid #07C160;
+}
+
+.qr-contact-qr-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.qr-contact-qr-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.qr-contact-qr-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.qr-contact-qr-sub {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-soft);
+}
+
 .qr-contact-qr-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 10px;
 }
 
 .qr-contact-img {
   display: block;
-  width: min(100%, 320px);
-  min-width: 280px;
+  width: min(100%, 280px);
+  min-width: 0;
   max-width: 100%;
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
   background: #fff;
-  padding: 16px;
+  padding: 12px;
   border-radius: var(--radius-md);
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
 }
 
-.btn-qr-fullscreen,
-.btn-qr-wechat {
-  width: 100%;
-  max-width: 320px;
-  padding: 11px 14px;
+.qr-contact-qr-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: min(100%, 280px);
+  aspect-ratio: 1;
+  padding: 16px;
   border-radius: var(--radius-md);
-  font-family: var(--font-body);
-  font-size: 13px;
+  border: 2px dashed var(--card-border);
+  background: #fff;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.qr-contact-qr-placeholder-icon {
+  font-size: 28px;
+  opacity: 0.45;
+}
+
+.qr-contact-qr-placeholder-text {
+  font-size: 12px;
   font-weight: 700;
-  cursor: pointer;
-  touch-action: manipulation;
+  color: var(--text-soft);
+  line-height: 1.35;
 }
 
 .btn-qr-fullscreen {
+  width: 100%;
+  max-width: 280px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
   border: 2px solid var(--accent);
   background: var(--accent-light);
   color: var(--accent-dark);
 }
 
-.btn-qr-wechat {
-  display: block;
-  width: 100%;
-  max-width: 320px;
-  margin: 0 auto 12px;
-  border: 2px solid var(--card-border);
-  background: var(--bg-elevated);
-  color: var(--text);
+.btn-qr-fullscreen--wechat {
+  border-color: #07C160;
+  background: #E8F8F0;
+  color: #1E8449;
+}
+
+.qr-contact-notice {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: #ECEFF1;
+  border: 1px solid #D5DBDB;
+  font-size: 12px;
+  color: var(--text-soft);
+  line-height: 1.45;
 }
 
 .qr-contact-links {
@@ -2216,6 +2296,12 @@ a.hotel-phone {
 
 .qr-contact-link:active {
   opacity: 0.85;
+}
+
+@media (max-width: 640px) {
+  .qr-contact-qr-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Modal QR pantalla completa */

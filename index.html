@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '76';
+      window.__APP_BUILD__ = '77';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -231,7 +231,7 @@
         <p class="section-lead">Listado v5 · 25 mayo 2026 · ICEX, CCPIT, Navarra, consultora</p>
 
         <h3 class="qr-section-heading">Tarjetas de contacto QR</h3>
-        <p class="qr-section-lead">Muestra el QR en reunión para guardar contacto o añadir en WeChat</p>
+        <p class="qr-section-lead">Dos códigos por persona: contacto (cámara del móvil) y WeChat (escáner de WeChat)</p>
         <div id="qr-cards-root" class="qr-cards-list"></div>
 
         <div id="contacts-list"></div>
@@ -617,14 +617,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '76';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '77';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '76';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '77';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;

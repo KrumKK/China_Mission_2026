@@ -576,6 +576,11 @@ const QR_CONTACT_CARDS = [
     id: 'krum',
     name: 'Krum Kovachev',
     role: 'Innovation Director · 3rd Gen Family Business',
+    vcardN: 'Kovachev;Krum;;;',
+    vcardTitle: 'Innovation Director / 3rd Generation Family Business',
+    org: 'Lizarte S.A.',
+    url: 'https://www.lizarte.com',
+    adr: ';;Pol. Industrial Agustinos, c/B;Pamplona;Navarra;31013;Spain',
     vcardQr: 'vcard-qr-krum.png',
     wechatQr: 'wechat-qr-krum.png',
     phone: '+34606629317',
@@ -586,6 +591,11 @@ const QR_CONTACT_CARDS = [
     id: 'oscar',
     name: 'Óscar Huarte',
     role: 'CEO · 2nd Gen Family Business',
+    vcardN: 'Huarte;Óscar;;;',
+    vcardTitle: 'CEO / 2nd Generation Family Business',
+    org: 'Lizarte S.A.',
+    url: 'https://www.lizarte.com',
+    adr: ';;Pol. Industrial Agustinos, c/B;Pamplona;Navarra;31013;Spain',
     vcardQr: 'vcard-qr-oscar.png',
     wechatQr: null,
     phone: '+34677424250',
@@ -593,6 +603,23 @@ const QR_CONTACT_CARDS = [
     email: 'oscar@lizarte.com'
   }
 ];
+
+function buildVcardPayload(person) {
+  const lines = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `N:${person.vcardN || ''}`,
+    `FN:${person.name || ''}`,
+    `ORG:${person.org || 'Lizarte S.A.'}`,
+    `TITLE:${person.vcardTitle || person.role || ''}`,
+    `TEL;TYPE=CELL:${person.phoneDisplay || person.phone || ''}`,
+    `EMAIL;TYPE=WORK:${person.email || ''}`
+  ];
+  if (person.url) lines.push(`URL:${person.url}`);
+  if (person.adr) lines.push(`ADR;TYPE=WORK:${person.adr}`);
+  lines.push('END:VCARD');
+  return lines.join('\n');
+}
 
 /* ──────────────────────────────────────────────
    DATA — Agendas por evento (timeline)
@@ -3863,9 +3890,29 @@ function getOrderedQrContactCards() {
 
 function buildQrContactCard(person) {
   const vcardSrc = qrAssetUrl(person.vcardQr);
-  const wechatBtn = person.wechatQr
-    ? `<button type="button" class="btn-qr-wechat" data-qr-wechat="${escapeHtml(person.wechatQr)}" data-qr-title="WeChat — ${escapeHtml(person.name)}">Ver WeChat QR</button>`
-    : '';
+  const wechatSrc = person.wechatQr ? qrAssetUrl(person.wechatQr) : '';
+  const wechatBodyHtml = person.wechatQr
+    ? `
+        <img
+          class="qr-contact-img"
+          src="${escapeHtml(wechatSrc)}"
+          alt="QR WeChat de ${escapeHtml(person.name)}"
+          width="280"
+          height="280"
+          loading="lazy"
+        />
+        <button
+          type="button"
+          class="btn-qr-fullscreen btn-qr-fullscreen--wechat"
+          data-qr-fs="${escapeHtml(person.wechatQr)}"
+          data-qr-title="WeChat — ${escapeHtml(person.name)}"
+          aria-label="Ver QR WeChat a pantalla completa"
+        >⛶ Pantalla completa</button>`
+    : `
+        <div class="qr-contact-qr-placeholder" role="status">
+          <span class="qr-contact-qr-placeholder-icon" aria-hidden="true">💬</span>
+          <span class="qr-contact-qr-placeholder-text">QR WeChat pendiente</span>
+        </div>`;
 
   return `
     <article class="qr-contact-card" data-qr-person="${escapeHtml(person.id)}">
@@ -3873,24 +3920,42 @@ function buildQrContactCard(person) {
         <h4 class="qr-contact-name">${escapeHtml(person.name)}</h4>
         <p class="qr-contact-role">${escapeHtml(person.role)}</p>
       </header>
-      <div class="qr-contact-qr-wrap">
-        <img
-          class="qr-contact-img"
-          src="${escapeHtml(vcardSrc)}"
-          alt="QR vCard de ${escapeHtml(person.name)}"
-          width="320"
-          height="320"
-          loading="lazy"
-        />
-        <button
-          type="button"
-          class="btn-qr-fullscreen"
-          data-qr-fs="${escapeHtml(person.vcardQr)}"
-          data-qr-title="vCard — ${escapeHtml(person.name)}"
-          aria-label="Ver QR vCard a pantalla completa"
-        >⛶ Pantalla completa</button>
+      <div class="qr-contact-qr-grid">
+        <section class="qr-contact-qr-item qr-contact-qr-item--vcard" aria-label="Guardar contacto">
+          <div class="qr-contact-qr-label">
+            <span class="qr-contact-qr-icon" aria-hidden="true">📇</span>
+            <span class="qr-contact-qr-title">Guardar contacto</span>
+            <span class="qr-contact-qr-sub">用手机相机扫描 · Escanear con la CÁMARA del móvil (no WeChat)</span>
+          </div>
+          <div class="qr-contact-qr-wrap">
+            <img
+              class="qr-contact-img"
+              src="${escapeHtml(vcardSrc)}"
+              alt="QR vCard de ${escapeHtml(person.name)}"
+              width="280"
+              height="280"
+              loading="lazy"
+            />
+            <button
+              type="button"
+              class="btn-qr-fullscreen"
+              data-qr-fs="${escapeHtml(person.vcardQr)}"
+              data-qr-title="Guardar contacto — ${escapeHtml(person.name)}"
+              aria-label="Ver QR vCard a pantalla completa"
+            >⛶ Pantalla completa</button>
+          </div>
+        </section>
+        <section class="qr-contact-qr-item qr-contact-qr-item--wechat" aria-label="Añadir en WeChat">
+          <div class="qr-contact-qr-label">
+            <span class="qr-contact-qr-icon" aria-hidden="true">💬</span>
+            <span class="qr-contact-qr-title">Añadir en WeChat</span>
+            <span class="qr-contact-qr-sub">微信扫一扫加好友 · Escanear dentro de WeChat</span>
+          </div>
+          <div class="qr-contact-qr-wrap">
+            ${wechatBodyHtml}
+          </div>
+        </section>
       </div>
-      ${wechatBtn}
       <div class="qr-contact-links">
         <a class="qr-contact-link" href="tel:${escapeHtml(person.phone)}">📞 ${escapeHtml(person.phoneDisplay)}</a>
         <a class="qr-contact-link" href="mailto:${escapeHtml(person.email)}">✉ ${escapeHtml(person.email)}</a>
@@ -3901,7 +3966,13 @@ function buildQrContactCard(person) {
 function renderQrContactCards() {
   const root = document.getElementById('qr-cards-root');
   if (!root) return;
-  root.innerHTML = getOrderedQrContactCards().map(buildQrContactCard).join('');
+  const cardsHtml = getOrderedQrContactCards().map(buildQrContactCard).join('');
+  const noticeHtml = `
+    <p class="qr-contact-notice">
+      ℹ️ Si la otra persona usa WeChat para escanear, debe usar el QR de WeChat.
+      El QR de contacto solo lo lee la cámara del móvil.
+    </p>`;
+  root.innerHTML = cardsHtml + noticeHtml;
 }
 
 function showQrFullscreenModal(src, title) {
@@ -3940,13 +4011,6 @@ function initQrContactControls() {
     if (fsBtn) {
       event.preventDefault();
       showQrFullscreenModal(fsBtn.dataset.qrFs, fsBtn.dataset.qrTitle);
-      return;
-    }
-
-    const wechatBtn = event.target.closest('[data-qr-wechat]');
-    if (wechatBtn) {
-      event.preventDefault();
-      showQrFullscreenModal(wechatBtn.dataset.qrWechat, wechatBtn.dataset.qrTitle);
     }
   });
 
