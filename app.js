@@ -4797,15 +4797,30 @@ function openNewCisceFicha(sectionId) {
   openCompanyModal(ficha.id, { draft: true, ficha });
 }
 
-async function renderCisceFeria() {
+function setEventTabRefreshIndicator(eventId, active) {
+  const tab = document.querySelector('.event-tab[data-event="' + eventId + '"]');
+  if (!tab) return;
+  let el = tab.querySelector('.event-tab-refresh');
+  if (active) {
+    if (!el) {
+      el = document.createElement('span');
+      el.className = 'event-tab-refresh';
+      el.setAttribute('aria-live', 'polite');
+      el.textContent = 'Actualizando…';
+      tab.appendChild(el);
+    }
+  } else if (el) {
+    el.remove();
+  }
+}
+
+function setIcexTabsRefreshIndicator(active) {
+  ICEX_OFFICES.forEach(office => setEventTabRefreshIndicator(office.id, active));
+}
+
+function paintCisceFeria() {
   const panel = document.getElementById('event-panel-cisce-feria');
   if (!panel) return;
-
-  try {
-    await loadAllRemoteFichas(false);
-  } catch (err) {
-    console.warn('Carga fichas CISCE Feria:', err);
-  }
 
   const cisceSections = getCisceFeriaSections();
   const sectionsHtml = cisceSections.map(buildCisceFeriaSectionHtml).join('');
@@ -4854,6 +4869,15 @@ async function renderCisceFeria() {
       openNewCisceFicha(sectionId);
     });
   }
+}
+
+function renderCisceFeria() {
+  paintCisceFeria();
+  setEventTabRefreshIndicator('cisce-feria', true);
+  return loadAllRemoteFichas(false)
+    .then(() => paintCisceFeria())
+    .catch(err => console.warn('CISCE Feria:', err))
+    .finally(() => setEventTabRefreshIndicator('cisce-feria', false));
 }
 
 function initCisceFeria() {
@@ -5017,15 +5041,9 @@ function initSummitEvent() {
   }
 }
 
-async function renderAutoElectronics() {
+function paintAutoElectronics() {
   const panel = document.getElementById('event-panel-auto-electronics');
   if (!panel) return;
-
-  try {
-    await loadAllRemoteFichas(false);
-  } catch (err) {
-    console.warn('Carga fichas summit:', err);
-  }
 
   const items = getSummitFichasFromCache();
   const officeStats = { b2b: 0, visita: 0, unset: 0 };
@@ -5067,6 +5085,15 @@ async function renderAutoElectronics() {
   renderMeetingsSummary();
 }
 
+function renderAutoElectronics() {
+  paintAutoElectronics();
+  setEventTabRefreshIndicator('auto-electronics', true);
+  return loadAllRemoteFichas(false)
+    .then(() => paintAutoElectronics())
+    .catch(err => console.warn('Auto Electronics:', err))
+    .finally(() => setEventTabRefreshIndicator('auto-electronics', false));
+}
+
 function buildIcexOfficeEmptyHtml() {
   return `
     <div class="icex-empty">
@@ -5076,13 +5103,7 @@ function buildIcexOfficeEmptyHtml() {
     </div>`;
 }
 
-async function renderIcexOffices() {
-  try {
-    await loadAllRemoteFichas(true);
-  } catch (err) {
-    console.warn('Listado fichas:', err);
-  }
-
+function paintIcexOffices() {
   ICEX_OFFICES.forEach(office => {
     const panel = document.getElementById('event-panel-' + office.id);
     if (!panel) return;
@@ -5141,6 +5162,15 @@ async function renderIcexOffices() {
   bindSummitFichaButtons();
   bindSummitRefTabLinks();
   renderMeetingsSummary();
+}
+
+function renderIcexOffices() {
+  paintIcexOffices();
+  setIcexTabsRefreshIndicator(true);
+  return loadAllRemoteFichas(true)
+    .then(() => paintIcexOffices())
+    .catch(err => console.warn('ICEX:', err))
+    .finally(() => setIcexTabsRefreshIndicator(false));
 }
 
 function trimText(s) {
