@@ -1515,7 +1515,7 @@ function buildCisceFichaView(raw, seed) {
     updatedAt: null
   });
 
-  const hasOverride = remote && Object.prototype.hasOwnProperty.call(remote, 'standOverride');
+  const hasZonaOverride = remote && Object.prototype.hasOwnProperty.call(remote, 'zonaOverride');
 
   return {
     id: seed.id,
@@ -1528,9 +1528,8 @@ function buildCisceFichaView(raw, seed) {
     encaje: seed.encaje || '',
     queHace: seed.queHace || '',
     veredicto: seed.veredicto || '',
-    standOverride: hasOverride ? remote.standOverride : undefined,
-    stand: hasOverride ? String(remote.standOverride || '').trim() : String(seed.stand || '').trim(),
-    standConfirmed: !!(remote && remote.standConfirmed),
+    zonaOverride: hasZonaOverride ? remote.zonaOverride : undefined,
+    zona: hasZonaOverride ? String(remote.zonaOverride || '').trim() : getDefaultCisceZona(seed),
     contactPerson: remote.contacto || '',
     role: remote.rol || '',
     meetingType: remote.tipoReunion || null,
@@ -1539,6 +1538,39 @@ function buildCisceFichaView(raw, seed) {
       oscar: block('oscar')
     }
   };
+}
+
+const CISCE_ZONA_JV = 'Smart Vehicle · 智能汽车链';
+const CISCE_ZONA_DIV = 'Advanced Manufacturing · 先进制造链';
+
+const CISCE_ZONA_BY_ID = {
+  'cisce-jv-12': 'Clean Energy · 清洁能源链',
+  'cisce-jv-17': 'Digital Technology · 数智科技链',
+  'cisce-div-09': 'Healthy Life · 健康生活链',
+  'cisce-apoyo-01': 'Advanced Manufacturing · 先进制造链',
+  'cisce-apoyo-02': 'Supply Chain Service · 供应链服务展区',
+  'cisce-apoyo-03': 'Advanced Manufacturing · 先进制造链',
+  'cisce-apoyo-04': 'Digital Technology · 数智科技链',
+  'cisce-apoyo-05': 'Advanced Manufacturing · 先进制造链',
+  'cisce-apoyo-06': 'Advanced Manufacturing · 先进制造链',
+  'cisce-apoyo-07': 'Digital Technology · 数智科技链'
+};
+
+function getDefaultCisceZona(seed) {
+  const id = (seed && seed.id) || '';
+  if (CISCE_ZONA_BY_ID[id]) return CISCE_ZONA_BY_ID[id];
+  const section = (seed && seed.cisceSection) || getCisceFichaSection(id);
+  if (section === 'jv') return CISCE_ZONA_JV;
+  if (section === 'div') return CISCE_ZONA_DIV;
+  return '';
+}
+
+function resolveCisceZona(ficha, seed) {
+  if (ficha && Object.prototype.hasOwnProperty.call(ficha, 'zonaOverride')) {
+    return String(ficha.zonaOverride || '').trim();
+  }
+  if (ficha && ficha.zona) return String(ficha.zona).trim();
+  return getDefaultCisceZona(seed);
 }
 
 const CISCE_EXPOSITOR_CONFIRMADO_IDS = new Set([
@@ -1553,18 +1585,6 @@ const CISCE_PARTNER_BADGE = {
   'cisce-div-07': '★ Partner CISCE'
 };
 
-function resolveCisceStandInfo(ficha, seed) {
-  const id = (ficha && ficha.id) || (seed && seed.id) || '';
-  const seedStand = seed ? String(seed.stand || '').trim() : '';
-  const hasOverride = ficha && Object.prototype.hasOwnProperty.call(ficha, 'standOverride');
-  const stand = hasOverride
-    ? String(ficha.standOverride || '').trim()
-    : String((ficha && ficha.stand) || seedStand || '').trim();
-  const confirmed = !!(ficha && ficha.standConfirmed)
-    || (!isCiscePrecargadaId(id) && !!stand);
-  return { stand, confirmed, hasStand: !!stand };
-}
-
 function cisceExpositorConfirmadoBadgeHtml() {
   return '<span class="cisce-badge cisce-expositor-confirmado" title="Verificado en match.cisce.org.cn">Expositor confirmado ✓</span>';
 }
@@ -1573,26 +1593,22 @@ function ciscePartnerBadgeHtml(label) {
   return `<span class="cisce-badge cisce-partner">${escapeHtml(label)}</span>`;
 }
 
-function cisceStandBadgeHtml(standInfo) {
-  if (!standInfo.hasStand) {
-    return '<span class="cisce-badge cisce-stand cisce-stand--pending" title="Pendiente de confirmación oficial">📍 Stand pendiente</span>';
-  }
-  if (standInfo.confirmed) {
-    return `<span class="cisce-badge cisce-stand cisce-stand--confirmed">📍 ${escapeHtml(standInfo.stand)} · confirmado</span>`;
-  }
-  return `<span class="cisce-badge cisce-stand cisce-stand--provisional" title="Pendiente de confirmación oficial">📍 ${escapeHtml(standInfo.stand)} · provisional</span>`;
+function cisceZonaBadgeHtml(zona) {
+  if (!zona) return '';
+  return `<span class="cisce-badge cisce-zona">📍 ${escapeHtml(zona)}</span>`;
 }
 
 function buildCisceCardBadgesHtml(ficha, seed, meetingType) {
   const id = (seed && seed.id) || (ficha && ficha.id) || '';
-  const standInfo = resolveCisceStandInfo(ficha, seed);
+  const zona = resolveCisceZona(ficha, seed);
   const parts = [
     potencialBadgeHtml((seed && seed.potencial) || (ficha && ficha.potencial)),
     veredictoBadgeHtml((seed && seed.veredicto) || (ficha && ficha.veredicto))
   ];
   if (CISCE_EXPOSITOR_CONFIRMADO_IDS.has(id)) parts.push(cisceExpositorConfirmadoBadgeHtml());
   if (CISCE_PARTNER_BADGE[id]) parts.push(ciscePartnerBadgeHtml(CISCE_PARTNER_BADGE[id]));
-  parts.push(cisceStandBadgeHtml(standInfo));
+  const zonaBadge = cisceZonaBadgeHtml(zona);
+  if (zonaBadge) parts.push(zonaBadge);
   if (meetingType === 'b2b' || meetingType === 'visita') {
     parts.push(meetingTypeBadgeHtml(meetingType));
   }
@@ -1635,10 +1651,6 @@ function buildCisceFeriaCardHtml(ficha, seed) {
   const nameZhHtml = seed.nameZh
     ? `<span class="cisce-card-name-zh">${escapeHtml(seed.nameZh)}</span>`
     : '';
-  const standInfo = resolveCisceStandInfo(ficha, seed);
-  const standHintHtml = standInfo.hasStand && !standInfo.confirmed
-    ? '<span class="cisce-stand-hint">Pendiente de confirmación oficial</span>'
-    : '';
   const preview = truncateText(seed.queHace || '', 60);
 
   return `
@@ -1650,7 +1662,6 @@ function buildCisceFeriaCardHtml(ficha, seed) {
         </div>
         <div class="cisce-card-badges">
           ${buildCisceCardBadgesHtml(ficha, seed, meetingType)}
-          ${standHintHtml}
         </div>
       </div>
       <p class="cisce-card-preview">${escapeHtml(preview)}${seed.queHace && seed.queHace.length > 60 ? '…' : ''}</p>
@@ -1996,9 +2007,7 @@ function getCisceFichasForSection(section) {
         potencial: ficha.potencial || '',
         veredicto: ficha.veredicto || '',
         queHace: ficha.queHace || '',
-        stand: ficha.stand || '',
-        standConfirmed: !!ficha.standConfirmed,
-        standOverride: Object.prototype.hasOwnProperty.call(ficha, 'standOverride') ? ficha.standOverride : undefined,
+        zona: resolveCisceZona(ficha, { id: ficha.id, cisceSection: section.id }),
         encaje: ficha.encaje || ''
       },
       ficha,
@@ -4566,7 +4575,15 @@ async function renderCisceFeria() {
       <span class="alert-icon">☁️</span>
       <p>Fichas en SharePoint · solo notas editables · datos estratégicos en la app.</p>
     </div>
-    <p class="cisce-feria-stand-notice">ℹ️ Los stands son provisionales hasta confirmar con el plano oficial CISCE (disponible on-site / app oficial).</p>
+    <div class="cisce-feria-plan-row">
+      <a
+        class="cisce-feria-plan-btn"
+        href="https://www.cisce.org.cn/overview/layout.html"
+        target="_blank"
+        rel="noopener noreferrer"
+      >🗺️ Plano oficial CISCE</a>
+    </div>
+    <p class="cisce-feria-zona-notice">ℹ️ La zona es la cadena oficial del CISCE. El hall y stand exactos se confirman en el plano oficial o en la app de visitante.</p>
     <div class="cisce-feria-root">${sectionsHtml}</div>
     <div class="cisce-feria-global-add">
       <label class="cisce-feria-global-label" for="cisce-feria-add-section">Sub-sección</label>
@@ -4963,24 +4980,13 @@ function setModalHeaderMode(fichaOrFlag) {
 function fillCisceStrategicSection(ficha) {
   const encaje = document.getElementById('company-field-encaje');
   const queHace = document.getElementById('company-field-quehace');
-  const standInput = document.getElementById('company-precarga-stand');
-  const standHint = document.getElementById('company-precarga-stand-hint');
+  const zonaInput = document.getElementById('company-precarga-zona');
   const badges = document.getElementById('company-cisce-badges');
   const seed = getCisceCompanyMap().get(ficha.id);
-  const standInfo = resolveCisceStandInfo(ficha, seed);
+  const zona = resolveCisceZona(ficha, seed);
   if (encaje) encaje.textContent = ficha.encaje || '';
   if (queHace) queHace.textContent = ficha.queHace || '';
-  ficha._initialStand = standInfo.stand;
-  if (standInput) standInput.value = standInfo.stand;
-  if (standHint) {
-    if (standInfo.hasStand && !standInfo.confirmed) {
-      standHint.textContent = 'Pendiente de confirmación oficial';
-    } else if (standInfo.confirmed && standInfo.hasStand) {
-      standHint.textContent = 'Stand confirmado manualmente';
-    } else {
-      standHint.textContent = 'Introduce el stand cuando lo tengamos del plano oficial';
-    }
-  }
+  if (zonaInput) zonaInput.value = zona;
   if (badges) {
     badges.innerHTML = buildCisceCardBadgesHtml(ficha, seed, normalizeMeetingType(ficha.meetingType));
   }
@@ -5134,15 +5140,10 @@ function getFormStateFromModal() {
   } else if (isCiscePrecargadaFicha(activeModalFicha)) {
     const contactInput = document.getElementById('company-precarga-contact');
     const roleInput = document.getElementById('company-precarga-role');
-    const standInput = document.getElementById('company-precarga-stand');
+    const zonaInput = document.getElementById('company-precarga-zona');
     formState.contactPerson = contactInput ? trimText(contactInput.value) : '';
     formState.role = roleInput ? trimText(roleInput.value) : '';
-    const newStand = standInput ? trimText(standInput.value) : '';
-    formState.stand = newStand;
-    const initialStand = activeModalFicha._initialStand !== undefined
-      ? activeModalFicha._initialStand
-      : resolveCisceStandInfo(activeModalFicha, getCisceCompanyMap().get(activeCompanyId)).stand;
-    formState.standConfirmed = !!activeModalFicha.standConfirmed || newStand !== initialStand;
+    formState.zona = zonaInput ? trimText(zonaInput.value) : '';
   }
 
   return formState;
