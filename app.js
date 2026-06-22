@@ -1853,6 +1853,10 @@ function buildCisceCardBadgesHtml(ficha, seed, meetingType) {
   if (meetingType === 'b2b' || meetingType === 'visita') {
     parts.push(meetingTypeBadgeHtml(meetingType));
   }
+  const photos = countPhotosInFicha(ficha);
+  if (photos.total > 0) {
+    parts.push(`<span class="company-badge badge-photos">📷 ${photos.total}</span>`);
+  }
   return parts.join('\n          ');
 }
 
@@ -5235,7 +5239,7 @@ function setModalHeaderMode(fichaOrFlag) {
     icexCantonMeeting.hidden = !isIcexCantonFichaId(companyId) || !getIcexCantonMeetingDetails(companyId);
   }
   if (temasSection) temasSection.hidden = !isSummit;
-  if (photoSection) photoSection.hidden = !!precarga;
+  if (photoSection) photoSection.hidden = false;
   if (deleteBtn) deleteBtn.hidden = !showDelete;
 }
 
