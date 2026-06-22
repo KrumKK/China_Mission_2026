@@ -838,7 +838,7 @@ const ICEX_CANTON_SCHEDULE = [
     daySub: 'Día 2',
     items: [
       { type: 'slot', slot: 'morning', slotLabel: 'MAÑANA', companyId: 'icex-canton-03', meetingTime: '10:00' },
-      { type: 'slot', slot: 'afternoon', slotLabel: 'TARDE', companyId: 'icex-canton-04', meetingTime: null },
+      { type: 'slot', slot: 'afternoon', slotLabel: 'TARDE', companyId: 'icex-canton-04', meetingTime: '14:30' },
       { type: 'travel', text: '🚗 Desplazamiento Guangzhou → Shenzhen' }
     ]
   },
@@ -850,6 +850,252 @@ const ICEX_CANTON_SCHEDULE = [
     ]
   }
 ];
+
+const ICEX_CANTON_MEETING_DETAILS = {
+  'icex-canton-01': {
+    meetingTime: '09:30',
+    hotelDeparture: '08:15',
+    companyName: 'FinDreams Technology Co., Ltd. (BYD)',
+    companyNameZh: '弗迪科技有限公司 (比亚迪)',
+    contactName: 'Sr. Fei HU, Gerente Comercial',
+    contactNameZh: '胡斐 商务经理',
+    mobile: '+86 159 8696 7127',
+    venue: 'Sede central de BYD, No. 3009, BYD Road, Maluan Street, Pingshan District, Shenzhen',
+    venueZh: '比亚迪总部 六角大楼礼宾楼 深圳市坪山区马峦街道比亚迪路3009号',
+    participants: [
+      {
+        name: 'Xianhua LIU',
+        role: 'Director General Adjunto Dpto. 15 y Director de Planta de la Fábrica de Chasis',
+        roleZh: '刘先华 第十五部副总经理 车架工厂总厂厂长'
+      },
+      {
+        name: 'Peng HE',
+        role: 'Gerente Dpto. Producto II y Director de Producto de Dirección',
+        roleZh: '何鹏 产品二部经理 转向产品总监'
+      },
+      {
+        name: 'Yuanfei WANG',
+        role: 'Director de Proyectos Internacionales',
+        roleZh: '王远飞 海外项目总监'
+      },
+      {
+        name: 'Fei HU',
+        role: 'Gerente Comercial',
+        roleZh: '胡斐 商务经理'
+      },
+      {
+        name: 'Deyin HUANG',
+        role: 'Director de Calidad de Producto de Dirección',
+        roleZh: '黄德银 转向产品 品质总监'
+      }
+    ]
+  },
+  'icex-canton-02': {
+    meetingTime: '15:00',
+    companyName: 'XPENG GROUP',
+    companyNameZh: '小鹏集团',
+    contactName: 'Shi CAO, Gerente Dpto. Compras de Componentes en el Extranjero',
+    contactNameZh: '曹识 海外零部件采购组采购经理',
+    mobile: '+86 135 3970 5046',
+    venue: 'Xiaopeng Technology Park, T2 North Gate, 120 m SW of Yuhui Creative Industry Center, Changxing Street, Tianhe District, Guangzhou',
+    venueZh: '小鹏科技园T2北门（广州市天河区长兴街道裕晖创意产业中心西南120米）',
+    participants: [
+      {
+        name: 'Zhichao XIE',
+        role: 'Jefe Dpto. Compras Componentes Extranjero',
+        roleZh: '夏志超 海外零部件采购组负责人'
+      },
+      {
+        name: 'Shi CAO',
+        role: 'Gerente Dpto. Compras',
+        roleZh: '曹识 海外零部件采购组采购经理'
+      },
+      {
+        name: 'Wanli ZOU',
+        role: 'Gerente Dpto. Compras',
+        roleZh: '邹万里 海外零部件采购组采购经理'
+      }
+    ]
+  },
+  'icex-canton-03': {
+    meetingTime: '10:00',
+    hotelDeparture: '09:00',
+    companyName: 'Guangzhou Automobile Group (GAC) / GAC Component Co., Ltd.',
+    companyNameZh: '广汽集团 / 广汽零部件有限公司',
+    contactName: 'Jason WU, Gerente de Compras Internacionales, GAC Group',
+    contactNameZh: '吴宜杰 广汽集团采购本部国际采购经理',
+    mobile: '+86 136 7629 0020',
+    venue: 'Guangzhou GAC Research Institute, No. 668, Jinshan Avenue East, Hualong Town, Panyu District, Guangzhou',
+    venueZh: '广汽研究院（广州番禺区化龙镇金山大道东668号）',
+    participants: [
+      {
+        name: 'Jason WU',
+        role: 'Gerente Compras Internacionales, GAC Group',
+        roleZh: '吴宜杰 广汽集团采购本部国际采购经理'
+      },
+      {
+        name: 'Fu WANG',
+        role: 'Director Dpto. Negocios Internacionales, GAC Components',
+        roleZh: '王甫 广汽部件国际业务部部长'
+      },
+      {
+        name: 'Yuanfang LAI',
+        role: 'Gerente Comercial, Dpto. Negocios Internacionales, GAC Components',
+        roleZh: '来远芳 广汽部件国际业务部业务经理'
+      }
+    ]
+  },
+  'icex-canton-04': {
+    meetingTime: '14:30',
+    companyName: 'Guangzhou Kuayue Auto Parts Industry & Trade Co., Ltd.',
+    companyNameZh: '广州市跨越汽车零部件工贸有限公司',
+    contactName: 'Ping TONG, Director Administrativo',
+    contactNameZh: '童平 行政总监',
+    mobile: '+86 139 2890 8626',
+    venue: 'No. 2, Lane 1, Qicai New Village, Nanhang Avenue, Shiling Town, Huadu District, Guangzhou',
+    venueZh: '广州市花都区狮岭镇南航大道奇才新村自编一巷2号',
+    participants: [
+      {
+        name: 'Zhenquan LI',
+        role: 'Director General',
+        roleZh: '李振全 总经理'
+      },
+      {
+        name: 'Shuxing LU',
+        role: 'Director de Planta',
+        roleZh: '卢书兴 厂长'
+      },
+      {
+        name: 'Wanfang ZOU',
+        role: 'Administración Contable',
+        roleZh: '邹婉芳 财务'
+      },
+      {
+        name: 'Ping TONG',
+        role: 'Director de Administración',
+        roleZh: '童平 行政总监'
+      }
+    ]
+  },
+  'icex-canton-05': {
+    receptionTime: '08:30',
+    hotelDeparture: '07:45',
+    contactName: 'Hailin CHEN',
+    contactNameZh: '陈海林',
+    contactNote: 'Contacto por WeChat',
+    venue: 'Hilton Shenzhen World Exhibition & Convention Center, Bao\'an District, Shenzhen',
+    venueZh: '深圳国际会展中心希尔顿酒店（宝安区，深圳国际会展中心大道）'
+  }
+};
+
+function isIcexCantonFichaId(companyId) {
+  return String(companyId || '').indexOf('icex-canton-') === 0;
+}
+
+function getIcexCantonMeetingDetails(companyId) {
+  return ICEX_CANTON_MEETING_DETAILS[String(companyId || '')] || null;
+}
+
+function icexCantonTelHref(mobile) {
+  const href = String(mobile || '').replace(/[^\d+]/g, '');
+  return href ? 'tel:' + href : '';
+}
+
+function buildIcexCantonMeetingDetailsHtml(details) {
+  if (!details) return '';
+
+  const blocks = [];
+
+  if (details.meetingTime) {
+    blocks.push(`
+      <div class="icex-meeting-block">
+        <span class="field-label">🕐 HORA DE REUNIÓN</span>
+        <div class="field-readonly">${escapeHtml(details.meetingTime)}</div>
+      </div>`);
+  }
+  if (details.receptionTime) {
+    blocks.push(`
+      <div class="icex-meeting-block">
+        <span class="field-label">🕐 RECEPCIÓN</span>
+        <div class="field-readonly">${escapeHtml(details.receptionTime)}</div>
+      </div>`);
+  }
+  if (details.hotelDeparture) {
+    blocks.push(`
+      <div class="icex-meeting-block">
+        <span class="field-label">🚗 SALIDA DEL HOTEL</span>
+        <div class="field-readonly">${escapeHtml(details.hotelDeparture)}</div>
+      </div>`);
+  }
+  if (details.companyName) {
+    blocks.push(`
+      <div class="icex-meeting-block">
+        <span class="field-label">🏢 EMPRESA</span>
+        <div class="field-readonly">
+          <p class="icex-meeting-line">${escapeHtml(details.companyName)}</p>
+          ${details.companyNameZh ? `<p class="icex-meeting-line icex-meeting-line--zh">${escapeHtml(details.companyNameZh)}</p>` : ''}
+        </div>
+      </div>`);
+  }
+  if (details.contactName || details.contactNameZh) {
+    blocks.push(`
+      <div class="icex-meeting-block">
+        <span class="field-label">📞 CONTACTO</span>
+        <div class="field-readonly">
+          ${details.contactName ? `<p class="icex-meeting-line">${escapeHtml(details.contactName)}</p>` : ''}
+          ${details.contactNameZh ? `<p class="icex-meeting-line icex-meeting-line--zh">${escapeHtml(details.contactNameZh)}</p>` : ''}
+          ${details.contactNote ? `<p class="icex-meeting-line icex-meeting-line--note">${escapeHtml(details.contactNote)}</p>` : ''}
+        </div>
+      </div>`);
+  }
+  if (details.mobile) {
+    const tel = icexCantonTelHref(details.mobile);
+    blocks.push(`
+      <div class="icex-meeting-block">
+        <span class="field-label">📱 MÓVIL</span>
+        <div class="field-readonly">
+          <a class="icex-meeting-mobile" href="${escapeHtml(tel)}">${escapeHtml(details.mobile)}</a>
+        </div>
+      </div>`);
+  }
+  if (details.venue || details.venueZh) {
+    blocks.push(`
+      <div class="icex-meeting-block">
+        <span class="field-label">📍 LUGAR DE REUNIÓN</span>
+        <div class="field-readonly">
+          ${details.venue ? `<p class="icex-meeting-line">${escapeHtml(details.venue)}</p>` : ''}
+          ${details.venueZh ? `<p class="icex-meeting-line icex-meeting-line--zh">${escapeHtml(details.venueZh)}</p>` : ''}
+        </div>
+      </div>`);
+  }
+  if (details.participants && details.participants.length) {
+    const listHtml = details.participants.map(person => `
+      <li class="icex-meeting-participant">
+        <p class="icex-meeting-line">${escapeHtml(person.name)} — ${escapeHtml(person.role || '')}</p>
+        ${person.roleZh ? `<p class="icex-meeting-line icex-meeting-line--zh">${escapeHtml(person.roleZh)}</p>` : ''}
+      </li>`).join('');
+    blocks.push(`
+      <div class="icex-meeting-block">
+        <span class="field-label">👥 PARTICIPANTES</span>
+        <div class="field-readonly">
+          <ul class="icex-meeting-participants">${listHtml}</ul>
+        </div>
+      </div>`);
+  }
+
+  return blocks.join('');
+}
+
+function fillIcexCantonMeetingSection(companyId) {
+  const section = document.getElementById('company-modal-icex-canton');
+  const container = document.getElementById('company-icex-meeting-details');
+  const details = getIcexCantonMeetingDetails(companyId);
+  const show = isIcexCantonFichaId(companyId) && !!details;
+
+  if (section) section.hidden = !show;
+  if (!container) return;
+  container.innerHTML = show ? buildIcexCantonMeetingDetailsHtml(details) : '';
+}
 
 const ICEX_OFFICES = [
   {
@@ -865,30 +1111,25 @@ const ICEX_OFFICES = [
       {
         id: 'icex-canton-01',
         name: 'FinDreams / BYD',
-        nameZh: '弗迪/比亚迪',
-        city: 'Shenzhen',
-        krumContactsSeed: [
-          'Peng HE — Gerente del Departamento de Chasis 6 y Director General de Producto del Departamento de Chasis 6',
-          'Xiaofei ZHANG — Gerente de línea de productos CEPS y experto en EPS',
-          'Yuanfei WANG — Director del proyecto en el extranjero y su equipo'
-        ].join('\n')
+        nameZh: '弗迪科技有限公司 (比亚迪)',
+        city: 'Shenzhen'
       },
       {
         id: 'icex-canton-02',
         name: 'XPENG',
-        nameZh: '小鹏',
+        nameZh: '小鹏集团',
         city: 'Guangzhou'
       },
       {
         id: 'icex-canton-03',
-        name: 'GAC Group y GAC Component Co., Ltd.',
-        nameZh: '广汽集团',
+        name: 'GAC Group + GAC Component',
+        nameZh: '广汽集团 / 广汽零部件有限公司',
         city: 'Guangzhou'
       },
       {
         id: 'icex-canton-04',
         name: 'Kuayue Autopart',
-        nameZh: '',
+        nameZh: '广州市跨越汽车零部件工贸有限公司',
         city: 'Guangzhou'
       },
       {
@@ -4972,6 +5213,11 @@ function setModalHeaderMode(fichaOrFlag) {
   if (fields) fields.hidden = !isEditable;
   if (precargaHeader) precargaHeader.hidden = !precarga;
   if (strategic) strategic.hidden = !precarga;
+  const icexCantonMeeting = document.getElementById('company-modal-icex-canton');
+  const companyId = (ficha && ficha.id) || activeCompanyId || '';
+  if (icexCantonMeeting) {
+    icexCantonMeeting.hidden = !isIcexCantonFichaId(companyId) || !getIcexCantonMeetingDetails(companyId);
+  }
   if (temasSection) temasSection.hidden = !isSummit;
   if (photoSection) photoSection.hidden = !!precarga;
   if (deleteBtn) deleteBtn.hidden = !showDelete;
@@ -5174,6 +5420,7 @@ function fillCompanyModalFromFicha(ficha) {
     fillPrecargaHeader(ficha);
     fillCisceStrategicSection(ficha);
   }
+  fillIcexCantonMeetingSection(activeCompanyId || (ficha && ficha.id));
 
   const temasInput = document.getElementById('company-field-temas');
   if (temasInput) temasInput.value = ficha.temas || '';
@@ -5512,9 +5759,14 @@ async function openCompanyModal(companyId, options) {
   setModalHeaderMode(isDraft && options.ficha ? options.ficha : (isPrecarga ? { isCiscePrecargada: true } : isEditable));
 
   if (!isEditable && !isPrecarga && icexSeed) {
+    const details = getIcexCantonMeetingDetails(companyId);
     if (title) title.textContent = icexSeed.name;
     if (subtitle) {
-      subtitle.textContent = (icexSeed.nameZh ? icexSeed.nameZh + ' · ' : '') + icexSeed.contactPerson;
+      const parts = [];
+      if (icexSeed.nameZh) parts.push(icexSeed.nameZh);
+      if (details && details.contactName) parts.push(details.contactName);
+      else if (icexSeed.contactPerson) parts.push(icexSeed.contactPerson);
+      subtitle.textContent = parts.join(' · ');
     }
   }
 

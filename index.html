@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '79';
+      window.__APP_BUILD__ = '80';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -484,6 +484,11 @@
           <div class="cisce-badge-row" id="company-cisce-badges"></div>
         </section>
 
+        <section id="company-modal-icex-canton" class="ficha-section ficha-section--icex-meeting" hidden aria-labelledby="company-icex-meeting-heading">
+          <h4 class="ficha-section-title" id="company-icex-meeting-heading">Detalles de la reunión</h4>
+          <div id="company-icex-meeting-details" class="icex-meeting-details"></div>
+        </section>
+
         <span class="field-label">Tipo de reunión</span>
         <div class="meeting-type-picker meeting-type-picker--modal" id="company-meeting-type-picker" role="group" aria-label="Tipo de reunión">
           <button type="button" class="meeting-type-btn" data-type="b2b">🤝 B2B</button>
@@ -616,14 +621,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '79';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '80';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '79';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '80';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
