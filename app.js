@@ -2258,20 +2258,73 @@ function getPresentacionesPanelId(screen) {
    PRESENTACIONES — visor carrusel (diapositivas)
 ────────────────────────────────────────────── */
 const DECK_PRESENTATIONS = {
-  oem: { folder: 'Presentaciones/oem-tier1' },
   reman: { folder: 'Presentaciones/reman' }
 };
 
-const DIVERSIFICACION_LANGS = ['es', 'zh', 'en'];
-const DIVERSIFICACION_SLIDE_COUNT = 12;
-let diversificacionLang = 'es';
+const TRILINGUAL_DECK_LANGS = ['es', 'zh', 'en'];
 
-function buildDiversificacionSlideNames() {
-  return Array.from({ length: DIVERSIFICACION_SLIDE_COUNT }, (_, i) => 'Diapositiva' + (i + 1) + '.JPG');
+const TRILINGUAL_DECKS = {
+  diversificacion: {
+    label: 'Diversificación',
+    langPickerId: 'div-lang-picker',
+    langBtnSelector: '.div-lang-btn[data-div-lang]',
+    langDataAttr: 'divLang',
+    resolveFolder(lang) {
+      return 'Presentaciones/diversificacion/div-' + lang;
+    }
+  },
+  oem: {
+    label: 'OEM · TIER1',
+    langPickerId: 'oem-lang-picker',
+    langBtnSelector: '.oem-lang-btn[data-oem-lang]',
+    langDataAttr: 'oemLang',
+    resolveFolder(lang) {
+      return 'Presentaciones/oem-tier1/oem-' + (lang === 'zh' ? 'ch' : lang);
+    }
+  }
+};
+
+const trilingualDeckLang = {
+  diversificacion: 'es',
+  oem: 'es'
+};
+
+function getTrilingualDeckFolder(deckId, lang) {
+  const cfg = TRILINGUAL_DECKS[deckId];
+  if (!cfg) return '';
+  return cfg.resolveFolder(lang);
 }
 
-function getDiversificacionFolder(lang) {
-  return 'Presentaciones/diversificacion/div-' + lang;
+function getManifestSlides(folder) {
+  const manifest = window.PRESENTATION_SLIDE_MANIFEST || {};
+  const slides = manifest[folder];
+  if (!Array.isArray(slides) || !slides.length) {
+    console.warn('[SlideDeck] manifest vacío o ausente:', folder);
+    return [];
+  }
+  return sortSlideFilenames(slides);
+}
+
+function warnTrilingualCountMismatch(deckId) {
+  const cfg = TRILINGUAL_DECKS[deckId];
+  if (!cfg) return;
+  const counts = TRILINGUAL_DECK_LANGS.map(lang => {
+    const folder = getTrilingualDeckFolder(deckId, lang);
+    return { lang, folder, count: getManifestSlides(folder).length };
+  });
+  const unique = new Set(counts.map(item => item.count));
+  if (unique.size > 1) {
+    console.warn(
+      '[SlideDeck]',
+      cfg.label,
+      '— recuento distinto entre idiomas:',
+      counts.map(item => item.lang + ':' + item.count).join(', ')
+    );
+  }
+}
+
+function getTrilingualDeckSlideCount(deckId, lang) {
+  return getManifestSlides(getTrilingualDeckFolder(deckId, lang || trilingualDeckLang[deckId] || 'es')).length;
 }
 
 const CORPORATE_VIDEO_FILE = 'Presentaciones/lizarte-corporate.mp4';
@@ -2432,8 +2485,8 @@ function showPresentacionesScreen(screen) {
     initCorporateVideoViewer();
   }
 
-  if (presentacionesScreen === 'diversificacion') {
-    initDiversificacionDeck();
+  if (TRILINGUAL_DECKS[presentacionesScreen]) {
+    initTrilingualDeck(presentacionesScreen);
   } else if (DECK_PRESENTATIONS[presentacionesScreen]) {
     initSlideDeck(presentacionesScreen).catch(err => console.warn('Slide deck:', err));
   }
@@ -2706,40 +2759,109 @@ async function initSlideDeck(deckId) {
   console.log('[SlideDeck] carrusel activo:', deckId, slides.length, 'diapositivas');
 }
 
-function syncDiversificacionLangButtons() {
-  document.querySelectorAll('.div-lang-btn[data-div-lang]').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.divLang === diversificacionLang);
+function syncTrilingualLangButtons(deckId) {
+  const cfg = TRILINGUAL_DECKS[deckId];
+  if (!cfg) return;
+  const lang = trilingualDeckLang[deckId] || 'es';
+  document.querySelectorAll(cfg.langBtnSelector).forEach(btn => {
+    btn.classList.toggle('active', btn.dataset[cfg.langDataAttr] === lang);
   });
 }
 
-async function switchDiversificacionLang(lang) {
-  if (!DIVERSIFICACION_LANGS.includes(lang) || lang === diversificacionLang) return;
-  diversificacionLang = lang;
+async function switchTrilingualDeckLang(deckId, lang) {
+  const cfg = TRILINGUAL_DECKS[deckId];
+  if (!cfg || !TRILINGUAL_DECK_LANGS.includes(lang) || lang === trilingualDeckLang[deckId]) return;
+  trilingualDeckLang[deckId] = lang;
   await closeDeckZoomModal();
-  slideDeckState.set('diversificacion', {
-    folder: getDiversificacionFolder(lang),
-    slides: buildDiversificacionSlideNames(),
+  const folder = getTrilingualDeckFolder(deckId, lang);
+  const slides = getManifestSlides(folder);
+  if (!slides.length) {
+    console.warn('[SlideDeck] sin diapositivas al cambiar idioma:', deckId, folder);
+    return;
+  }
+  slideDeckState.set(deckId, {
+    folder,
+    slides,
     lang,
     current: 0,
     preloaded: new Map(),
     ready: true
   });
-  const els = getDeckViewerElements('diversificacion');
+  const els = getDeckViewerElements(deckId);
   setDeckViewportSlideMode(els, true);
-  goToDeckSlide('diversificacion', 0);
-  syncDiversificacionLangButtons();
+  goToDeckSlide(deckId, 0);
+  syncTrilingualLangButtons(deckId);
 }
 
-function bindDiversificacionLangSelector() {
-  const picker = document.getElementById('div-lang-picker');
+function bindTrilingualLangPicker(deckId) {
+  const cfg = TRILINGUAL_DECKS[deckId];
+  if (!cfg) return;
+  const picker = document.getElementById(cfg.langPickerId);
   if (!picker || picker.dataset.bound === '1') return;
   picker.dataset.bound = '1';
   picker.addEventListener('click', event => {
-    const btn = event.target.closest('.div-lang-btn[data-div-lang]');
+    const btn = event.target.closest(cfg.langBtnSelector);
     if (!btn) return;
     event.preventDefault();
-    switchDiversificacionLang(btn.dataset.divLang);
+    switchTrilingualDeckLang(deckId, btn.dataset[cfg.langDataAttr]);
   });
+}
+
+function initTrilingualDeck(deckId) {
+  const cfg = TRILINGUAL_DECKS[deckId];
+  if (!cfg) return;
+
+  warnTrilingualCountMismatch(deckId);
+
+  const lang = trilingualDeckLang[deckId] || 'es';
+  const existing = slideDeckState.get(deckId);
+  if (existing && existing.ready && existing.lang === lang) {
+    bindDeckSlideZoom(deckId);
+    goToDeckSlide(deckId, existing.current);
+    syncTrilingualLangButtons(deckId);
+    return;
+  }
+
+  const folder = getTrilingualDeckFolder(deckId, lang);
+  const slides = getManifestSlides(folder);
+  if (!slides.length) {
+    console.warn('[SlideDeck] sin diapositivas:', deckId, folder);
+    return;
+  }
+
+  slideDeckState.set(deckId, {
+    folder,
+    slides,
+    lang,
+    current: 0,
+    preloaded: new Map(),
+    ready: true
+  });
+
+  const els = getDeckViewerElements(deckId);
+  setDeckViewportSlideMode(els, true);
+  bindSlideDeckControls(deckId);
+  bindTrilingualLangPicker(deckId);
+  bindDeckSlideZoom(deckId);
+  goToDeckSlide(deckId, 0);
+  syncTrilingualLangButtons(deckId);
+  console.log('[SlideDeck]', deckId, 'activa:', lang, slides.length, 'diapositivas');
+}
+
+function syncDiversificacionLangButtons() {
+  syncTrilingualLangButtons('diversificacion');
+}
+
+async function switchDiversificacionLang(lang) {
+  return switchTrilingualDeckLang('diversificacion', lang);
+}
+
+function bindDiversificacionLangSelector() {
+  bindTrilingualLangPicker('diversificacion');
+}
+
+function initDiversificacionDeck() {
+  initTrilingualDeck('diversificacion');
 }
 
 async function requestDocumentFullscreen() {
@@ -2915,34 +3037,6 @@ function initDeckZoomModal() {
   };
   document.addEventListener('fullscreenchange', onFullscreenEnd);
   document.addEventListener('webkitfullscreenchange', onFullscreenEnd);
-}
-
-function initDiversificacionDeck() {
-  const existing = slideDeckState.get('diversificacion');
-  if (existing && existing.ready && existing.lang === diversificacionLang) {
-    bindDeckSlideZoom('diversificacion');
-    goToDeckSlide('diversificacion', existing.current);
-    syncDiversificacionLangButtons();
-    return;
-  }
-
-  slideDeckState.set('diversificacion', {
-    folder: getDiversificacionFolder(diversificacionLang),
-    slides: buildDiversificacionSlideNames(),
-    lang: diversificacionLang,
-    current: 0,
-    preloaded: new Map(),
-    ready: true
-  });
-
-  const els = getDeckViewerElements('diversificacion');
-  setDeckViewportSlideMode(els, true);
-  bindSlideDeckControls('diversificacion');
-  bindDiversificacionLangSelector();
-  bindDeckSlideZoom('diversificacion');
-  goToDeckSlide('diversificacion', 0);
-  syncDiversificacionLangButtons();
-  console.log('[SlideDeck] Diversificación activa:', diversificacionLang, DIVERSIFICACION_SLIDE_COUNT, 'diapositivas');
 }
 
 function isDeckFullscreenActive(deckId) {

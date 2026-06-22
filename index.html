@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="styles.css" id="main-stylesheet" />
   <script>
     (function () {
-      window.__APP_BUILD__ = '77';
+      window.__APP_BUILD__ = '78';
       var params = new URLSearchParams(window.location.search);
       var bust = params.get('v') || window.__APP_BUILD__;
       window.__APP_CACHE_BUSTER__ = bust;
@@ -277,7 +277,7 @@
             </button>
             <button type="button" class="presentacion-card" data-presentaciones-go="oem">
               <span class="presentacion-card-title">OEM · TIER1</span>
-              <span class="presentacion-card-sub">Presentación para fabricantes y Tier 1</span>
+              <span class="presentacion-card-sub">Presentación trilingüe · ES / 中文 / EN</span>
             </button>
             <button type="button" class="presentacion-card" data-presentaciones-go="reman">
               <span class="presentacion-card-title">Reman</span>
@@ -285,7 +285,7 @@
             </button>
             <button type="button" class="presentacion-card" data-presentaciones-go="diversificacion">
               <span class="presentacion-card-title">Diversificación</span>
-              <span class="presentacion-card-sub">12 diapositivas · ES / 中文 / EN</span>
+              <span class="presentacion-card-sub">Carrusel trilingüe · ES / 中文 / EN</span>
             </button>
           </div>
         </div>
@@ -343,9 +343,10 @@
             <header class="deck-header">
               <h3 class="deck-title">OEM · TIER1</h3>
               <p class="deck-subtitle">Presentación para fabricantes y Tier 1</p>
-              <div class="deck-toolbar">
-                <button type="button" class="btn-deck-fullscreen" data-deck-fs="oem" hidden disabled aria-label="Pantalla completa">⛶ Pantalla completa</button>
-                <a class="btn-deck-download" data-deck-dl="oem" hidden download>↓ Descargar</a>
+              <div class="deck-lang-picker div-lang-picker" id="oem-lang-picker" role="group" aria-label="Idioma de la presentación">
+                <button type="button" class="oem-lang-btn div-lang-btn active" data-oem-lang="es">🇪🇸 ES</button>
+                <button type="button" class="oem-lang-btn div-lang-btn" data-oem-lang="zh">🇨🇳 中文</button>
+                <button type="button" class="oem-lang-btn div-lang-btn" data-oem-lang="en">🇬🇧 EN</button>
               </div>
             </header>
             <div class="deck-viewport" id="deck-viewport-oem">
@@ -353,13 +354,12 @@
                 <span class="deck-placeholder-icon" aria-hidden="true">🏗️</span>
                 <p class="deck-placeholder-text">Presentación pendiente de cargar</p>
               </div>
-              <iframe class="deck-pdf-frame" title="OEM · TIER1" hidden></iframe>
               <div class="deck-slide-carousel" hidden>
                 <div class="deck-slide-carousel-inner">
                   <button type="button" class="deck-nav deck-nav--prev" data-deck-nav="prev" aria-label="Diapositiva anterior">‹</button>
                   <div class="deck-slide-stage" data-deck-swipe>
                     <div class="deck-slide-zoom-wrap">
-                      <img class="deck-slide-img" alt="" decoding="async" />
+                      <img class="deck-slide-img deck-slide-img--zoomable" alt="" decoding="async" />
                     </div>
                   </div>
                   <button type="button" class="deck-nav deck-nav--next" data-deck-nav="next" aria-label="Diapositiva siguiente">›</button>
@@ -617,14 +617,14 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '77';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '78';
       var q = '?v=' + encodeURIComponent(bust);
       document.write('<script src="cisce-companies-data.js' + q + '"><\/script>');
     })();
   </script>
   <script>
     (function () {
-      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '77';
+      var bust = window.__APP_CACHE_BUSTER__ || window.__APP_BUILD__ || '78';
       var q = '?v=' + encodeURIComponent(bust);
       function loadNext(files, i) {
         if (i >= files.length) return;
@@ -634,7 +634,7 @@
         s.onerror = function () { console.warn('No se cargó:', files[i]); loadNext(files, i + 1); };
         document.body.appendChild(s);
       }
-      loadNext(['config.js', 'graph-sync.js', 'ficha-sharepoint.js', 'resumen-generator.js', 'findreams-respuestas-data.js', 'app.js'], 0);
+      loadNext(['config.js', 'graph-sync.js', 'ficha-sharepoint.js', 'resumen-generator.js', 'findreams-respuestas-data.js', 'presentations-slides-manifest.js', 'app.js'], 0);
     })();
   </script>
 </body>

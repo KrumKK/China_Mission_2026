@@ -1,16 +1,18 @@
 /* Misión China 2026 — Service Worker (red primero en la app) */
 'use strict';
 
-const CACHE_VERSION = 'v77';
+importScripts('./presentations-slides-manifest.js');
+
+const CACHE_VERSION = 'v78';
 const CACHE_NAME = 'mision-china-' + CACHE_VERSION;
 
-function diversificacionSlideAssets() {
-  const langs = ['div-es', 'div-zh', 'div-en'];
+function manifestSlideAssets() {
+  const manifest = self.PRESENTATION_SLIDE_MANIFEST || {};
   const assets = [];
-  langs.forEach(lang => {
-    for (let i = 1; i <= 12; i++) {
-      assets.push('./Presentaciones/diversificacion/' + lang + '/Diapositiva' + i + '.JPG');
-    }
+  Object.keys(manifest).forEach(folder => {
+    const slides = manifest[folder];
+    if (!Array.isArray(slides)) return;
+    slides.forEach(file => assets.push('./' + folder + '/' + file));
   });
   return assets;
 }
@@ -21,14 +23,14 @@ const OFFLINE_ASSETS = [
   './manifest.webmanifest',
   './lizarte-logo.png',
   './brochure-liz-china.html',
+  './presentations-slides-manifest.js',
   './vcard-qr-krum.png',
   './vcard-qr-oscar.png',
   './wechat-qr-krum.png',
-  './Presentaciones/oem-tier1/slides.json',
   './arrival-card-krum.pdf',
   './arrival-card-oscar.pdf',
   './poliza-seguro-viaje.pdf',
-  ...diversificacionSlideAssets()
+  ...manifestSlideAssets()
 ];
 
 function isSameOrigin(url) {
@@ -49,6 +51,7 @@ function isAppResource(pathname) {
     pathname.endsWith('/ficha-sharepoint.js') ||
     pathname.endsWith('/cisce-companies-data.js') ||
     pathname.endsWith('/findreams-respuestas-data.js') ||
+    pathname.endsWith('/presentations-slides-manifest.js') ||
     pathname.endsWith('/resumen-generator.js') ||
     pathname.endsWith('/styles.css') ||
     pathname.endsWith('/sw.js')
