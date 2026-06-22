@@ -5149,47 +5149,63 @@ function truncateText(text, max) {
   return t.slice(0, max - 1) + '…';
 }
 
+let cardDelegationBound = false;
+let meetingTypeDelegationBound = false;
+
 function bindIcexCompanyCards() {
-  document.querySelectorAll('.icex-company-card[data-company-id], .cisce-feria-card[data-company-id]').forEach(el => {
-    const open = () => openCompanyModal(el.dataset.companyId);
-    el.addEventListener('click', e => {
-      if (e.target.closest('.meeting-type-picker')) return;
-      open();
-    });
-    el.addEventListener('keydown', e => {
-      if (e.target.closest('.meeting-type-picker')) return;
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        open();
-      }
-    });
+  if (cardDelegationBound) return;
+  cardDelegationBound = true;
+
+  const root = document.getElementById('app-main') || document;
+
+  root.addEventListener('click', event => {
+    const card = event.target.closest('.icex-company-card[data-company-id], .cisce-feria-card[data-company-id]');
+    if (!card) return;
+    if (event.target.closest('.meeting-type-picker')) return;
+    openCompanyModal(card.dataset.companyId);
+  });
+
+  root.addEventListener('keydown', event => {
+    const card = event.target.closest('.icex-company-card[data-company-id], .cisce-feria-card[data-company-id]');
+    if (!card) return;
+    if (event.target.closest('.meeting-type-picker')) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openCompanyModal(card.dataset.companyId);
+    }
   });
 }
 
 function bindMeetingTypePickers() {
-  document.querySelectorAll('.meeting-type-picker[data-company-id]').forEach(picker => {
-    picker.querySelectorAll('.meeting-type-btn').forEach(btn => {
-      btn.addEventListener('click', async e => {
-        e.preventDefault();
-        e.stopPropagation();
-        const companyId = picker.dataset.companyId;
-        const type = btn.dataset.type;
-        const ficha = getCachedFicha(companyId);
-        const current = normalizeMeetingType(ficha.meetingType);
-        const next = current === type ? '' : type;
-        try {
-          await setCompanyMeetingType(companyId, next);
-          syncMeetingTypePickerButtons(picker, next);
-          if (activeCompanyId === companyId) {
-            syncMeetingTypePickerButtons(
-              document.getElementById('company-meeting-type-picker'),
-              next
-            );
-            if (activeModalFicha) activeModalFicha.meetingType = next || null;
-          }
-        } catch (_) { /* mensaje en setCompanyMeetingType */ }
-      });
-    });
+  if (meetingTypeDelegationBound) return;
+  meetingTypeDelegationBound = true;
+
+  const root = document.getElementById('app-main') || document;
+
+  root.addEventListener('click', async event => {
+    const btn = event.target.closest('.meeting-type-btn');
+    if (!btn) return;
+    const picker = btn.closest('.meeting-type-picker[data-company-id]');
+    if (!picker) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    const companyId = picker.dataset.companyId;
+    const type = btn.dataset.type;
+    const ficha = getCachedFicha(companyId);
+    const current = normalizeMeetingType(ficha.meetingType);
+    const next = current === type ? '' : type;
+    try {
+      await setCompanyMeetingType(companyId, next);
+      syncMeetingTypePickerButtons(picker, next);
+      if (activeCompanyId === companyId) {
+        syncMeetingTypePickerButtons(
+          document.getElementById('company-meeting-type-picker'),
+          next
+        );
+        if (activeModalFicha) activeModalFicha.meetingType = next || null;
+      }
+    } catch (_) { /* mensaje en setCompanyMeetingType */ }
   });
 }
 

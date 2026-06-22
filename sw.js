@@ -3,7 +3,7 @@
 
 importScripts('./presentations-slides-manifest.js');
 
-const CACHE_VERSION = 'v80';
+const CACHE_VERSION = 'v81';
 const CACHE_NAME = 'mision-china-' + CACHE_VERSION;
 
 function manifestSlideAssets() {
