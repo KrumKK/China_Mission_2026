@@ -2740,6 +2740,20 @@ body.qr-fullscreen-open {
 .badge-visita { background: #FFF5E0; color: #8A6A20; }
 .badge-unset { background: var(--bg-elevated); color: var(--text-faint); }
 .badge-photos { background: var(--neuro-lavender); color: var(--accent-dark); }
+.badge-priority { background: #FFF3CD; color: #9A7B0A; }
+.badge-contactos { background: #E8EEF8; color: #3D5A80; }
+
+.company-card-pickers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0 6px;
+}
+
+.company-card-pickers--summit {
+  width: 100%;
+  margin-top: 0;
+}
 
 .meeting-type-picker {
   display: flex;
@@ -2777,6 +2791,49 @@ body.qr-fullscreen-open {
   border-color: #C9A227;
   background: #FFF8E6;
   color: #8A6A20;
+}
+
+.meeting-type-picker--card .meeting-type-btn.active[data-type="contactos"] {
+  border-color: #6B8CAE;
+  background: #E8EEF8;
+  color: #3D5A80;
+}
+
+.priority-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.priority-picker--card,
+.priority-picker--summit {
+  width: 100%;
+}
+
+.priority-btn {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--card-border);
+  background: var(--bg-elevated);
+  color: var(--text-soft);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.priority-btn.active {
+  border-color: #C9A227;
+  background: #FFF3CD;
+  color: #9A7B0A;
+}
+
+.priority-btn.active[data-priority="0"] {
+  border-color: var(--card-border);
+  background: var(--bg-elevated);
+  color: var(--text-soft);
 }
 
 .icex-office-stats {

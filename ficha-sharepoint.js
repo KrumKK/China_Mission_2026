@@ -15,7 +15,7 @@ function emptyUserEntry() {
 }
 
 function normalizeMeetingTypeValue(value) {
-  if (value === 'b2b' || value === 'visita') return value;
+  if (value === 'b2b' || value === 'visita' || value === 'contactos') return value;
   return null;
 }
 
@@ -41,6 +41,7 @@ function defaultCisceRemoteFicha(companyId) {
     contacto: '',
     rol: '',
     tipoReunion: '',
+    prioritario: false,
     zonaOverride: undefined,
     krum: emptyCisceUserBlock(),
     oscar: emptyCisceUserBlock()
@@ -56,6 +57,7 @@ function normalizeCisceRemoteFicha(raw, companyId) {
     contacto: typeof raw.contacto === 'string' ? raw.contacto : '',
     rol: typeof raw.rol === 'string' ? raw.rol : '',
     tipoReunion: normalizeMeetingTypeValue(raw.tipoReunion) || '',
+    prioritario: !!raw.prioritario,
     zonaOverride: typeof raw.zonaOverride === 'string' ? raw.zonaOverride : undefined,
     krum: emptyCisceUserBlock(),
     oscar: emptyCisceUserBlock()
@@ -93,6 +95,7 @@ function mergeCisceFichaForSave(remote, formState, currentUser) {
   }
 
   if (formState.zona !== undefined) merged.zonaOverride = formState.zona;
+  if (formState.prioritario !== undefined) merged.prioritario = !!formState.prioritario;
 
   return merged;
 }
@@ -135,6 +138,7 @@ function defaultRemoteFicha(companyId, meta) {
     temas: meta.temas || '',
     icexOffice: meta.icexOffice || meta.officeLabel || '',
     meetingType: null,
+    prioritario: false,
     isManual: !!meta.isManual,
     userEntries: {
       krum: emptyUserEntry(),
@@ -156,6 +160,7 @@ function normalizeRemoteFicha(raw, companyId, meta) {
     temas: typeof raw.temas === 'string' ? raw.temas : base.temas,
     icexOffice: raw.icexOffice != null ? raw.icexOffice : base.icexOffice,
     meetingType: raw.meetingType != null ? normalizeMeetingTypeValue(raw.meetingType) : null,
+    prioritario: !!raw.prioritario,
     isManual: raw.isManual === true
       || String(companyId).indexOf('otras-') === 0
       || String(companyId).indexOf('summit-') === 0
@@ -282,6 +287,7 @@ function mergeFichaForSave(remote, formState, currentUser) {
   if (formState.temas !== undefined) merged.temas = formState.temas;
   if (formState.isManual !== undefined) merged.isManual = !!formState.isManual;
   if (formState.icexOffice !== undefined) merged.icexOffice = formState.icexOffice;
+  if (formState.prioritario !== undefined) merged.prioritario = !!formState.prioritario;
 
   return merged;
 }
@@ -321,7 +327,7 @@ async function convertLegacyIndexedDbRecord(record, currentUser, meta, blobToBas
   }
 
   const mt = record.meetingType;
-  ficha.meetingType = mt === 'b2b' || mt === 'visita' ? mt : null;
+  ficha.meetingType = (mt === 'b2b' || mt === 'visita' || mt === 'contactos') ? mt : null;
   return normalizeRemoteFicha(ficha, record.companyId, meta);
 }
 

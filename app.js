@@ -1192,7 +1192,7 @@ function getCisceFeriaSections() {
   ];
 }
 
-const VALID_MEETING_TYPES = ['b2b', 'visita'];
+const VALID_MEETING_TYPES = ['b2b', 'visita', 'contactos'];
 
 function normalizeMeetingType(value) {
   return VALID_MEETING_TYPES.includes(value) ? value : '';
@@ -1201,21 +1201,42 @@ function normalizeMeetingType(value) {
 function meetingTypeLabel(type) {
   if (type === 'b2b') return 'B2B';
   if (type === 'visita') return 'Visita';
+  if (type === 'contactos') return 'Contactos Importantes';
   return 'Sin asignar';
 }
 
 function meetingTypeBadgeHtml(type) {
   if (type === 'b2b') return '<span class="company-badge badge-b2b">🤝 B2B</span>';
   if (type === 'visita') return '<span class="company-badge badge-visita">🏭 Visita</span>';
+  if (type === 'contactos') return '<span class="company-badge badge-contactos">📇 Contactos Importantes</span>';
   return '<span class="company-badge badge-unset">Sin asignar</span>';
 }
 
-function buildMeetingTypePickerHtml(companyId, activeType, extraClass) {
+function priorityBadgeHtml(isPriority) {
+  if (!isPriority) return '';
+  return '<span class="company-badge badge-priority">⭐ Prioritario</span>';
+}
+
+function buildMeetingTypePickerHtml(companyId, activeType, extraClass, includeContactos) {
   const cls = extraClass ? ' ' + extraClass : '';
+  const contactosBtn = includeContactos
+    ? `<button type="button" class="meeting-type-btn${activeType === 'contactos' ? ' active' : ''}" data-type="contactos">📇 Contactos Importantes</button>`
+    : '';
   return `
     <div class="meeting-type-picker${cls}" data-company-id="${escapeHtml(companyId)}" role="group" aria-label="Tipo de reunión">
       <button type="button" class="meeting-type-btn${activeType === 'b2b' ? ' active' : ''}" data-type="b2b">🤝 B2B</button>
       <button type="button" class="meeting-type-btn${activeType === 'visita' ? ' active' : ''}" data-type="visita">🏭 Visita</button>
+      ${contactosBtn}
+    </div>`;
+}
+
+function buildPriorityToggleHtml(companyId, isPriority, extraClass) {
+  const cls = extraClass ? ' ' + extraClass : '';
+  const pri = !!isPriority;
+  return `
+    <div class="priority-picker${cls}" data-company-id="${escapeHtml(companyId)}" role="group" aria-label="Prioridad">
+      <button type="button" class="priority-btn${pri ? ' active' : ''}" data-priority="1">⭐ Prioritario</button>
+      <button type="button" class="priority-btn${!pri ? ' active' : ''}" data-priority="0">No prioritario</button>
     </div>`;
 }
 
@@ -1223,6 +1244,14 @@ function syncMeetingTypePickerButtons(pickerEl, activeType) {
   if (!pickerEl) return;
   pickerEl.querySelectorAll('.meeting-type-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.type === activeType);
+  });
+}
+
+function syncPriorityPickerButtons(pickerEl, isPriority) {
+  if (!pickerEl) return;
+  const pri = !!isPriority;
+  pickerEl.querySelectorAll('.priority-btn').forEach(btn => {
+    btn.classList.toggle('active', (btn.dataset.priority === '1') === pri);
   });
 }
 
@@ -1774,6 +1803,7 @@ function buildCisceFichaView(raw, seed) {
     contactPerson: remote.contacto || '',
     role: remote.rol || '',
     meetingType: remote.tipoReunion || null,
+    prioritario: !!(remote && remote.prioritario),
     userEntries: {
       krum: block('krum'),
       oscar: block('oscar')
@@ -1853,6 +1883,9 @@ function buildCisceCardBadgesHtml(ficha, seed, meetingType) {
   if (meetingType === 'b2b' || meetingType === 'visita') {
     parts.push(meetingTypeBadgeHtml(meetingType));
   }
+  if (ficha && ficha.prioritario) {
+    parts.push(priorityBadgeHtml(true));
+  }
   const photos = countPhotosInFicha(ficha);
   if (photos.total > 0) {
     parts.push(`<span class="company-badge badge-photos">📷 ${photos.total}</span>`);
@@ -1908,6 +1941,10 @@ function buildCisceFeriaCardHtml(ficha, seed) {
         <div class="cisce-card-badges">
           ${buildCisceCardBadgesHtml(ficha, seed, meetingType)}
         </div>
+      </div>
+      <div class="company-card-pickers">
+        ${buildMeetingTypePickerHtml(seed.id, meetingType, 'meeting-type-picker--card')}
+        ${buildPriorityToggleHtml(seed.id, !!(ficha && ficha.prioritario), 'priority-picker--card')}
       </div>
       <p class="cisce-card-preview">${escapeHtml(preview)}${seed.queHace && seed.queHace.length > 60 ? '…' : ''}</p>
     </article>`;
@@ -2339,6 +2376,21 @@ async function getAllRecordsFromDatabase() {
   return rows.map(normalizeLegacyIndexedDbRecord).filter(Boolean);
 }
 
+async function saveCardFieldAtomic(companyId, ficha, formState) {
+  if (isCiscePrecargadaFicha(ficha)) {
+    formState.contactPerson = ficha.contactPerson || '';
+    formState.role = ficha.role || '';
+    formState.meetingType = ficha.meetingType || '';
+    if (Object.prototype.hasOwnProperty.call(ficha, 'zonaOverride')) {
+      formState.zona = ficha.zona || '';
+    }
+    const remote = await saveCisceFichaAtomic(companyId, formState);
+    const seed = getCisceCompanyMap().get(companyId);
+    return buildCisceFichaView(remote, seed);
+  }
+  return saveFichaAtomic(companyId, formState);
+}
+
 async function setCompanyMeetingType(companyId, meetingType) {
   if (!isAppOnline()) {
     if (activeCompanyId === companyId) {
@@ -2370,7 +2422,49 @@ async function setCompanyMeetingType(companyId, meetingType) {
     formState.icexOffice = 'Auto Electronics';
   }
   try {
-    const merged = await saveFichaAtomic(companyId, formState);
+    const merged = await saveCardFieldAtomic(companyId, ficha, formState);
+    setCachedFicha(companyId, merged);
+    refreshAfterFichaChange(companyId);
+    renderMeetingsSummary();
+    return merged;
+  } catch (err) {
+    console.warn(err);
+    setCompanySaveStatus(connectionErrorMessage(), true);
+    throw err;
+  }
+}
+
+async function setCompanyPriority(companyId, isPriority) {
+  if (!isAppOnline()) {
+    if (activeCompanyId === companyId) {
+      setCompanySaveStatus(sharePointOfflineMessage(), true);
+    }
+    throw new Error(sharePointOfflineMessage());
+  }
+  const ficha = getCachedFicha(companyId);
+  const meta = metaFromFicha(ficha, companyId);
+  const formState = {
+    meta,
+    prioritario: !!isPriority
+  };
+  if (isManualFicha(ficha)) {
+    formState.name = ficha.name || '';
+    formState.nameZh = ficha.nameZh || '';
+    formState.contactPerson = ficha.contactPerson || '';
+    formState.role = ficha.role || '';
+    formState.isManual = true;
+    formState.icexOffice = '';
+  } else if (isSummitFicha(ficha)) {
+    formState.name = ficha.name || '';
+    formState.nameZh = ficha.nameZh || '';
+    formState.contactPerson = ficha.contactPerson || '';
+    formState.role = ficha.role || '';
+    formState.temas = ficha.temas || '';
+    formState.isManual = true;
+    formState.icexOffice = 'Auto Electronics';
+  }
+  try {
+    const merged = await saveCardFieldAtomic(companyId, ficha, formState);
     setCachedFicha(companyId, merged);
     refreshAfterFichaChange(companyId);
     renderMeetingsSummary();
@@ -4560,6 +4654,10 @@ function buildCompanyCardHtml(ficha, companyId, seedCompany, cardOptions) {
   cardOptions = cardOptions || {};
   const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
   const meetingType = normalizeMeetingType(ficha.meetingType);
+  const isPriority = !!ficha.prioritario;
+  const includeContactos = !!cardOptions.includeContactos
+    || isManualFicha(ficha)
+    || isManualFichaId(companyId);
   const photos = countPhotosInFicha(ficha);
   const mine = ficha.userEntries && ficha.userEntries[uid] ? ficha.userEntries[uid] : {};
   const hasNotes = !!(mine.description || mine.notes);
@@ -4596,6 +4694,7 @@ function buildCompanyCardHtml(ficha, companyId, seedCompany, cardOptions) {
           </div>
           <div class="company-badges">
             ${meetingTypeBadgeHtml(meetingType)}
+            ${priorityBadgeHtml(isPriority)}
             ${photos.total > 0 ? `<span class="company-badge badge-photos">📷 ${photos.total}</span>` : ''}
           </div>
         </div>
@@ -4608,6 +4707,7 @@ function buildCompanyCardHtml(ficha, companyId, seedCompany, cardOptions) {
         </div>
         <div class="company-badges">
           ${meetingTypeBadgeHtml(meetingType)}
+          ${priorityBadgeHtml(isPriority)}
           ${photos.total > 0 ? `<span class="company-badge badge-photos">📷 ${photos.total}</span>` : ''}
         </div>
       </div>`;
@@ -4616,7 +4716,10 @@ function buildCompanyCardHtml(ficha, companyId, seedCompany, cardOptions) {
     <article class="company-card icex-company-card${lizarteClass}" data-company-id="${escapeHtml(companyId)}" role="button" tabindex="0" aria-label="Abrir ficha de ${escapeHtml(displayName)}">
       ${headerHtml}
       ${cityHtml}
-      ${buildMeetingTypePickerHtml(companyId, meetingType, 'meeting-type-picker--card')}
+      <div class="company-card-pickers">
+        ${buildMeetingTypePickerHtml(companyId, meetingType, 'meeting-type-picker--card', includeContactos)}
+        ${buildPriorityToggleHtml(companyId, isPriority, 'priority-picker--card')}
+      </div>
       ${contactLine ? `<p class="company-contact-person">👤 ${escapeHtml(contactLine)}</p>` : ''}
       <p class="company-card-preview ${hasNotes ? '' : 'company-card-preview--empty'}">${escapeHtml(preview)}</p>
       <p class="company-card-meta" ${photoLabel ? '' : 'hidden'}>📷 ${escapeHtml(photoLabel)}</p>
@@ -4627,6 +4730,7 @@ function tallyIcexMeetingStats(ficha) {
   const meetingType = normalizeMeetingType(ficha.meetingType);
   if (meetingType === 'b2b') return { b2b: 1, visita: 0, unset: 0 };
   if (meetingType === 'visita') return { b2b: 0, visita: 1, unset: 0 };
+  if (meetingType === 'contactos') return { b2b: 0, visita: 0, unset: 0 };
   return { b2b: 0, visita: 0, unset: 1 };
 }
 
@@ -4638,9 +4742,13 @@ function mergeIcexOfficeStats(stats, delta) {
 
 function buildSummitFichaBarHtml(ficha, companyId) {
   const meetingType = normalizeMeetingType(ficha.meetingType);
+  const isPriority = !!ficha.prioritario;
   return `
     <div class="icex-summit-ficha-bar">
-      ${buildMeetingTypePickerHtml(companyId, meetingType, 'meeting-type-picker--summit')}
+      <div class="company-card-pickers company-card-pickers--summit">
+        ${buildMeetingTypePickerHtml(companyId, meetingType, 'meeting-type-picker--summit')}
+        ${buildPriorityToggleHtml(companyId, isPriority, 'priority-picker--summit')}
+      </div>
       <button type="button" class="icex-summit-ficha-btn" data-company-id="${escapeHtml(companyId)}">📝 Notas, contactos y fotos</button>
     </div>`;
 }
@@ -4721,10 +4829,11 @@ async function renderOtrasReuniones() {
       <span class="alert-icon">☁️</span>
       <p>Reuniones añadidas manualmente · mismas fichas en SharePoint que ICEX.</p>
     </div>
-    <div class="company-list otras-company-list">${fichas.map(f => buildCompanyCardHtml(f, f.id)).join('')}</div>`;
+    <div class="company-list otras-company-list">${fichas.map(f => buildCompanyCardHtml(f, f.id, null, { includeContactos: true })).join('')}</div>`;
 
   bindIcexCompanyCards();
   bindMeetingTypePickers();
+  bindPriorityPickers();
 }
 
 function openNewManualFicha() {
@@ -4859,6 +4968,7 @@ function paintCisceFeria() {
   bindCisceFeriaSections();
   bindIcexCompanyCards();
   bindMeetingTypePickers();
+  bindPriorityPickers();
 
   const globalAdd = document.getElementById('btn-cisce-feria-add');
   if (globalAdd && globalAdd.dataset.bound !== '1') {
@@ -5080,6 +5190,7 @@ function paintAutoElectronics() {
   bindSummitRefTabLinks();
   bindIcexCompanyCards();
   bindMeetingTypePickers();
+  bindPriorityPickers();
   bindSummitFichaButtons();
   initSummitEvent();
   renderMeetingsSummary();
@@ -5158,6 +5269,7 @@ function paintIcexOffices() {
 
   bindIcexCompanyCards();
   bindMeetingTypePickers();
+  bindPriorityPickers();
   bindSummitCollapsible();
   bindSummitFichaButtons();
   bindSummitRefTabLinks();
@@ -5185,6 +5297,7 @@ function truncateText(text, max) {
 
 let cardDelegationBound = false;
 let meetingTypeDelegationBound = false;
+let priorityDelegationBound = false;
 
 function bindIcexCompanyCards() {
   if (cardDelegationBound) return;
@@ -5196,6 +5309,7 @@ function bindIcexCompanyCards() {
     const card = event.target.closest('.icex-company-card[data-company-id], .cisce-feria-card[data-company-id]');
     if (!card) return;
     if (event.target.closest('.meeting-type-picker')) return;
+    if (event.target.closest('.priority-picker')) return;
     openCompanyModal(card.dataset.companyId);
   });
 
@@ -5203,6 +5317,7 @@ function bindIcexCompanyCards() {
     const card = event.target.closest('.icex-company-card[data-company-id], .cisce-feria-card[data-company-id]');
     if (!card) return;
     if (event.target.closest('.meeting-type-picker')) return;
+    if (event.target.closest('.priority-picker')) return;
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       openCompanyModal(card.dataset.companyId);
@@ -5240,6 +5355,35 @@ function bindMeetingTypePickers() {
         if (activeModalFicha) activeModalFicha.meetingType = next || null;
       }
     } catch (_) { /* mensaje en setCompanyMeetingType */ }
+  });
+}
+
+function bindPriorityPickers() {
+  if (priorityDelegationBound) return;
+  priorityDelegationBound = true;
+
+  const root = document.getElementById('app-main') || document;
+
+  root.addEventListener('click', async event => {
+    const btn = event.target.closest('.priority-btn');
+    if (!btn) return;
+    const picker = btn.closest('.priority-picker[data-company-id]');
+    if (!picker) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    const companyId = picker.dataset.companyId;
+    const isPriority = btn.dataset.priority === '1';
+    const ficha = getCachedFicha(companyId);
+    const current = !!(ficha && ficha.prioritario);
+    if (current === isPriority) return;
+    try {
+      const merged = await setCompanyPriority(companyId, isPriority);
+      syncPriorityPickerButtons(picker, !!(merged && merged.prioritario));
+      if (activeCompanyId === companyId && activeModalFicha) {
+        activeModalFicha.prioritario = !!(merged && merged.prioritario);
+      }
+    } catch (_) { /* mensaje en setCompanyPriority */ }
   });
 }
 
@@ -5347,14 +5491,18 @@ function refreshIcexCompanyCard(companyId) {
     : '';
 
   const meetingType = normalizeMeetingType(ficha.meetingType);
+  const isPriority = !!ficha.prioritario;
   const badges = card.querySelector('.company-badges');
   if (badges) {
     badges.innerHTML = `
       ${meetingTypeBadgeHtml(meetingType)}
+      ${priorityBadgeHtml(isPriority)}
       ${photos.total > 0 ? `<span class="company-badge badge-photos">📷 ${photos.total}</span>` : ''}`;
   }
   const picker = card.querySelector('.meeting-type-picker');
   syncMeetingTypePickerButtons(picker, meetingType);
+  const priorityPicker = card.querySelector('.priority-picker');
+  syncPriorityPickerButtons(priorityPicker, isPriority);
   const previewEl = card.querySelector('.company-card-preview');
   if (previewEl) {
     previewEl.textContent = preview;
