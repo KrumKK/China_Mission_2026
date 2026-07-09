@@ -5743,3 +5743,31 @@ body.brochure-fs-portal-open {
   .trip-hero-row .card-hero-title { font-size: 19px; }
   .trip-hero-row .countdown-value { font-size: 28px; }
 }
+
+/* ═══ ESCRITORIO (≥1024px) — layout ancho; móvil sin cambios ═══ */
+@media (min-width: 1024px) {
+  .app-wrap {
+    max-width: 1180px;
+  }
+
+  .company-list,
+  .otras-company-list,
+  .cisce-feria-company-list,
+  .icex-company-list,
+  .summit-company-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+
+  #company-modal .company-modal-sheet {
+    max-width: 760px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .app-wrap {
+    max-width: 1320px;
+  }
+}
