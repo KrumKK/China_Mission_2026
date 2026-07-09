@@ -5747,7 +5747,9 @@ body.brochure-fs-portal-open {
 /* ═══ ESCRITORIO (≥1024px) — layout ancho; móvil sin cambios ═══ */
 @media (min-width: 1024px) {
   .app-wrap {
-    max-width: 1180px;
+    max-width: 94vw;
+    padding-left: 24px;
+    padding-right: 24px;
   }
 
   .company-list,
@@ -5756,18 +5758,12 @@ body.brochure-fs-portal-open {
   .icex-company-list,
   .summit-company-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: 16px;
     align-items: start;
   }
 
   #company-modal .company-modal-sheet {
     max-width: 760px;
-  }
-}
-
-@media (min-width: 1440px) {
-  .app-wrap {
-    max-width: 1320px;
   }
 }
