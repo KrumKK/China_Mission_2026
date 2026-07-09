@@ -2119,17 +2119,102 @@ function getSummitFichasFromCache() {
   return cards;
 }
 
+function getIcexCantonCardOptions(companyId) {
+  for (let d = 0; d < ICEX_CANTON_SCHEDULE.length; d++) {
+    const day = ICEX_CANTON_SCHEDULE[d];
+    for (let i = 0; i < day.items.length; i++) {
+      const item = day.items[i];
+      if (item.companyId === companyId && item.type !== 'travel') {
+        const company = ICEX_COMPANY_MAP.get(companyId);
+        const opts = {};
+        if (company && company.city) opts.city = company.city;
+        if (item.meetingTime != null) opts.cantonMeetingTime = item.meetingTime;
+        return opts;
+      }
+    }
+  }
+  return {};
+}
+
+function resolveCardSeedForCompany(companyId, ficha) {
+  if (isCisceFichaId(companyId) || isCisceFicha(ficha)) {
+    const precargaSeed = getCisceCompanyMap().get(companyId);
+    if (precargaSeed) return precargaSeed;
+    return {
+      id: ficha.id || companyId,
+      name: ficha.name || 'Sin nombre',
+      nameZh: ficha.nameZh || '',
+      potencial: ficha.potencial || '',
+      veredicto: ficha.veredicto || '',
+      queHace: ficha.queHace || '',
+      zona: resolveCisceZona(ficha, { id: companyId }),
+      encaje: ficha.encaje || '',
+      cisceSection: getCisceFichaSection(companyId)
+    };
+  }
+  if (isSummitFichaId(companyId) || isSummitFicha(ficha)) {
+    const seed = SUMMIT_COMPANY_MAP.get(companyId);
+    if (seed) return seed;
+    return {
+      id: companyId,
+      name: ficha.name || 'Sin nombre',
+      nameZh: ficha.nameZh || ''
+    };
+  }
+  return ICEX_COMPANY_MAP.get(companyId) || null;
+}
+
+function buildCardHtmlForCompany(companyId, ficha) {
+  if (isCisceFichaId(companyId) || isCisceFicha(ficha)) {
+    const seed = resolveCardSeedForCompany(companyId, ficha);
+    return seed ? buildCisceFeriaCardHtml(ficha, seed) : '';
+  }
+  const seed = resolveCardSeedForCompany(companyId, ficha);
+  const cardOptions = getIcexCantonCardOptions(companyId);
+  if (isManualFichaId(companyId) || isManualFicha(ficha)) {
+    cardOptions.includeContactos = true;
+  }
+  return buildCompanyCardHtml(ficha, companyId, seed, cardOptions);
+}
+
+function replaceNodeWithHtml(node, html) {
+  if (!node || !html) return;
+  const temp = document.createElement('div');
+  temp.innerHTML = html.trim();
+  const fresh = temp.firstElementChild;
+  if (fresh) node.replaceWith(fresh);
+}
+
+function refreshCardInPlace(companyId) {
+  const ficha = getCachedFicha(companyId);
+  if (!ficha) return;
+
+  const html = buildCardHtmlForCompany(companyId, ficha);
+  if (html) {
+    document.querySelectorAll(
+      `.icex-company-card[data-company-id="${companyId}"], .cisce-feria-card[data-company-id="${companyId}"]`
+    ).forEach(node => replaceNodeWithHtml(node, html));
+  }
+
+  document.querySelectorAll(
+    `.icex-summit-ficha-bar .meeting-type-picker[data-company-id="${companyId}"]`
+  ).forEach(picker => {
+    const bar = picker.closest('.icex-summit-ficha-bar');
+    if (bar) replaceNodeWithHtml(bar, buildSummitFichaBarHtml(ficha, companyId));
+  });
+}
+
 function refreshAfterFichaChange(companyId) {
   if (isSummitFichaId(companyId) || isSummitFicha(getCachedFicha(companyId))) {
-    renderAutoElectronics().catch(err => console.warn('Auto Electronics:', err));
+    refreshCardInPlace(companyId);
     return;
   }
   if (isCisceFichaId(companyId) || isCisceFicha(getCachedFicha(companyId))) {
-    renderCisceFeria().catch(err => console.warn('CISCE Feria:', err));
+    refreshCardInPlace(companyId);
     return;
   }
   if (isManualFichaId(companyId) || isManualFicha(getCachedFicha(companyId))) {
-    renderOtrasReuniones().catch(err => console.warn('Otras:', err));
+    refreshCardInPlace(companyId);
   } else {
     refreshIcexCompanyCard(companyId);
   }
@@ -5480,22 +5565,29 @@ function updateManualSaveButtonState() {
 
 function refreshIcexCompanyCard(companyId) {
   if (isSummitFichaId(companyId) || isSummitFicha(getCachedFicha(companyId))) {
-    renderAutoElectronics().catch(() => undefined);
+    refreshCardInPlace(companyId);
     return;
   }
   if (isCisceFichaId(companyId) || isCisceFicha(getCachedFicha(companyId))) {
-    renderCisceFeria().catch(() => undefined);
+    refreshCardInPlace(companyId);
     return;
   }
   if (isManualFichaId(companyId) || isManualFicha(getCachedFicha(companyId))) {
-    renderOtrasReuniones().catch(() => undefined);
+    refreshCardInPlace(companyId);
+    return;
+  }
+
+  const ficha = getCachedFicha(companyId);
+  const card = document.querySelector(`.icex-company-card[data-company-id="${companyId}"]`);
+  if (!card) return;
+
+  const html = buildCardHtmlForCompany(companyId, ficha);
+  if (html) {
+    replaceNodeWithHtml(card, html);
     return;
   }
 
   const uid = typeof getCurrentUser === 'function' ? getCurrentUser() : '';
-  const ficha = getCachedFicha(companyId);
-  const card = document.querySelector(`.icex-company-card[data-company-id="${companyId}"]`);
-  if (!card) return;
 
   const photos = countPhotosInFicha(ficha);
   const mine = ficha.userEntries && ficha.userEntries[uid] ? ficha.userEntries[uid] : {};
