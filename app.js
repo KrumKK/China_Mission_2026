@@ -5341,20 +5341,33 @@ function bindMeetingTypePickers() {
 
     const companyId = picker.dataset.companyId;
     const type = btn.dataset.type;
+    const next = type;
     const ficha = getCachedFicha(companyId);
     const current = normalizeMeetingType(ficha.meetingType);
-    const next = current === type ? '' : type;
-    try {
-      await setCompanyMeetingType(companyId, next);
-      syncMeetingTypePickerButtons(picker, next);
-      if (activeCompanyId === companyId) {
-        syncMeetingTypePickerButtons(
-          document.getElementById('company-meeting-type-picker'),
-          next
-        );
-        if (activeModalFicha) activeModalFicha.meetingType = next || null;
+
+    syncMeetingTypePickerButtons(picker, next);
+    if (activeCompanyId === companyId) {
+      syncMeetingTypePickerButtons(
+        document.getElementById('company-meeting-type-picker'),
+        next
+      );
+      if (activeModalFicha) activeModalFicha.meetingType = next || null;
+    }
+
+    if (current !== next) {
+      try {
+        await setCompanyMeetingType(companyId, next);
+      } catch (_) {
+        syncMeetingTypePickerButtons(picker, current);
+        if (activeCompanyId === companyId) {
+          syncMeetingTypePickerButtons(
+            document.getElementById('company-meeting-type-picker'),
+            current
+          );
+          if (activeModalFicha) activeModalFicha.meetingType = current || null;
+        }
       }
-    } catch (_) { /* mensaje en setCompanyMeetingType */ }
+    }
   });
 }
 
@@ -5376,14 +5389,19 @@ function bindPriorityPickers() {
     const isPriority = btn.dataset.priority === '1';
     const ficha = getCachedFicha(companyId);
     const current = !!(ficha && ficha.prioritario);
-    if (current === isPriority) return;
-    try {
-      const merged = await setCompanyPriority(companyId, isPriority);
-      syncPriorityPickerButtons(picker, !!(merged && merged.prioritario));
-      if (activeCompanyId === companyId && activeModalFicha) {
-        activeModalFicha.prioritario = !!(merged && merged.prioritario);
+
+    syncPriorityPickerButtons(picker, isPriority);
+
+    if (current !== isPriority) {
+      try {
+        const merged = await setCompanyPriority(companyId, isPriority);
+        if (activeCompanyId === companyId && activeModalFicha) {
+          activeModalFicha.prioritario = !!(merged && merged.prioritario);
+        }
+      } catch (_) {
+        syncPriorityPickerButtons(picker, current);
       }
-    } catch (_) { /* mensaje en setCompanyPriority */ }
+    }
   });
 }
 
@@ -6088,18 +6106,27 @@ function initCompanyModalControls() {
         e.preventDefault();
         if (!activeCompanyId) return;
         const type = btn.dataset.type;
+        const next = type;
         const current = normalizeMeetingType(
           activeModalFicha ? activeModalFicha.meetingType : ''
         );
-        const next = current === type ? '' : type;
-        try {
-          await setCompanyMeetingType(activeCompanyId, next);
-          syncMeetingTypePickerButtons(modalPicker, next);
-          document.querySelectorAll(`.meeting-type-picker[data-company-id="${activeCompanyId}"]`)
-            .forEach(p => syncMeetingTypePickerButtons(p, next));
-          if (activeModalFicha) activeModalFicha.meetingType = next || null;
-          refreshAfterFichaChange(activeCompanyId);
-        } catch (_) { /* error mostrado */ }
+
+        syncMeetingTypePickerButtons(modalPicker, next);
+        document.querySelectorAll(`.meeting-type-picker[data-company-id="${activeCompanyId}"]`)
+          .forEach(p => syncMeetingTypePickerButtons(p, next));
+        if (activeModalFicha) activeModalFicha.meetingType = next || null;
+
+        if (current !== next) {
+          try {
+            await setCompanyMeetingType(activeCompanyId, next);
+            refreshAfterFichaChange(activeCompanyId);
+          } catch (_) {
+            syncMeetingTypePickerButtons(modalPicker, current);
+            document.querySelectorAll(`.meeting-type-picker[data-company-id="${activeCompanyId}"]`)
+              .forEach(p => syncMeetingTypePickerButtons(p, current));
+            if (activeModalFicha) activeModalFicha.meetingType = current || null;
+          }
+        }
       });
     });
   }
