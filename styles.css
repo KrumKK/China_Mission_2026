@@ -2831,9 +2831,9 @@ body.qr-fullscreen-open {
 }
 
 .priority-btn.active[data-priority="0"] {
-  border-color: var(--card-border);
-  background: var(--bg-elevated);
-  color: var(--text-soft);
+  border-color: #9AA3AF;
+  background: #EDEFF2;
+  color: #374151;
 }
 
 .icex-office-stats {
